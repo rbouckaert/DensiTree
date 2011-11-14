@@ -1,0 +1,268 @@
+<project name="DensiTree" default="dist" basedir=".">
+    <description>
+        DensiTree build file
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="dist"  location="dist"/>
+
+	<property name="version" value="2.01" />
+
+	<property name="release_dir" value="release" />
+	<property name="Windows_dir" value="${release_dir}/Windows" />
+	<property name="Mac_dir" value="${release_dir}/Mac" />
+	<property name="common_dir" value="${release_dir}/common" />
+	<property name="Linux_dir" value="${release_dir}/Linux" />
+	<property name="tools_dir" value="${common_dir}/tools" />
+
+	<property name="DensiTree_name" value="DensiTree" />
+	<property name="Mac_package_dir" value="${Mac_dir}/${DensiTree_name}" />
+	<property name="Linux_package_dir" value="${Linux_dir}/${DensiTree_name}" />
+	<property name="Windows_package_dir" value="${Windows_dir}/${DensiTree_name}" />
+
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
+    <javac srcdir="${src}" destdir="${build}" classpath="lib/mtj.jar:../beast2/build"/>
+    <copy todir="${build}/viz/icons">
+	<resources>
+    	<fileset dir="${src}/viz/icons/"/>
+	</resources>
+    </copy>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put source files together -->
+    <delete dir="${build}/lib/DensiTree.src.jar"/>
+    <jar jarfile="${dist}/lib/DensiTree.src.jar" basedir="${src}">
+	<exclude name="**/C/**/*"/>
+	<exclude name="**/tst/**/*"/>
+	<exclude name="**/*class"/>
+	<exclude name="**/geo/**/*"/>
+	<exclude name="**/geo*/**/*"/>
+	<exclude name="**/weka/**/*"/>
+	<exclude name="**/viz/DensiTreeS*"/>
+	<exclude name="**/viz/DensiTreeG*"/>
+	<exclude name="**/.git/**/*"/>
+    </jar>
+    <!-- Put everything in ${build} into the DensiTree.jar file -->
+    <jar jarfile="${dist}/lib/DensiTree.jar" basedir="${build}">
+	<!--exclude name="**/weka/gui/**/*"/-->
+	<exclude name="**/C/**/*"/>
+	<exclude name="**/weka/**/*"/>
+	<exclude name="**/tst/**/*"/>
+	<exclude name="**/geo/**/*"/>
+	<exclude name="**/geo*/**/*"/>
+	<exclude name="**/viz/DensiTreeS*"/>
+	<exclude name="**/viz/DensiTreeG*"/>
+            <manifest>
+                <attribute name="Main-Class" value="viz.DensiTree"/>
+            </manifest>
+    </jar>
+  </target>
+
+
+  <target name="distS" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put source files together -->
+    <delete dir="${build}/lib/DensiTreeS.src.jar"/>
+    <jar jarfile="${dist}/lib/DensiTreeS.src.jar" basedir="${src}">
+	<exclude name="**/C/**/*"/>
+	<exclude name="**/tst/**/*"/>
+	<exclude name="**/*class"/>
+	<exclude name="**/geo/**/*"/>
+	<exclude name="**/geo*/**/*"/>
+	<exclude name="**/weka/**/*"/>
+	<exclude name="**/viz/DensiTreeG*"/>
+	<exclude name="**/.git/**/*"/>
+    </jar>
+    <!-- Put everything in ${build} into the DensiTree.jar file -->
+    <jar jarfile="${dist}/lib/DensiTreeS.jar" basedir="${build}">
+	<!--exclude name="**/weka/gui/**/*"/-->
+	<exclude name="**/C/**/*"/>
+	<exclude name="**/weka/**/*"/>
+	<exclude name="**/tst/**/*"/>
+	<exclude name="**/geo/**/*"/>
+	<exclude name="**/geo*/**/*"/>
+	<exclude name="**/viz/DensiTreeG*"/>
+            <manifest>
+                <attribute name="Main-Class" value="viz.DensiTreeS"/>
+            </manifest>
+    </jar>
+  </target>
+
+
+  <target name="approx" depends="compile"
+        description="generate the distribution to do geo experiments" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put everything in ${build} into the DensiTree.jar file -->
+    <jar jarfile="${dist}/lib/approx.jar" basedir="${build}">
+    	<!--exclude name="**/weka/gui/**/*"/-->
+	    <exclude name="**/C/**/*"/>
+	    <exclude name="**/weka/**/*"/>
+	    <exclude name="**/tst/**/*"/>
+	    <exclude name="**/viz/DensiTreeS*"/>
+	    <exclude name="**/viz/DensiTreeG*"/>
+        <zipgroupfileset dir="${lib}" includes="beast.jar" />
+            <manifest>
+                <attribute name="Main-Class" value="beast.app.BeastMCMC"/>
+            </manifest>
+    </jar>
+  </target>
+
+  <target name="geo" depends="compile"
+        description="generate the distribution to do geo visualization" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put everything in ${build} into the DensiTree.jar file -->
+    <jar jarfile="${dist}/lib/geodraw.jar" basedir="${build}">
+    	<!--exclude name="**/weka/gui/**/*"/-->
+	    <exclude name="**/C/**/*"/>
+	    <!--exclude name="**/weka/**/*"/-->
+	    <exclude name="**/tst/**/*"/>
+	    <exclude name="**/viz/DensiTreeS*"/>
+	    <exclude name="**/viz/DensiTreeG*"/>
+            <manifest>
+                <attribute name="Main-Class" value="geo.draw.GeoDrawer"/>
+            </manifest>
+    </jar>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<!-- Need to either install Launch4j under {DensiTree workspace}/${release}
+                 or install it in the default directory and change the location of launch4j.dir -->
+	<target name="windows"
+	        depends="dist"
+	        description="release Windows version of DensiTree">
+
+		<delete dir="${Windows_package_dir}" />
+		<!-- Create the release directory -->
+		<mkdir dir="${Windows_package_dir}" />
+
+		<property name="launch4j.dir" location="${Windows_dir}/launch4j" />
+		<taskdef name="launch4j"
+		         classname="net.sf.launch4j.ant.Launch4jTask"
+		         classpath="${launch4j.dir}/launch4j.jar :${launch4j.dir}/lib/xstream.jar" />
+
+		<launch4j configFile="${tools_dir}/DensiTree_launch4j.xml"
+		          jar="${dist}/lib/DensiTree.jar"
+		          outfile="${Windows_package_dir}/DensiTree.exe"
+		          fileVersion="2.0.1.0"
+		          txtFileVersion="2.0.1.0"
+		          productVersion="2.0.1.0"
+		          txtProductVersion="2.0.1.0" />
+
+		<copy file="${common_dir}/doc/DensiTreeManual.pdf" todir="${Windows_package_dir}" />
+		<copy file="${common_dir}/LICENSE.txt" todir="${Windows_package_dir}" />
+		<copy file="${common_dir}/README.txt" todir="${Windows_package_dir}" />
+
+		<zip destfile="${Windows_dir}/${DensiTree_name} v${version}.zip">
+			<zipfileset dir="${Windows_package_dir}" prefix="${DensiTree_name}" />
+		</zip>
+
+		<echo message="Windows version release is finished." />
+	</target>
+
+
+	<property name="jarbundler_dir" value="/Applications/eclipse/plugins/org.apache.ant_1.8.2.v20110505-1300/lib" />
+
+	<target name="mac"
+	        depends="dist"
+	        description="release Mac version of DensiTree">
+		<delete dir="${Mac_package_dir}" />
+		<!-- Create the release directory -->
+		<mkdir dir="${Mac_package_dir}" />
+
+		<copy todir="${Mac_package_dir}/bin">
+			<fileset dir="${Linux_dir}/bin" />
+		</copy>
+		<chmod dir="${Mac_package_dir}/bin" perm="755" includes="**/**" />
+
+		<copy file="${dist}/lib/DensiTree.jar" todir="${Mac_package_dir}/lib" /> 
+
+		<copy file="${common_dir}/doc/DensiTreeManual.pdf" todir="${Mac_package_dir}" />
+		<copy file="${common_dir}/LICENSE.txt" todir="${Mac_package_dir}" />
+		<copy file="${common_dir}/README.txt" todir="${Mac_package_dir}" />
+
+		<taskdef name="jarbundler"
+		         classname="net.sourceforge.jarbundler.JarBundler"
+		         classpath="${jarbundler_dir}/jarbundler-2.2.0.jar" />
+
+		<jarbundler dir="${Mac_package_dir}"
+		            name="DensiTree"
+		            mainclass="viz.DensiTree"
+		            icon="${tools_dir}/DensiTree.icns"
+		            jvmversion="1.6+"
+		            vmoptions="-Xmx3g"
+		            arguments=""
+		            version="2.0"
+		            infostring="DensiTree, http://compevol.auckland.ac.nz/software/DensiTree/"
+		            bundleid="viz.DensiTree">
+			<jarfileset dir="${Mac_package_dir}">
+				<include name="**/DensiTree.jar" />
+			</jarfileset>
+			<javaproperty name="apple.laf.useScreenMenuBar" value="true" />
+			<javaproperty name="java.library.path" value="$JAVAROOT/lib" />
+		</jarbundler>
+
+		<echo message="Building disk image." />
+
+		<!-- create disk image -->
+		<exec executable="/usr/bin/hdiutil">
+			<arg value="create" />
+			<arg value="-ov" />
+			<arg value="-srcfolder" />
+			<arg value="${Mac_package_dir}" />
+			<arg value="-volname" />
+			<arg value="${DensiTree_name}" />
+			<arg value="-imagekey" />
+			<arg value="zlib-level=6" />
+			<arg value="${Mac_dir}/${DensiTree_name} v${version}.dmg" />
+		</exec>
+
+		<echo message="Mac version release is finished." />
+	</target>
+
+
+</project>
+
