@@ -969,6 +969,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladelist.clearSelection();
 		for (int i : m_cladeSelection) {
 			m_cladelist.addSelectionInterval(i, i);
+			if (m_cladeSelection.size() == 1) {
+				m_cladelist.ensureIndexIsVisible(i);
+			}
 		}
 		m_bAllowCladeSelection = true;
 	}
@@ -3701,6 +3704,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_jStatusBar.setText(m_sLabels.elementAt(i));
 					}
 				}
+			}
+			Point p = e.getPoint();
+			boolean found = false;
+			for (int i = 0; i < m_bLabelRectangle.length; i++) {
+				if (m_bLabelRectangle[i].contains(p)) {
+					m_jStatusBar.setText(m_sLabels.elementAt(i) + " ");
+					found = true;
+				}
+			}
+			if (!found) {
+				m_jStatusBar.setText("");
 			}
 			String sText = m_jStatusBar.getText();
 			sText = sText.split("\t")[0];
