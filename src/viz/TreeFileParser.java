@@ -190,10 +190,12 @@ public class TreeFileParser {
 			
 			// read trees
 			int nBurnIn = m_nBurnIn;
+			int k = 0;
 			while (fin.ready()) {
 				sStr = fin.readLine();
 				sStr = sStr.trim();
 				if (sStr.toLowerCase().startsWith("tree ")) {
+					k++;
 					if (nBurnIn <= 0) {
 						int i = sStr.indexOf('(');
 						if (i > 0) {
@@ -207,6 +209,7 @@ public class TreeFileParser {
 //							}
 //						}
 						Node tree = parseNewick(sStr);
+						//System.err.println(k + " " + tree);
 						tree.sort();
 						tree.labelInternalNodes(m_nNrOfLabels);
 						trees.add(tree);
