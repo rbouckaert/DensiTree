@@ -2847,7 +2847,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 					for (int i = 0; i <= m_nTicks; i++) {
 						int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						String sStr = formatter.format(fHeight * (i) / m_nTicks);
+						String sStr = (m_bReverseGrid ?   
+								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+								);
 						buf.append("<text x='"
 								+ m_gridfont.getSize()
 								+ "' y='"
@@ -2877,7 +2880,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 					buf.append("'/>\n");
 					for (int i = 0; i <= m_nTicks; i++) {
 						int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						String sStr = formatter.format(fHeight * (i) / m_nTicks);
+						String sStr = (m_bReverseGrid ?   
+								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+								);
 						buf.append("<text x='"
 								+ x
 								+ "' y='"
@@ -2999,6 +3005,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			fY = Math.ceil(fY);
 			m_nTicks = NR_OF_TICKS[(int) fY];
+			m_nTicks *= (int) m_fTreeScale;
 			for (int i = 0; i < k; i++) {
 				fY *= 10;
 			}
@@ -3006,7 +3013,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fY /= 10;
 			}
 			return fY;
-		}		
+		}	
+		
 		/** draw height bar and/or height grid if desired **/
 		void paintHeightInfo(Graphics g) {
 			if (m_nGridMode != GridMode.NONE && m_fHeight > 0) {
@@ -3027,8 +3035,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 					float fHeight = (float) adjust(m_fHeight);
 					
 					for (int i = 0; i <= m_nTicks; i++) {
+						String sStr = (m_bReverseGrid ?   
+								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+								);
 						int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						g.drawString(formatter.format(fHeight * (i) / m_nTicks), 0, y - 2);
+						g.drawString(sStr, 0, y - 2);
 						g.drawLine(0, y, nW, y);
 					}
 				} else {
@@ -3041,8 +3053,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 					float fHeight = (float) adjust(m_fHeight);
 					
 					for (int i = 0; i <= m_nTicks; i++) {
+						String sStr = (m_bReverseGrid ?   
+								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+								);
 						int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						g.drawString(formatter.format(fHeight * (i) / m_nTicks), x+2, m_gridfont.getSize());
+						g.drawString(sStr, x+2, m_gridfont.getSize());
 						g.drawLine(x, 0, x, nH);
 					}
 				}
@@ -3746,7 +3762,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	final JToolBar m_jTbCladeTools = new JToolBar();
 	/** font for all text being printed (e.g. labels, height info) **/
 	Font m_font = Font.getFont(Font.MONOSPACED);
-	Font m_gridfont = Font.getFont(Font.MONOSPACED);
 	
 	/** flag to indicate consensus trees should be shown **/
 	boolean m_bViewCTrees = false;
@@ -3756,8 +3771,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	boolean m_bUseLogScale = false;
 	double m_fExponent = 1.0;
 
+	Font m_gridfont = Font.getFont(Font.MONOSPACED);
 	enum GridMode {NONE, SHORT, FULL};
 	GridMode m_nGridMode = GridMode.NONE;
+	float m_fGridOffset = 0;
+	boolean m_bReverseGrid = false;
 
 	/** show consensus tree in multiple colours, or just main colour */
 	boolean m_bViewMultiColor = false;
@@ -5507,11 +5525,37 @@ public class DensiTree extends JPanel implements ComponentListener {
 		gridMenu.add(new ColorAction("Grid color ", "Grid color ", "", "", HEIGHTCOLOR));
 		gridMenu.add(a_setgridfont);
 		
+		JRadioButtonMenuItem reverseGrid = new JRadioButtonMenuItem("Reverse");
+		reverseGrid.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JRadioButtonMenuItem button = (JRadioButtonMenuItem) e.getSource();
+				m_bReverseGrid = button.isSelected();
+				m_Panel.clearImage();
+				repaint();
+			}
+		});
+		gridMenu.add(reverseGrid);
+		gridMenu.add(new AbstractAction("Grid offset") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Object o = JOptionPane.showInputDialog("Grid offset value", m_fGridOffset);
+				if (o != null) {
+					m_fGridOffset = Float.parseFloat(o.toString());
+					m_Panel.clearImage();
+					repaint();
+				}
+			}
+		});
+		
 		ButtonGroup gridgroup = new ButtonGroup();
 		gridgroup.add(gridModeNone);
 		gridgroup.add(gridModeShort);
 		gridgroup.add(gridModeFull);
 		gridgroup.setSelected(gridModeNone.getModel(), true);
+		
 
 		JMenu metaDataMenu = new JMenu("Meta data");
 		settingsMenu.add(metaDataMenu);
