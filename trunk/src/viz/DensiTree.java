@@ -428,7 +428,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		// for (int i = 0; i < s2.length; i++) {
 		// _posX[i] *= s2.length / fMax;
 		// }
-
+		
 		int i = 0;
 		try {
 			while (i < args.length) {
@@ -602,6 +602,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_iUndo = 0;
 		m_random = new Random();
 		m_drawThread = new Thread[m_nDrawThreads];
+
+		m_bReverseGrid = false;
+		m_fGridOffset = 0;
 
 		try {
 			/** contains strings with tree in Newick format **/
@@ -3723,14 +3726,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			Point p = e.getPoint();
 			boolean found = false;
-			for (int i = 0; i < m_bLabelRectangle.length; i++) {
-				if (m_bLabelRectangle[i].contains(p)) {
-					m_jStatusBar.setText(m_sLabels.elementAt(i) + " ");
-					found = true;
+			if (m_bLabelRectangle != null) {
+				for (int i = 0; i < m_bLabelRectangle.length; i++) {
+					if (m_bLabelRectangle[i].contains(p)) {
+						m_jStatusBar.setText(m_sLabels.elementAt(i) + " ");
+						found = true;
+					}
 				}
-			}
-			if (!found) {
-				m_jStatusBar.setText("");
+				if (!found) {
+					m_jStatusBar.setText("");
+				}
 			}
 			String sText = m_jStatusBar.getText();
 			sText = sText.split("\t")[0];
