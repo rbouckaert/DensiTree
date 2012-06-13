@@ -55,7 +55,7 @@ public class ColorPanel extends JPanel {
 	}
 
 	private void addColorAction(String label, String tiptext, int colorID, int posy) {
-		JButton button = new JButton(label);
+		JButton button = new RoundedButton(label);
 		button.setToolTipText(tiptext);
 		button.addActionListener(new ColorActionListener(colorID, tiptext));
 		GridBagConstraints gbc_button = new GridBagConstraints();

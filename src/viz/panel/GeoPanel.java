@@ -54,7 +54,7 @@ public class GeoPanel extends JPanel {
 		gbc_chckbxShowGeoInfo.gridy = 0;
 		add(chckbxShowGeoInfo, gbc_chckbxShowGeoInfo);
 		
-		JButton btnLoadLocations = new JButton("Load locations");
+		JButton btnLoadLocations = new RoundedButton("Load locations");
 		btnLoadLocations.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.a_loadkml.actionPerformed(e);
@@ -102,7 +102,7 @@ public class GeoPanel extends JPanel {
 			
 		});
 		
-		JButton btnLineColor = new JButton("Line color");
+		JButton btnLineColor = new RoundedButton("Line color");
 		btnLineColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);

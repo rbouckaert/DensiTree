@@ -108,7 +108,7 @@ public class MetaDataPanel extends JPanel {
 		
 		JLabel lblNumberOfItem_1 = new JLabel("ID of item for top of branch");
 		GridBagConstraints gbc_lblNumberOfItem_1 = new GridBagConstraints();
-		gbc_lblNumberOfItem_1.gridwidth = 2;
+		gbc_lblNumberOfItem_1.gridwidth = 2; 
 		gbc_lblNumberOfItem_1.anchor = GridBagConstraints.EAST;
 		gbc_lblNumberOfItem_1.insets = new Insets(0, 0, 5, 5);
 		gbc_lblNumberOfItem_1.gridx = 0;
@@ -145,6 +145,7 @@ public class MetaDataPanel extends JPanel {
 		});
 		
 		GridBagConstraints gbc_lblMetaDataScale = new GridBagConstraints();
+		gbc_lblMetaDataScale.gridwidth = 2;
 		gbc_lblMetaDataScale.anchor = GridBagConstraints.EAST;
 		gbc_lblMetaDataScale.insets = new Insets(0, 0, 5, 5);
 		gbc_lblMetaDataScale.gridx = 0;
