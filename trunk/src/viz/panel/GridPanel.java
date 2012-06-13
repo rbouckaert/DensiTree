@@ -132,9 +132,9 @@ public class GridPanel extends JPanel {
 			}
 		});
 
-		JButton btnGridColor = new JButton("Color");
+		JButton btnGridColor = new RoundedButton("Color");
 		GridBagConstraints c6 = new GridBagConstraints();
-		c6.gridx = 1; c6.gridy = 3; c6.weightx = 0.5; c6.gridwidth = 2; c6.ipady = 3; c6.insets = new Insets(3, 3, 3, 3); c6.fill = GridBagConstraints.HORIZONTAL;
+		c6.gridx = 1; c6.gridy = 3; c6.weightx = 0.5; c6.gridwidth = 2; c6.insets = new Insets(3, 3, 3, 3); c6.fill = GridBagConstraints.HORIZONTAL;
 		add(btnGridColor, c6);
 		btnGridColor.addActionListener(new ActionListener() {
 			@Override
@@ -148,7 +148,7 @@ public class GridPanel extends JPanel {
 			}
 		});
 
-		JButton btnGridFont = new JButton("Font");
+		JButton btnGridFont = new RoundedButton("Font");
 		GridBagConstraints c7 = new GridBagConstraints();
 		c7.gridx = 1; c7.gridy = 4; c7.weightx = 0.5; c7.gridwidth = 2; c7.insets = new Insets(3, 3, 3, 3); c7.fill = GridBagConstraints.HORIZONTAL;
 		add(btnGridFont, c7);

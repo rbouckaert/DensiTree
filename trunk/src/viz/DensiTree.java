@@ -72,6 +72,10 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import com.itextpdf.awt.PdfGraphics2D;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfWriter;
+
 import viz.graphics.*;
 import viz.panel.BurninPanel;
 import viz.panel.ColorPanel;
@@ -4100,6 +4104,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 			});
 			fc.addChoosableFileFilter(new MyFileFilter() {
 				public String getExtention() {
+					return ".pdf";
+				}
+
+				public String getDescription() {
+					return "PDF files (*.pdf)";
+				}
+			});
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				public String getExtention() {
 					return ".svg";
 				}
 
@@ -4118,11 +4131,37 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 				if (sFileName != null && !sFileName.equals("")) {
 					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+							|| sFileName.toLowerCase().endsWith(".pdf")
 							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
 						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
 					}
 
-					if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+                    if (sFileName.toLowerCase().endsWith(".pdf")) {
+                    	try {
+                    	com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+                    	PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
+                    	doc.setPageSize(new com.itextpdf.text.Rectangle(m_Panel.getWidth(), m_Panel.getHeight()));
+                    	doc.open();
+                    	PdfContentByte cb = writer.getDirectContent();
+                    	Graphics2D g = new PdfGraphics2D(cb, m_Panel.getWidth(), m_Panel.getHeight());
+                    	 
+						BufferedImage bi;
+						bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
+						//g = bi.getGraphics();
+						g.setPaintMode();
+						g.setColor(getBackground());
+						g.fillRect(0, 0, m_Panel.getWidth(), m_Panel.getHeight());
+						m_Panel.paint(g);
+						//m_Panel.printAll(g);
+
+                    	g.dispose();
+                    	doc.close();
+                    	} catch (Exception e) {
+							JOptionPane.showMessageDialog(m_Panel, "Export may have failed: " + e.getMessage());
+						}
+                        repaint();
+                    	return;
+                    } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
 							|| sFileName.toLowerCase().endsWith(".bmp")) {
 						BufferedImage bi;
 						Graphics g;
@@ -5152,6 +5191,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		};
 		
 		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout(0, 2));
 		panel.add(createToolBarButton(action));
 		panel.add(createToolBarButton(action3));
 		panel.add(createToolBarButton(action4));
@@ -5191,6 +5231,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		};
 		panel = new JPanel();
+		panel.setLayout(new GridLayout(0, 2));
 		panel.add(createToolBarButton(action6));
 		panel.add(createToolBarButton(action7));
 		panel.add(createToolBarButton(action8));
@@ -5760,6 +5801,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 */
 	public static void main(String[] args) {
 		DensiTree a = new DensiTree(args);
+		
+		try {
+			String laff = UIManager.getSystemLookAndFeelClassName();
+			laff = "javax.swing.plaf.metal.MetalLookAndFeel";
+			System.setProperty("swing.metalTheme", "steel");
+			UIManager.setLookAndFeel(laff);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
 		JFrame f;
 		f = new JFrame(FRAME_TITLE);
 		f.setVisible(true);
@@ -5769,6 +5820,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		f.add(a.m_jTbTools2, BorderLayout.EAST);
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, a, a.m_jTbCladeTools);
 		splitPane.setDividerLocation(0.9);
+
+//		JSplitPane splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, a.m_jTbTools2, splitPane);
+		
 		f.add(splitPane, BorderLayout.CENTER);
 		f.add(a.m_jStatusBar, BorderLayout.SOUTH);
 		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

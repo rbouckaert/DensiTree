@@ -59,7 +59,7 @@ public class LabelPanel extends JPanel {
 			}
 		});
 		
-		JButton btnFont = new JButton("Font");
+		JButton btnFont = new RoundedButton("Font");
 		btnFont.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFontChooser fontChooser = new JFontChooser();
@@ -86,7 +86,7 @@ public class LabelPanel extends JPanel {
 		add(chckbxRotate);
 		add(btnFont);
 		
-		JButton btnColor = new JButton("Color");
+		JButton btnColor = new RoundedButton("Color");
 		btnColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.LABELCOLOR]);
