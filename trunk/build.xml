@@ -34,7 +34,7 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
-    <javac srcdir="${src}" destdir="${build}" classpath="lib/mtj.jar:../beast2/build"/>
+    <javac srcdir="${src}" destdir="${build}" classpath="lib/itextpdf-5.2.1.jar:lib/itext-xtra-5.2.1.jar"/>
     <copy todir="${build}/viz/icons">
 	<resources>
     	<fileset dir="${src}/viz/icons/"/>
