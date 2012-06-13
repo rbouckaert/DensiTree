@@ -73,6 +73,14 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import viz.graphics.*;
+import viz.panel.BurninPanel;
+import viz.panel.ColorPanel;
+import viz.panel.ExpandablePanel;
+import viz.panel.GeoPanel;
+import viz.panel.GridPanel;
+import viz.panel.LabelPanel;
+import viz.panel.MetaDataPanel;
+import viz.panel.ShowPanel;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	final static String VERSION = "2.01";
@@ -112,10 +120,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * Width of individual lines, determined by some info in the metadata (if
 	 * any) If specified, this only applies to block trees.
 	 * **/
-	float[][] m_fLineWidth;
-	float[][] m_fCLineWidth;
-	float[][] m_fTopLineWidth;
-	float[][] m_fTopCLineWidth;
+	public float[][] m_fLineWidth;
+	public float[][] m_fCLineWidth;
+	public float[][] m_fTopLineWidth;
+	public float[][] m_fTopCLineWidth;
 
 	public Vector<String> m_sLabels;
 	/** labels of leafs **/
@@ -187,9 +195,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** width of lines used for drawing trees, etc. **/
 	int m_nTreeWidth = 1;
 	int m_nCTreeWidth = 4;
-	int m_nGeoWidth = 1;
+	public int m_nGeoWidth = 1;
 	/** width of labels, when root at left **/
-	int m_nLabelWidth = 100;
+	public int m_nLabelWidth = 100;
 
 	/** flags whether a leaf node is selected **/
 	boolean[] m_bSelection;
@@ -210,15 +218,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * burn in = nr of trees ignored at the start of tree file, can be set by
 	 * command line option
 	 **/
-	int m_nBurnIn = 0;
+	public int m_nBurnIn = 0;
 
 	double m_w = 0;
 	/** current directory for opening files **/
 	String m_sDir = System.getProperty("user.dir");
 
 	/** array of various colors for color coding different topologies **/
-	Color[] m_color;
-	int HEIGHTCOLOR = 6, CONSCOLOR = 4, LABELCOLOR = 5, BGCOLOR = 7, GEOCOLOR = 8, ROOTCANALCOLOR=9;
+	public Color[] m_color;
+	public static int HEIGHTCOLOR = 6,
+		CONSCOLOR = 4,
+		LABELCOLOR = 5,
+		BGCOLOR = 7,
+		GEOCOLOR = 8,
+		ROOTCANALCOLOR=9;
 	/** image used for the background **/
 	private BufferedImage m_bgImage;
 	/**
@@ -262,7 +275,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	BufferedImage m_rotate;
 
 	/** regular expression pattern for finding width information in metadata **/
-	Pattern m_pattern;
+	public Pattern m_pattern;
 	/** default regular expression **/
 	//final static String DEFAULT_PATTERN = "theta=([0-9\\.Ee-]+)";
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),([0-9\\.Ee-]+)";
@@ -270,9 +283,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	// final static String DEFAULT_PATTERN = "s=([0-9\\.Ee-]+)";
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";
 	/** string containing reg exp for position matching **/
-	String m_sPattern = DEFAULT_PATTERN;
-	int m_iPatternForBottom = 0;
-	int m_iPatternForTop = -1;
+	public String m_sPattern = DEFAULT_PATTERN;
+	public int m_iPatternForBottom = 0;
+	public int m_iPatternForTop = -1;
 
 	/** string containing reg exp for grouping taxa **/
 	String m_sColorPattern = null;
@@ -283,7 +296,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	boolean m_bAllowSingleChild = false;
 
 	/** flag to indicate that text should be rotated when root at top **/
-	boolean m_bRotateTextWhenRootAtTop = false;
+	public boolean m_bRotateTextWhenRootAtTop = false;
 
 	/**
 	 * mode for determining the X location of an internal node 0 = centre of
@@ -303,16 +316,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** used to store name of tree file so that when burn-in changes, the tree set
 	 * can be reloaded
 	 */
-	String m_sFileName;
+	public String m_sFileName;
 	
 	/** flag to indicate some meta data on the tree should be used for line widht **/
-	boolean m_bMetaDataForLineWidth = false;
+	public boolean m_bMetaDataForLineWidth = false;
 	/**
 	 * Flag to indicate top of branch widths should be calculated from the bottom
 	 * of branch lengths by distributing weight proportional to left and right
 	 * bottom branches to top branch -- scaled to fit bottom of parent branch.
 	 */
-	boolean m_bCorrectTopOfBranch = false;
+	public boolean m_bCorrectTopOfBranch = false;
 	/** indicator that only one group is in the pattern, so top of branch widths
 	 * should be calculated from the bottom of branch information.
 	 */
@@ -362,7 +375,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	} // c'tor
 
-	private Pattern createPattern() {
+	public Pattern createPattern() {
 		m_sPattern = "";
 		for (int i = 0; i < m_iPatternForBottom; i++) {
 			m_sPattern += "[0-9\\.Ee-]+[^0-9]+";
@@ -577,7 +590,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * 
 	 * @throws Exception
 	 **/
-	void init(String sFile) throws Exception {
+	public void init(String sFile) throws Exception {
 		if (m_Panel != null) {
 			m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		}
@@ -821,7 +834,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** X-position of the clade **/
 	float[] m_cladePosition;
 	/** index of consensus tree with highest product of clade probabilities **/
-	//int m_iMaxCladeProbTopology;
+	public //int m_iMaxCladeProbTopology;
 	boolean m_bShowRootCanalTopology = false;
 	
 	/** Each clade has a list of pairs of child clades **/
@@ -1585,7 +1598,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * calculate coordinates for lines in real coordinates This initialises the
 	 * m_nLines,m_nTLines, m_nCLines and m_nCTLines arrays
 	 **/
-	void calcLines() {
+	public void calcLines() {
 		if (m_bMetaDataForLineWidth) {
 			calcLinesWithMetaData();
 			return;
@@ -2438,7 +2451,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** image in memory containing tree set drawing **/
 	private BufferedImageF m_image;
 	/** object that draws a single tree on an image **/
-	TreeDrawer m_treeDrawer = new TreeDrawer();
+	public TreeDrawer m_treeDrawer = new TreeDrawer();
 
 	
 	void selectMode(int nXmode) {
@@ -2678,7 +2691,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // stopDrawThreads
 
 		/** reset image so that it will be redrawn on the next occasion */
-		void clearImage() {
+		public void clearImage() {
 			m_image = null;
 			stopDrawThreads();
 		}
@@ -3752,7 +3765,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** this contains the TreeSetPanel */
 	JScrollPane m_jScrollPane;
 	/** panel for drawing the trees **/
-	TreeSetPanel m_Panel;
+	public TreeSetPanel m_Panel;
 	/** panel for controlling properties of DensiTree **/
 	//ControlPanel m_ctrlPanel;
 	ButtonGroup m_modeGroup = new ButtonGroup();
@@ -3763,29 +3776,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 	final JLabel m_jStatusBar = new JLabel("Status bar");;
 	/** toolbar containing buttons at top of window */
 	final JToolBar m_jTbTools = new JToolBar();
-	final JToolBar m_jTbTools2 = new JToolBar();
+	//final JToolBar m_jTbTools2 = new JToolBar();
+	final JPanel m_jTbTools2 = new JPanel();
 	final JToolBar m_jTbCladeTools = new JToolBar();
 	/** font for all text being printed (e.g. labels, height info) **/
-	Font m_font = Font.getFont(Font.MONOSPACED);
+	public Font m_font = Font.getFont(Font.MONOSPACED);
 	
 	/** flag to indicate consensus trees should be shown **/
-	boolean m_bViewCTrees = false;
+	public boolean m_bViewCTrees = false;
 	/** flag to indicate all individual trees should be shown **/
-	boolean m_bViewAllTrees = true;
+	public boolean m_bViewAllTrees = true;
 	/** use log scaling for drawing height **/
 	boolean m_bUseLogScale = false;
 	double m_fExponent = 1.0;
 
-	Font m_gridfont = Font.getFont(Font.MONOSPACED);
-	enum GridMode {NONE, SHORT, FULL};
-	GridMode m_nGridMode = GridMode.NONE;
-	float m_fGridOffset = 0;
-	boolean m_bReverseGrid = false;
+	public Font m_gridfont = Font.getFont(Font.MONOSPACED);
+	public enum GridMode {NONE, SHORT, FULL};
+	public GridMode m_nGridMode = GridMode.NONE;
+	public float m_fGridOffset = 0;
+	public boolean m_bReverseGrid = false;
 
 	/** show consensus tree in multiple colours, or just main colour */
-	boolean m_bViewMultiColor = false;
+	public boolean m_bViewMultiColor = false;
 	/** show geographical info if available **/
-	boolean m_bDrawGeo = true;
+	public boolean m_bDrawGeo = true;
 
 	/**
 	 * flag to indicate animation should overwrite trees instead of clearing
@@ -3811,7 +3825,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	ViewMode m_viewMode = ViewMode.DRAW;
 
-	void makeDirty() {
+	public void makeDirty() {
 		m_Panel.m_rotationPoints = null;
 		if (m_bAutoRefresh) {
 			m_Panel.clearImage();
@@ -4219,7 +4233,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionLoad
 
-	Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", "") {
+	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", "") {
 		private static final long serialVersionUID = -1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -5136,12 +5150,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 				selectMode(3);
 			}
 		};
-		m_jTbTools2.add(createToolBarButton(action));
-//		m_jTbTools2.add(createToolBarButton(action2));
-		m_jTbTools2.add(createToolBarButton(action3));
-		m_jTbTools2.add(createToolBarButton(action4));
-		m_jTbTools2.add(createToolBarButton(action5));
-		m_jTbTools2.addSeparator();
+		
+		JPanel panel = new JPanel();
+		panel.add(createToolBarButton(action));
+		panel.add(createToolBarButton(action3));
+		panel.add(createToolBarButton(action4));
+		panel.add(createToolBarButton(action5));
+		m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
+		m_jTbTools2.add(panel);
+		
+//		m_jTbTools2.add(createToolBarButton(action));
+////		m_jTbTools2.add(createToolBarButton(action2));
+//		m_jTbTools2.add(createToolBarButton(action3));
+//		m_jTbTools2.add(createToolBarButton(action4));
+//		m_jTbTools2.add(createToolBarButton(action5));
+		//m_jTbTools2.addSeparator();
 		
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			@Override
@@ -5167,11 +5190,27 @@ public class DensiTree extends JPanel implements ComponentListener {
 				setStyle(3);
 			}
 		};
-		m_jTbTools2.add(createToolBarButton(action6));
-		m_jTbTools2.add(createToolBarButton(action7));
-		m_jTbTools2.add(createToolBarButton(action8));
-		m_jTbTools2.add(createToolBarButton(action9));
-		m_jTbTools2.setOrientation(JToolBar.VERTICAL);
+		panel = new JPanel();
+		panel.add(createToolBarButton(action6));
+		panel.add(createToolBarButton(action7));
+		panel.add(createToolBarButton(action8));
+		panel.add(createToolBarButton(action9));
+		m_jTbTools2.add(panel);
+//		m_jTbTools2.add(createToolBarButton(action6));
+//		m_jTbTools2.add(createToolBarButton(action7));
+//		m_jTbTools2.add(createToolBarButton(action8));
+//		m_jTbTools2.add(createToolBarButton(action9));
+		//m_jTbTools2.setOrientation(JToolBar.VERTICAL);
+		m_jTbTools2.add(new ExpandablePanel("Show", new ShowPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Grid", new GridPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Label", new LabelPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Geography", new GeoPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Meta Data", new MetaDataPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Line Color", new ColorPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Burn in", new BurninPanel(this)));
+		for (int i = 0; i < 100; i++) {
+			m_jTbTools2.add(Box.createVerticalGlue());
+		}
 
 		m_cladelist = new JList(m_cladelistmodel);
 		m_cladelist.addListSelectionListener(new ListSelectionListener() {
