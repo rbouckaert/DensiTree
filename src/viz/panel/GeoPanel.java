@@ -17,27 +17,34 @@ import java.awt.Insets;
 import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.SwingConstants;
+import javax.swing.JSpinner;
 
 public class GeoPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
 	private JTextField textField;
+	SpinnerNumberModel model;
 	
 	public GeoPanel(DensiTree dt) {
 		m_dt = dt;
 		
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
 		JCheckBox chckbxShowGeoInfo = new JCheckBox("Show geo info (if any)");
+		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bDrawGeo;
@@ -61,9 +68,10 @@ public class GeoPanel extends JPanel {
 			}
 		});
 		GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
+		gbc_btnLoadLocations.gridwidth = 2;
 		gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnLoadLocations.insets = new Insets(0, 0, 5, 0);
-		gbc_btnLoadLocations.gridx = 1;
+		gbc_btnLoadLocations.gridx = 0;
 		gbc_btnLoadLocations.gridy = 1;
 		add(btnLoadLocations, gbc_btnLoadLocations);
 		
@@ -74,33 +82,6 @@ public class GeoPanel extends JPanel {
 		gbc_lblLineWidth.gridx = 0;
 		gbc_lblLineWidth.gridy = 2;
 		add(lblLineWidth, gbc_lblLineWidth);
-		
-		textField = new JTextField(m_dt.m_nGeoWidth + "");
-		textField.setHorizontalAlignment(SwingConstants.LEFT);
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.anchor = GridBagConstraints.WEST;
-		gbc_textField.insets = new Insets(0, 0, 5, 0);
-		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 2;
-		add(textField, gbc_textField);
-		textField.setColumns(5);
-		textField.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void removeUpdate(DocumentEvent e) {update();}
-			@Override
-			public void insertUpdate(DocumentEvent e) {update();}
-			@Override
-			public void changedUpdate(DocumentEvent e) {update();}
-			private void update() {
-				try {
-					m_dt.m_nGeoWidth = Integer.parseInt(textField.getText());
-					m_dt.m_Panel.clearImage();
-					m_dt.repaint();
-				} catch (Exception e) {}
-				
-			}
-			
-		});
 		
 		JButton btnLineColor = new RoundedButton("Line color");
 		btnLineColor.addActionListener(new ActionListener() {
@@ -113,9 +94,37 @@ public class GeoPanel extends JPanel {
 				m_dt.repaint();
 			}
 		});
+		
+		
+		model =  new SpinnerNumberModel(m_dt.m_nGeoWidth, //initial value
+		                               1, //min
+		                               100, //max
+		                               1); // stepsize 
+		JSpinner spinner = new JSpinner(model);
+		GridBagConstraints gbc_spinner = new GridBagConstraints();
+		gbc_spinner.anchor = GridBagConstraints.WEST;
+		gbc_spinner.insets = new Insets(0, 0, 5, 0);
+		gbc_spinner.gridx = 1;
+		gbc_spinner.gridy = 2;
+		add(spinner, gbc_spinner);
+		model.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				try {
+					String str = model.getValue().toString();
+					m_dt.m_nGeoWidth = Integer.parseInt(str);
+					m_dt.m_Panel.clearImage();
+					m_dt.repaint();
+				} catch (Exception ex) {}
+			}
+		});
+
+		
 		GridBagConstraints gbc_btnLineColor = new GridBagConstraints();
+		gbc_btnLineColor.gridwidth = 2;
+		gbc_btnLineColor.insets = new Insets(0, 0, 5, 0);
 		gbc_btnLineColor.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnLineColor.gridx = 1;
+		gbc_btnLineColor.gridx = 0;
 		gbc_btnLineColor.gridy = 3;
 		add(btnLineColor, gbc_btnLineColor);
 		

@@ -30,7 +30,7 @@ public class ColorPanel extends JPanel {
 		gridBagLayout.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
-		JCheckBox chckbxMultiColorConsensus = new JCheckBox("Multi color consensus trees");
+		JCheckBox chckbxMultiColorConsensus = new JCheckBox("Multi color cons. trees");
 		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
