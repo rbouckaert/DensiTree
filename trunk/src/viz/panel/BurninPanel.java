@@ -42,7 +42,7 @@ public class BurninPanel extends JPanel {
 		gbc_textField.gridx = 1;
 		gbc_textField.gridy = 0;
 		add(textField, gbc_textField);
-		textField.setColumns(10);
+		textField.setColumns(4);
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 			
 			@Override
