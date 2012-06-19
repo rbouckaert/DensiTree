@@ -1,6 +1,8 @@
 package viz.panel;
 
 import javax.swing.JPanel;
+
+import java.awt.Event;
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
 import java.awt.GridBagConstraints;
@@ -11,6 +13,8 @@ import javax.swing.event.DocumentListener;
 import viz.DensiTree;
 
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class BurninPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -43,27 +47,17 @@ public class BurninPanel extends JPanel {
 		gbc_textField.gridy = 0;
 		add(textField, gbc_textField);
 		textField.setColumns(4);
-		textField.getDocument().addDocumentListener(new DocumentListener() {
-			
+		textField.addActionListener(new ActionListener() {
 			@Override
-			public void removeUpdate(DocumentEvent e) {update();}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {update();}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {update();}
-
-			void update() {
+			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_nBurnIn = Integer.parseInt(textField.getText());
 					m_dt.init(m_dt.m_sFileName);
 					m_dt.calcLines();
 					m_dt.fitToScreen();
-				} catch (Exception e) {}
+				} catch (Exception e2) {}
 			}
 		});
-
 
 	}
 }

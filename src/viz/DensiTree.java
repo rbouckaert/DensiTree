@@ -64,6 +64,8 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -94,6 +96,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
 		"doi: 10.1093/bioinformatics/btq110";
 
+	final static int B = 16;
+	
 	private static final long serialVersionUID = 1L;
 	/** path for icons */
 	public static final String ICONPATH = "viz/icons/";
@@ -306,7 +310,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * mode for determining the X location of an internal node 0 = centre of
 	 * nodes below 1 = centre of all taxa below
 	 */
-	int m_Xmode = 0;
+	public int m_Xmode = 0;
 	/**
 	 * flag to indicate the X position needs to be corrected to prevent steep
 	 * angles
@@ -2489,15 +2493,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_viewEditTree.setEnabled(false);
 			break;
 		}
-		Enumeration<AbstractButton> enumeration = m_modeGroup.getElements();
-		for (int i = 0; i < nXmode; i++) {
-			enumeration.nextElement();
-		}
-		m_modeGroup.setSelected(enumeration.nextElement().getModel(), true);
+//		Enumeration<AbstractButton> enumeration = m_modeGroup.getElements();
+//		for (int i = 0; i < nXmode; i++) {
+//			enumeration.nextElement();
+//		}
+//		m_modeGroup.setSelected(enumeration.nextElement().getModel(), true);
 
 		calcPositions();
 		calcLines();
 		makeDirty();
+		for (ChangeListener listener : m_changeListeners) {
+			listener.stateChanged(null);
+		}
 	}
  
 	
@@ -2539,11 +2546,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (bd != null) {
 			m_treeDrawer.setBranchDrawer(bd);
 			makeDirty();
-			Enumeration<AbstractButton> enumeration = m_styleGroup.getElements();
-			for (int i = 0; i < nStyle; i++) {
-				enumeration.nextElement();
-			}
-			m_styleGroup.setSelected(enumeration.nextElement().getModel(), true);
+//			Enumeration<AbstractButton> enumeration = m_styleGroup.getElements();
+//			for (int i = 0; i < nStyle; i++) {
+//				enumeration.nextElement();
+//			}
+//			m_styleGroup.setSelected(enumeration.nextElement().getModel(), true);
 		}
 	}
 	
@@ -3038,7 +3045,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 		/** draw height bar and/or height grid if desired **/
 		void paintHeightInfo(Graphics g) {
 			if (m_nGridMode != GridMode.NONE && m_fHeight > 0) {
-				DecimalFormat formatter = new DecimalFormat("##.##");
+				String format = "##.";
+				for (int i = 0; i < m_nGridDigits; i++) {
+					format += "#";
+				}
+				DecimalFormat formatter = new DecimalFormat(format);
+				
 				((Graphics2D) g).setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
 				((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 				if (m_gridfont == null) {
@@ -3052,16 +3064,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 					g.setColor(m_color[HEIGHTCOLOR]);
 
-					float fHeight = (float) adjust(m_fHeight);
-					
-					for (int i = 0; i <= m_nTicks; i++) {
-						String sStr = (m_bReverseGrid ?   
-								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-								);
-						int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						g.drawString(sStr, 0, y - 2);
-						g.drawLine(0, y, nW, y);
+					if (m_bAutoGrid) {
+						float fHeight = (float) adjust(m_fHeight);
+						
+						for (int i = 0; i <= m_nTicks; i++) {
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
+									formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
+									);
+							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							g.drawString(sStr, 0, y - 2);
+							g.drawLine(0, y, nW, y);
+						}
+					} else {
+						float fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+							String sStr = (m_bReverseGrid ?  
+									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
+									formatter.format(m_fGridOffset + fHeight)
+									);
+							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							g.drawString(sStr, 0, y - 2);
+							g.drawLine(0, y, nW, y);
+							fHeight += Math.abs(m_fGridTicks);
+						}
 					}
 				} else {
 					int nH = getHeight();
@@ -3070,16 +3096,31 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 					g.setColor(m_color[HEIGHTCOLOR]);
 					
-					float fHeight = (float) adjust(m_fHeight);
 					
-					for (int i = 0; i <= m_nTicks; i++) {
-						String sStr = (m_bReverseGrid ?   
-								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-								);
-						int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						g.drawString(sStr, x+2, m_gridfont.getSize());
-						g.drawLine(x, 0, x, nH);
+					if (m_bAutoGrid) {
+						float fHeight = (float) adjust(m_fHeight);
+						
+						for (int i = 0; i <= m_nTicks; i++) {
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
+									formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
+									);
+							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							g.drawString(sStr, x+2, m_gridfont.getSize());
+							g.drawLine(x, 0, x, nH);
+						}
+					} else {
+						float fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
+									formatter.format(m_fGridOffset + fHeight)
+									);
+							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							g.drawString(sStr, x+2, m_gridfont.getSize());
+							g.drawLine(x, 0, x, nH);
+							fHeight += Math.abs(m_fGridTicks);
+						}
 					}
 				}
 			}
@@ -3772,8 +3813,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public TreeSetPanel m_Panel;
 	/** panel for controlling properties of DensiTree **/
 	//ControlPanel m_ctrlPanel;
-	ButtonGroup m_modeGroup = new ButtonGroup();
-	ButtonGroup m_styleGroup = new ButtonGroup();
+	//ButtonGroup m_modeGroup = new ButtonGroup();
+	//ButtonGroup m_styleGroup = new ButtonGroup();
 	/** the menu bar for this application. */
 	JMenuBar m_menuBar;
 	/** status bar at bottom of window */
@@ -3799,6 +3840,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public GridMode m_nGridMode = GridMode.NONE;
 	public float m_fGridOffset = 0;
 	public boolean m_bReverseGrid = false;
+	public boolean m_bAutoGrid = true;
+	public float m_fGridTicks = 1;
+	public float m_fGridOrigin = 0;
+	public int m_nGridDigits = 2;
 
 	/** show consensus tree in multiple colours, or just main colour */
 	public boolean m_bViewMultiColor = false;
@@ -5123,8 +5168,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}; // class MetaDataScale
 
 
-	JCheckBoxMenuItem m_viewEditTree;
-	JCheckBoxMenuItem m_viewClades; 
+	public JCheckBoxMenuItem m_viewEditTree;
+	public JCheckBoxMenuItem m_viewClades; 
 
 	
 	
@@ -5191,6 +5236,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		};
 		
 		JPanel panel = new JPanel();
+		panel.setBorder(new EmptyBorder(3, B, 5, B));
 		panel.setLayout(new GridLayout(0, 2));
 		panel.add(createToolBarButton(action));
 		panel.add(createToolBarButton(action3));
@@ -5231,6 +5277,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		};
 		panel = new JPanel();
+		panel.setBorder(new EmptyBorder(3, B, 3, B));
 		panel.setLayout(new GridLayout(0, 2));
 		panel.add(createToolBarButton(action6));
 		panel.add(createToolBarButton(action7));
@@ -5338,7 +5385,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		});
 		editMenu.add(m_viewEditTree);
 
-		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewEditTree);
+		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewClades);
 		m_viewClades.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				boolean bPrev = m_bViewClades;
@@ -5358,26 +5405,26 @@ public class DensiTree extends JPanel implements ComponentListener {
 				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
 		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
 				"Use root canal tree, then optimise", "", "O", NodeOrderer.OPTIMISE));
-		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", "1",
+		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", "ctrl 1",
 				NodeOrderer.CLOSEST_FIRST));
-		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", "2",
+		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", "ctrl 2",
 				NodeOrderer.SINGLE));
-		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", "3",
+		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", "ctrl 3",
 				NodeOrderer.COMPLETE));
-		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", "4",
+		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", "ctrl 4",
 				NodeOrderer.AVERAGE));
-		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", "5", NodeOrderer.MEAN));
+		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", "ctrl 5", NodeOrderer.MEAN));
 		shuffleMenu.add(new ShuffleAction("Adjusted complete link", "Adjusted complete link hierarchical clusterer",
 				"", "6", NodeOrderer.ADJCOMLPETE));
 		// RRB: not for public release
 		shuffleMenu.addSeparator();
 		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", "", NodeOrderer.MANUAL));
 		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", "", NodeOrderer.GEOINFO));
-		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", "7",
+		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", "ctrl 7",
 				NodeOrderer.META_ALL));
-		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", "8",
+		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", "ctrl 8",
 				NodeOrderer.META_SUM));
-		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", "9",
+		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", "ctrl 9",
 				NodeOrderer.META_AVERAGE));
 
 		editMenu.addSeparator();
@@ -5425,328 +5472,328 @@ public class DensiTree extends JPanel implements ComponentListener {
 		JMenu settingsMenu = new JMenu("Settings");
 		settingsMenu.setMnemonic('S');
 		m_menuBar.add(settingsMenu);
-		final JCheckBoxMenuItem a_viewCTrees = new JCheckBoxMenuItem("Show Consensus Trees", m_bViewCTrees);
-		setIcon(a_viewCTrees, "viewctrees");
-		a_viewCTrees.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bViewCTrees;
-				m_bViewCTrees = a_viewCTrees.getState();
-				if (bPrev != m_bViewCTrees) {
-					makeDirty();
-				}
-			}
-		});
-		settingsMenu.add(a_viewCTrees);
-		final JCheckBoxMenuItem viewAllTrees = new JCheckBoxMenuItem("Show All Trees", m_bViewAllTrees);
-		viewAllTrees.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bViewAllTrees;
-				m_bViewAllTrees = viewAllTrees.getState();
-				if (bPrev != m_bViewAllTrees) {
-					makeDirty();
-				}
-			}
-		});
-		settingsMenu.add(viewAllTrees);
-		final JCheckBoxMenuItem viewRootCanal = new JCheckBoxMenuItem("Show Root Canal", m_bShowRootCanalTopology);
-		viewRootCanal.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bShowRootCanalTopology;
-				m_bShowRootCanalTopology = viewRootCanal.getState();
-				if (bPrev != m_bShowRootCanalTopology) {
-					m_Panel.clearImage();
-					makeDirty();
-				}
-			}
-		});
-		settingsMenu.add(viewRootCanal);
-		
-		final JCheckBoxMenuItem viewRootAtTop = new JCheckBoxMenuItem("Show Root At Top", m_treeDrawer.m_bRootAtTop);
-		viewRootAtTop.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_treeDrawer.m_bRootAtTop;
-				m_treeDrawer.m_bRootAtTop = viewRootAtTop.getState();
-				if (bPrev != m_treeDrawer.m_bRootAtTop) {
-					fitToScreen();
-					// makeDirty();
-				}
-			}
-		});
-		settingsMenu.add(viewRootAtTop);
-		
-		
-
-		JMenu modeMenu = new JMenu("Method");
-		settingsMenu.add(modeMenu);
-
-		JRadioButtonMenuItem defaultMode = new JRadioButtonMenuItem("Default");
-		defaultMode.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(0);
-			}
-		});
-		modeMenu.add(defaultMode);
-
-		JRadioButtonMenuItem starTreeMode = new JRadioButtonMenuItem("Star Tree");
-		starTreeMode.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(1);
-			}
-		});
-		modeMenu.add(starTreeMode);
-
-		JRadioButtonMenuItem centralisedMode = new JRadioButtonMenuItem("Centralised");
-		centralisedMode.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(2);
-			}
-		});
-		modeMenu.add(centralisedMode);
-
-		JRadioButtonMenuItem centralisedCorrectedMode = new JRadioButtonMenuItem("Centralised angle corrected");
-		centralisedCorrectedMode.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(3);
-			}
-		});
-		modeMenu.add(centralisedCorrectedMode);
-		modeMenu.addSeparator();
-		modeMenu.add(a_angleThresholdUp);
-		modeMenu.add(a_a_angleThresholdDown);
-
-		m_modeGroup.add(defaultMode);
-		m_modeGroup.add(starTreeMode);
-		m_modeGroup.add(centralisedMode);
-		m_modeGroup.add(centralisedCorrectedMode);
-		m_modeGroup.setSelected(defaultMode.getModel(), true);
-
-
-		
-		JMenu styleMenu = new JMenu("Style");
-		settingsMenu.add(styleMenu);
-		
-		JRadioButtonMenuItem triangleStyle = new JRadioButtonMenuItem("Triangle");
-		triangleStyle.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(0);
-			}
-		});
-		styleMenu.add(triangleStyle);		
-		JRadioButtonMenuItem blockStyle = new JRadioButtonMenuItem("Block");
-		blockStyle.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(1);
-			}
-		});
-		styleMenu.add(blockStyle);		
-		JRadioButtonMenuItem arcStyle = new JRadioButtonMenuItem("Arc");
-		arcStyle.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(2);
-			}
-		});
-		styleMenu.add(arcStyle);		
-		JRadioButtonMenuItem steepStyle = new JRadioButtonMenuItem("Steep arc");
-		steepStyle.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(3);
-			}
-		});
-		styleMenu.add(steepStyle);		
-		
-		m_styleGroup.add(triangleStyle);
-		m_styleGroup.add(blockStyle);
-		m_styleGroup.add(arcStyle);
-		m_styleGroup.add(steepStyle);
-		m_styleGroup.setSelected(triangleStyle.getModel(), true);
-
-		
-		
-		
-		
-		
-		
-		JMenu gridMenu = new JMenu("Grid");
-		settingsMenu.add(gridMenu);
-
-		JRadioButtonMenuItem gridModeNone = new JRadioButtonMenuItem("No grid");
-		gridModeNone.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				m_nGridMode = GridMode.NONE;
-				makeDirty();
-			}
-		});
-		gridMenu.add(gridModeNone);
-
-		JRadioButtonMenuItem gridModeShort = new JRadioButtonMenuItem("Short grid");
-		gridModeShort.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				m_nGridMode = GridMode.SHORT;
-				makeDirty();
-			}
-		});
-		gridMenu.add(gridModeShort);
-
-		JRadioButtonMenuItem gridModeFull = new JRadioButtonMenuItem("Full grid");
-		gridModeFull.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				m_nGridMode = GridMode.FULL;
-				makeDirty();
-			}
-		});
-		gridMenu.add(gridModeFull);
-		gridMenu.addSeparator();
-		gridMenu.add(new ColorAction("Grid color ", "Grid color ", "", "", HEIGHTCOLOR));
-		gridMenu.add(a_setgridfont);
-		
-		JRadioButtonMenuItem reverseGrid = new JRadioButtonMenuItem("Reverse");
-		reverseGrid.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JRadioButtonMenuItem button = (JRadioButtonMenuItem) e.getSource();
-				m_bReverseGrid = button.isSelected();
-				m_Panel.clearImage();
-				repaint();
-			}
-		});
-		gridMenu.add(reverseGrid);
-		gridMenu.add(new AbstractAction("Grid offset") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Object o = JOptionPane.showInputDialog("Grid offset value", m_fGridOffset);
-				if (o != null) {
-					m_fGridOffset = Float.parseFloat(o.toString());
-					m_Panel.clearImage();
-					repaint();
-				}
-			}
-		});
-		
-		ButtonGroup gridgroup = new ButtonGroup();
-		gridgroup.add(gridModeNone);
-		gridgroup.add(gridModeShort);
-		gridgroup.add(gridModeFull);
-		gridgroup.setSelected(gridModeNone.getModel(), true);
-		
-
-		JMenu metaDataMenu = new JMenu("Meta data");
-		settingsMenu.add(metaDataMenu);
-		final JCheckBoxMenuItem metaDataAsLineWidth = new JCheckBoxMenuItem("Use meta data for line width", m_bMetaDataForLineWidth);
-		metaDataAsLineWidth.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bMetaDataForLineWidth;
-				m_bMetaDataForLineWidth = metaDataAsLineWidth.getState();
-				if (bPrev != m_bMetaDataForLineWidth) {
-					if (m_bMetaDataForLineWidth) {
-						m_treeDrawer.setBranchDrawer(new TrapeziumBranchDrawer());
-					} else {
-						m_treeDrawer.setBranchDrawer(new BranchDrawer());
-					}
-					m_fLineWidth = null;
-					m_fCLineWidth = null;
-					m_fTopLineWidth = null;
-					m_fTopCLineWidth = null;
-					calcLines();
-					makeDirty();
-				}
-			}
-		});
-		metaDataMenu.add(metaDataAsLineWidth);
-		metaDataMenu.add(a_patternBottom);
-		metaDataMenu.add(a_patternTop);
-		metaDataMenu.add(a_pattern);
-		metaDataMenu.add(a_metadatascale);
-		
-		final JCheckBoxMenuItem a_calcTopOfBranch = new JCheckBoxMenuItem("Correct top of branch", m_bCorrectTopOfBranch);
-		a_calcTopOfBranch.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bCorrectTopOfBranch;
-				m_bCorrectTopOfBranch = a_calcTopOfBranch.getState();
-				if (bPrev != m_bCorrectTopOfBranch) {
-					calcLines();
-					makeDirty();
-				}
-			}
-		});
-		metaDataMenu.add(a_calcTopOfBranch);		
-		
-		JMenu geoMenu = new JMenu("Geography");
-		settingsMenu.add(geoMenu);
-		
-		final JCheckBoxMenuItem viewGeoInfo = new JCheckBoxMenuItem("Show Geo info", m_bDrawGeo);
-		viewGeoInfo.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				boolean bPrev = m_bDrawGeo;
-				m_bDrawGeo = viewGeoInfo.getState();
-				if (bPrev != m_bDrawGeo) {
-					makeDirty();
-				}
-			}
-		});
-		geoMenu.add(viewGeoInfo);
-		geoMenu.add(a_loadkml);
-		a_loadkml.setEnabled(m_nNrOfLabels > 0);
-		geoMenu.add(a_geolinewidth);
-		geoMenu.add(new ColorAction("Line color ", "Geo line color ", "", "", GEOCOLOR));
-//		final JCheckBoxMenuItem logScale = new JCheckBoxMenuItem("Use Log scale for Height", m_bUseLogScale);
-//		logScale.addActionListener(new ActionListener() {
+//		final JCheckBoxMenuItem a_viewCTrees = new JCheckBoxMenuItem("Show Consensus Trees", m_bViewCTrees);
+//		setIcon(a_viewCTrees, "viewctrees");
+//		a_viewCTrees.addActionListener(new ActionListener() {
 //			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bUseLogScale;
-//				m_bUseLogScale = logScale.getState();
-//				if (bPrev != m_bUseLogScale) {
-//					calcLines();
+//				boolean bPrev = m_bViewCTrees;
+//				m_bViewCTrees = a_viewCTrees.getState();
+//				if (bPrev != m_bViewCTrees) {
+//					makeDirty();
+//				}
+//			}
+//		});
+//		settingsMenu.add(a_viewCTrees);
+//		final JCheckBoxMenuItem viewAllTrees = new JCheckBoxMenuItem("Show All Trees", m_bViewAllTrees);
+//		viewAllTrees.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_bViewAllTrees;
+//				m_bViewAllTrees = viewAllTrees.getState();
+//				if (bPrev != m_bViewAllTrees) {
+//					makeDirty();
+//				}
+//			}
+//		});
+//		settingsMenu.add(viewAllTrees);
+//		final JCheckBoxMenuItem viewRootCanal = new JCheckBoxMenuItem("Show Root Canal", m_bShowRootCanalTopology);
+//		viewRootCanal.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_bShowRootCanalTopology;
+//				m_bShowRootCanalTopology = viewRootCanal.getState();
+//				if (bPrev != m_bShowRootCanalTopology) {
+//					m_Panel.clearImage();
+//					makeDirty();
+//				}
+//			}
+//		});
+//		settingsMenu.add(viewRootCanal);
+//		
+//		final JCheckBoxMenuItem viewRootAtTop = new JCheckBoxMenuItem("Show Root At Top", m_treeDrawer.m_bRootAtTop);
+//		viewRootAtTop.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_treeDrawer.m_bRootAtTop;
+//				m_treeDrawer.m_bRootAtTop = viewRootAtTop.getState();
+//				if (bPrev != m_treeDrawer.m_bRootAtTop) {
+//					fitToScreen();
+//					// makeDirty();
+//				}
+//			}
+//		});
+//		settingsMenu.add(viewRootAtTop);
+//		
+//		
+//
+//		JMenu modeMenu = new JMenu("Method");
+//		settingsMenu.add(modeMenu);
+//
+//		JRadioButtonMenuItem defaultMode = new JRadioButtonMenuItem("Default");
+//		defaultMode.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				selectMode(0);
+//			}
+//		});
+//		modeMenu.add(defaultMode);
+//
+//		JRadioButtonMenuItem starTreeMode = new JRadioButtonMenuItem("Star Tree");
+//		starTreeMode.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				selectMode(1);
+//			}
+//		});
+//		modeMenu.add(starTreeMode);
+//
+//		JRadioButtonMenuItem centralisedMode = new JRadioButtonMenuItem("Centralised");
+//		centralisedMode.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				selectMode(2);
+//			}
+//		});
+//		modeMenu.add(centralisedMode);
+//
+//		JRadioButtonMenuItem centralisedCorrectedMode = new JRadioButtonMenuItem("Centralised angle corrected");
+//		centralisedCorrectedMode.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				selectMode(3);
+//			}
+//		});
+//		modeMenu.add(centralisedCorrectedMode);
+//		modeMenu.addSeparator();
+//		modeMenu.add(a_angleThresholdUp);
+//		modeMenu.add(a_a_angleThresholdDown);
+//
+//		m_modeGroup.add(defaultMode);
+//		m_modeGroup.add(starTreeMode);
+//		m_modeGroup.add(centralisedMode);
+//		m_modeGroup.add(centralisedCorrectedMode);
+//		m_modeGroup.setSelected(defaultMode.getModel(), true);
+
+
+		
+//		JMenu styleMenu = new JMenu("Style");
+//		settingsMenu.add(styleMenu);
+//		
+//		JRadioButtonMenuItem triangleStyle = new JRadioButtonMenuItem("Triangle");
+//		triangleStyle.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				setStyle(0);
+//			}
+//		});
+//		styleMenu.add(triangleStyle);		
+//		JRadioButtonMenuItem blockStyle = new JRadioButtonMenuItem("Block");
+//		blockStyle.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				setStyle(1);
+//			}
+//		});
+//		styleMenu.add(blockStyle);		
+//		JRadioButtonMenuItem arcStyle = new JRadioButtonMenuItem("Arc");
+//		arcStyle.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				setStyle(2);
+//			}
+//		});
+//		styleMenu.add(arcStyle);		
+//		JRadioButtonMenuItem steepStyle = new JRadioButtonMenuItem("Steep arc");
+//		steepStyle.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				setStyle(3);
+//			}
+//		});
+//		styleMenu.add(steepStyle);		
+//		
+//		m_styleGroup.add(triangleStyle);
+//		m_styleGroup.add(blockStyle);
+//		m_styleGroup.add(arcStyle);
+//		m_styleGroup.add(steepStyle);
+//		m_styleGroup.setSelected(triangleStyle.getModel(), true);
+
+		
+		
+		
+		
+		
+		
+//		JMenu gridMenu = new JMenu("Grid");
+//		settingsMenu.add(gridMenu);
+//
+//		JRadioButtonMenuItem gridModeNone = new JRadioButtonMenuItem("No grid");
+//		gridModeNone.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				m_nGridMode = GridMode.NONE;
+//				makeDirty();
+//			}
+//		});
+//		gridMenu.add(gridModeNone);
+//
+//		JRadioButtonMenuItem gridModeShort = new JRadioButtonMenuItem("Short grid");
+//		gridModeShort.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				m_nGridMode = GridMode.SHORT;
+//				makeDirty();
+//			}
+//		});
+//		gridMenu.add(gridModeShort);
+//
+//		JRadioButtonMenuItem gridModeFull = new JRadioButtonMenuItem("Full grid");
+//		gridModeFull.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				m_nGridMode = GridMode.FULL;
+//				makeDirty();
+//			}
+//		});
+//		gridMenu.add(gridModeFull);
+//		gridMenu.addSeparator();
+//		gridMenu.add(new ColorAction("Grid color ", "Grid color ", "", "", HEIGHTCOLOR));
+//		gridMenu.add(a_setgridfont);
+//		
+//		JRadioButtonMenuItem reverseGrid = new JRadioButtonMenuItem("Reverse");
+//		reverseGrid.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				JRadioButtonMenuItem button = (JRadioButtonMenuItem) e.getSource();
+//				m_bReverseGrid = button.isSelected();
+//				m_Panel.clearImage();
+//				repaint();
+//			}
+//		});
+//		gridMenu.add(reverseGrid);
+//		gridMenu.add(new AbstractAction("Grid offset") {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				Object o = JOptionPane.showInputDialog("Grid offset value", m_fGridOffset);
+//				if (o != null) {
+//					m_fGridOffset = Float.parseFloat(o.toString());
 //					m_Panel.clearImage();
 //					repaint();
 //				}
 //			}
 //		});
-//		settingsMenu.add(logScale);
-		settingsMenu.addSeparator();
-		JMenu labelMenu = new JMenu("Label");
-		settingsMenu.add(labelMenu);
-		labelMenu.add(a_setfont);
-		labelMenu.add(a_labelwidth);
-		labelMenu.add(new ColorAction("Label color ", "Label color ", "", "", LABELCOLOR));
-		final JCheckBoxMenuItem rotateWhenRootAtTop = new JCheckBoxMenuItem("Rotate labels", m_bRotateTextWhenRootAtTop);
-		rotateWhenRootAtTop.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				m_bRotateTextWhenRootAtTop = rotateWhenRootAtTop.getState();
-				fitToScreen();
-			}
-		});
-		labelMenu.add(rotateWhenRootAtTop);
+//		
+//		ButtonGroup gridgroup = new ButtonGroup();
+//		gridgroup.add(gridModeNone);
+//		gridgroup.add(gridModeShort);
+//		gridgroup.add(gridModeFull);
+//		gridgroup.setSelected(gridModeNone.getModel(), true);
+		
 
-		JMenu colorMenu = new JMenu("Line Color");
-		final JCheckBoxMenuItem viewMultiColor = new JCheckBoxMenuItem("Multi Color Consensus trees", m_bViewMultiColor);
-		viewMultiColor.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				m_bViewMultiColor = viewMultiColor.getState();
-				makeDirty();
-			}
-		});
-		colorMenu.add(viewMultiColor);
-		colorMenu.addSeparator();
-		colorMenu.add(new ColorAction("Color 1", "Color of most popular topolgy", "", "", 0));
-		colorMenu.add(new ColorAction("Color 2", "Color of second most popular topolgy", "", "", 1));
-		colorMenu.add(new ColorAction("Color 3", "Color of third most popular topolgy", "", "", 2));
-		colorMenu.add(new ColorAction("Default color ", "Default color ", "", "", 3));
-		colorMenu.add(new ColorAction("Consensus color ", "Consensus tree color ", "", "", CONSCOLOR));
-		colorMenu.add(new ColorAction("Background color ", "Background color ", "", "", BGCOLOR));
-		colorMenu.add(new ColorAction("Root canal color ", "Root canal color ", "", "", ROOTCANALCOLOR));
-		settingsMenu.add(colorMenu);
+//		JMenu metaDataMenu = new JMenu("Meta data");
+//		settingsMenu.add(metaDataMenu);
+//		final JCheckBoxMenuItem metaDataAsLineWidth = new JCheckBoxMenuItem("Use meta data for line width", m_bMetaDataForLineWidth);
+//		metaDataAsLineWidth.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_bMetaDataForLineWidth;
+//				m_bMetaDataForLineWidth = metaDataAsLineWidth.getState();
+//				if (bPrev != m_bMetaDataForLineWidth) {
+//					if (m_bMetaDataForLineWidth) {
+//						m_treeDrawer.setBranchDrawer(new TrapeziumBranchDrawer());
+//					} else {
+//						m_treeDrawer.setBranchDrawer(new BranchDrawer());
+//					}
+//					m_fLineWidth = null;
+//					m_fCLineWidth = null;
+//					m_fTopLineWidth = null;
+//					m_fTopCLineWidth = null;
+//					calcLines();
+//					makeDirty();
+//				}
+//			}
+//		});
+//		metaDataMenu.add(metaDataAsLineWidth);
+//		metaDataMenu.add(a_patternBottom);
+//		metaDataMenu.add(a_patternTop);
+//		metaDataMenu.add(a_pattern);
+//		metaDataMenu.add(a_metadatascale);
+//		
+//		final JCheckBoxMenuItem a_calcTopOfBranch = new JCheckBoxMenuItem("Correct top of branch", m_bCorrectTopOfBranch);
+//		a_calcTopOfBranch.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_bCorrectTopOfBranch;
+//				m_bCorrectTopOfBranch = a_calcTopOfBranch.getState();
+//				if (bPrev != m_bCorrectTopOfBranch) {
+//					calcLines();
+//					makeDirty();
+//				}
+//			}
+//		});
+//		metaDataMenu.add(a_calcTopOfBranch);		
+		
+//		JMenu geoMenu = new JMenu("Geography");
+//		settingsMenu.add(geoMenu);
+//		
+//		final JCheckBoxMenuItem viewGeoInfo = new JCheckBoxMenuItem("Show Geo info", m_bDrawGeo);
+//		viewGeoInfo.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				boolean bPrev = m_bDrawGeo;
+//				m_bDrawGeo = viewGeoInfo.getState();
+//				if (bPrev != m_bDrawGeo) {
+//					makeDirty();
+//				}
+//			}
+//		});
+//		geoMenu.add(viewGeoInfo);
+//		geoMenu.add(a_loadkml);
+//		a_loadkml.setEnabled(m_nNrOfLabels > 0);
+//		geoMenu.add(a_geolinewidth);
+//		geoMenu.add(new ColorAction("Line color ", "Geo line color ", "", "", GEOCOLOR));
+////		final JCheckBoxMenuItem logScale = new JCheckBoxMenuItem("Use Log scale for Height", m_bUseLogScale);
+////		logScale.addActionListener(new ActionListener() {
+////			public void actionPerformed(ActionEvent ae) {
+////				boolean bPrev = m_bUseLogScale;
+////				m_bUseLogScale = logScale.getState();
+////				if (bPrev != m_bUseLogScale) {
+////					calcLines();
+////					m_Panel.clearImage();
+////					repaint();
+////				}
+////			}
+////		});
+////		settingsMenu.add(logScale);
+//		settingsMenu.addSeparator();
+//		JMenu labelMenu = new JMenu("Label");
+//		settingsMenu.add(labelMenu);
+//		labelMenu.add(a_setfont);
+//		labelMenu.add(a_labelwidth);
+//		labelMenu.add(new ColorAction("Label color ", "Label color ", "", "", LABELCOLOR));
+//		final JCheckBoxMenuItem rotateWhenRootAtTop = new JCheckBoxMenuItem("Rotate labels", m_bRotateTextWhenRootAtTop);
+//		rotateWhenRootAtTop.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				m_bRotateTextWhenRootAtTop = rotateWhenRootAtTop.getState();
+//				fitToScreen();
+//			}
+//		});
+//		labelMenu.add(rotateWhenRootAtTop);
+
+//		JMenu colorMenu = new JMenu("Line Color");
+//		final JCheckBoxMenuItem viewMultiColor = new JCheckBoxMenuItem("Multi Color Consensus trees", m_bViewMultiColor);
+//		viewMultiColor.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent ae) {
+//				m_bViewMultiColor = viewMultiColor.getState();
+//				makeDirty();
+//			}
+//		});
+//		colorMenu.add(viewMultiColor);
+//		colorMenu.addSeparator();
+//		colorMenu.add(new ColorAction("Color 1", "Color of most popular topolgy", "", "", 0));
+//		colorMenu.add(new ColorAction("Color 2", "Color of second most popular topolgy", "", "", 1));
+//		colorMenu.add(new ColorAction("Color 3", "Color of third most popular topolgy", "", "", 2));
+//		colorMenu.add(new ColorAction("Default color ", "Default color ", "", "", 3));
+//		colorMenu.add(new ColorAction("Consensus color ", "Consensus tree color ", "", "", CONSCOLOR));
+//		colorMenu.add(new ColorAction("Background color ", "Background color ", "", "", BGCOLOR));
+//		colorMenu.add(new ColorAction("Root canal color ", "Root canal color ", "", "", ROOTCANALCOLOR));
+//		settingsMenu.add(colorMenu);
 
 		settingsMenu.addSeparator();
 		settingsMenu.add(a_intensityUp);
@@ -5767,8 +5814,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		settingsMenu.addSeparator();
 		settingsMenu.add(a_threadsUp);
 		settingsMenu.add(a_threadsDown);
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_burnin);
+//		settingsMenu.addSeparator();
+//		settingsMenu.add(a_burnin);
 
 
 		// ----------------------------------------------------------------------
@@ -5838,5 +5885,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		a.m_Panel.setFocusable(true);
 		// a.fitToScreen();
 	} // main
+
+	List<ChangeListener> m_changeListeners = new ArrayList<ChangeListener>();
+
+	public void addChangeListener(ChangeListener changeListener) {
+		m_changeListeners.add(changeListener);
+	}
 
 } // class DensiTree

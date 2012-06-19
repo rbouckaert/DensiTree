@@ -43,7 +43,7 @@ public class GeoPanel extends JPanel {
 		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
-		JCheckBox chckbxShowGeoInfo = new JCheckBox("Show geo info (if any)");
+		JCheckBox chckbxShowGeoInfo = new JCheckBox("<html>Show geo info<br>(if any)</html>");
 		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
