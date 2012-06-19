@@ -30,7 +30,7 @@ public class ColorPanel extends JPanel {
 		gridBagLayout.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
-		JCheckBox chckbxMultiColorConsensus = new JCheckBox("Multi color cons. trees");
+		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons. trees</html>");
 		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
@@ -48,10 +48,10 @@ public class ColorPanel extends JPanel {
 		addColorAction("Color 1", "Color of most popular topolgy", 0, k++);
 		addColorAction("Color 2", "Color of second most popular topolgy", 1, k++);
 		addColorAction("Color 3", "Color of third most popular topolgy", 2, k++);
-		addColorAction("Default color ", "Default color ", 3, k++);
-		addColorAction("Consensus color ", "Consensus tree color ", DensiTree.CONSCOLOR, k++);
-		addColorAction("Background color ", "Background color ", DensiTree.BGCOLOR, k++);
-		addColorAction("Root canal color ", "Root canal color ", DensiTree.ROOTCANALCOLOR, k++);
+		addColorAction("Default", "Default color ", 3, k++);
+		addColorAction("Consensus", "Consensus tree color ", DensiTree.CONSCOLOR, k++);
+		addColorAction("Background", "Background color ", DensiTree.BGCOLOR, k++);
+		addColorAction("Root canal", "Root canal color ", DensiTree.ROOTCANALCOLOR, k++);
 	}
 
 	private void addColorAction(String label, String tiptext, int colorID, int posy) {

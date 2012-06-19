@@ -1,5 +1,6 @@
 package viz.panel;
 
+
 import javax.swing.JPanel;
 
 import java.awt.Dimension;
@@ -13,8 +14,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import viz.DensiTree;
 import viz.graphics.BranchDrawer;
@@ -153,20 +152,16 @@ public class MetaDataPanel extends JPanel {
 				textField_3 = new JTextField(m_dt.m_treeDrawer.LINE_WIDTH_SCALE + "");
 				add(textField_3, gbc_textField_3);
 				textField_3.setColumns(5);
-				textField_3.getDocument().addDocumentListener(new DocumentListener() {
+				textField_3.addActionListener(new ActionListener() {
+					
 					@Override
-					public void removeUpdate(DocumentEvent e) {update();}
-					@Override
-					public void insertUpdate(DocumentEvent e) {update();}
-					@Override
-					public void changedUpdate(DocumentEvent e) {update();}
-					private void update() {
+					public void actionPerformed(ActionEvent e) {
 						try {
 							m_dt.m_treeDrawer.LINE_WIDTH_SCALE = Float.parseFloat(textField_3.getText());
 							if (m_dt.m_bMetaDataForLineWidth) {
 								m_dt.makeDirty();
 							}
-						} catch (Exception e) {}
+						} catch (Exception ex) {}
 					}
 				});
 		
@@ -187,14 +182,10 @@ public class MetaDataPanel extends JPanel {
 		gbc_textField_1.gridy = 4;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);
-		textField_1.getDocument().addDocumentListener(new DocumentListener() {
+		textField_1.addActionListener(new ActionListener() {
+			
 			@Override
-			public void removeUpdate(DocumentEvent e) {update();}
-			@Override
-			public void insertUpdate(DocumentEvent e) {update();}
-			@Override
-			public void changedUpdate(DocumentEvent e) {update();}
-			private void update() {
+			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_sPattern = textField_1.getText();
 					m_dt.m_pattern = m_dt.createPattern();
@@ -202,7 +193,7 @@ public class MetaDataPanel extends JPanel {
 						m_dt.calcLines();
 						m_dt.makeDirty();
 					}
-				} catch (Exception e) {}
+				} catch (Exception ex) {}
 			}
 		});
 
