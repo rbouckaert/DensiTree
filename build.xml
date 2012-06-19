@@ -25,8 +25,8 @@
 
 	<path id="classpath">
         <pathelement path="build"/>
-		<fileset dir="lib" includes="lib/itextpdf-5.2.1.jar"/>
-		<fileset dir="lib" includes="lib/itext-xtra-5.2.1.jar"/>
+		<fileset dir="lib" includes="itextpdf-5.2.1.jar"/>
+		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
 	</path>
 
 
