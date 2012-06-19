@@ -2864,32 +2864,62 @@ public class DensiTree extends JPanel implements ComponentListener {
 					buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + ","
 							+ m_color[HEIGHTCOLOR].getGreen() + "," + m_color[HEIGHTCOLOR].getBlue() + ")' "
 							+ "stroke-width='" + 1 + "' " + " d='");
-					float fHeight = (float) adjust(m_fHeight);
-					for (int i = 0; i <= m_nTicks; i++) {
-						int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
-					}
-					
-					buf.append("'/>\n");
+					if (m_bAutoGrid) {
+						float fHeight = (float) adjust(m_fHeight);
+						for (int i = 0; i <= m_nTicks; i++) {
+							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
+						}
+						
+						buf.append("'/>\n");
 
-					for (int i = 0; i <= m_nTicks; i++) {
-						int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						String sStr = (m_bReverseGrid ?   
-								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-								);
-						buf.append("<text x='"
-								+ m_gridfont.getSize()
-								+ "' y='"
-								+ y
-								+ "' font-family='" + m_gridfont.getFamily() + "' "
-								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-								+
-								"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-								+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+						for (int i = 0; i <= m_nTicks; i++) {
+							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+									formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+									);
+							buf.append("<text x='"
+									+ m_gridfont.getSize()
+									+ "' y='"
+									+ y
+									+ "' font-family='" + m_gridfont.getFamily() + "' "
+									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
+									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
+									+
+									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
+									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+						}
+					} else {
+						float fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
+							fHeight += Math.abs(m_fGridTicks);
+						}
+						buf.append("'/>\n");
+						
+						fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+
+							String sStr = (m_bReverseGrid ?  
+									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
+									formatter.format(m_fGridOffset + fHeight)
+									);
+							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							buf.append("<text x='"
+									+ m_gridfont.getSize()
+									+ "' y='"
+									+ y
+									+ "' font-family='" + m_gridfont.getFamily() + "' "
+									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
+									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
+									+
+									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
+									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+							fHeight += Math.abs(m_fGridTicks);
+						}
 					}
-				
 				} else {
 					int nH = getHeight();
 					if (m_nGridMode == GridMode.SHORT) {
@@ -2898,29 +2928,61 @@ public class DensiTree extends JPanel implements ComponentListener {
 					buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + ","
 							+ m_color[HEIGHTCOLOR].getGreen() + "," + m_color[HEIGHTCOLOR].getBlue() + ")' "
 							+ "stroke-width='" + 1 + "' " + " d='");
-					float fHeight = (float) adjust(m_fHeight);
+					if (m_bAutoGrid) {
+						float fHeight = (float) adjust(m_fHeight);
+						
+						for (int i = 0; i <= m_nTicks; i++) {
+							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							buf.append("M" + x + " " + 0 + "L" + x + " " + nH);
+						}
+						buf.append("'/>\n");
 					
-					for (int i = 0; i <= m_nTicks; i++) {
-						int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						buf.append("M" + x + " " + 0 + "L" + x + " " + nH);
-					}
-					buf.append("'/>\n");
-					for (int i = 0; i <= m_nTicks; i++) {
-						int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-						String sStr = (m_bReverseGrid ?   
-								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-								);
-						buf.append("<text x='"
-								+ x
-								+ "' y='"
-								+ m_gridfont.getSize()
-								+ "' font-family='" + m_gridfont.getFamily() + "' "
-								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-								+
-								"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-								+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+						for (int i = 0; i <= m_nTicks; i++) {
+							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
+									formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
+									);
+							buf.append("<text x='"
+									+ x
+									+ "' y='"
+									+ m_gridfont.getSize()
+									+ "' font-family='" + m_gridfont.getFamily() + "' "
+									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
+									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
+									+
+									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
+									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+						}
+					} else {
+						float fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							buf.append("M" + x + " " + 0 + "L" + x + " " + nH);
+							fHeight += Math.abs(m_fGridTicks);
+						}
+						buf.append("'/>\n");
+
+						fHeight = m_fGridOrigin;
+						while (fHeight < m_fHeight) {
+							String sStr = (m_bReverseGrid ?   
+									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
+									formatter.format(m_fGridOffset + fHeight)
+									);
+							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
+							buf.append("<text x='"
+									+ x
+									+ "' y='"
+									+ m_gridfont.getSize()
+									+ "' font-family='" + m_gridfont.getFamily() + "' "
+									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
+									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
+									+
+									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
+									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+
+							fHeight += Math.abs(m_fGridTicks);
+						}
 					}
 				}
 			}
