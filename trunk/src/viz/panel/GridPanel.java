@@ -20,7 +20,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import viz.DensiTree;
-import viz.DensiTree.GridMode;
+import viz.GridDrawer.GridMode;
 import viz.graphics.JFontChooser;
 import javax.swing.BoxLayout;
 import javax.swing.border.LineBorder;
@@ -70,7 +70,7 @@ public class GridPanel extends JPanel {
 		panel.add(rdbtnNewRadioButton_1);
 		rdbtnNewRadioButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				m_dt.m_nGridMode = GridMode.NONE;
+				m_dt.m_gridDrawer.m_nGridMode = GridMode.NONE;
 				m_dt.makeDirty();
 			}
 		});
@@ -81,7 +81,7 @@ public class GridPanel extends JPanel {
 		panel.add(rdbtnNewRadioButton);
 		rdbtnNewRadioButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				m_dt.m_nGridMode = GridMode.SHORT;
+				m_dt.m_gridDrawer.m_nGridMode = GridMode.SHORT;
 				m_dt.makeDirty();
 			}
 		});
@@ -91,7 +91,7 @@ public class GridPanel extends JPanel {
 		panel.add(radioButton_2);
 		radioButton_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				m_dt.m_nGridMode = GridMode.FULL;
+				m_dt.m_gridDrawer.m_nGridMode = GridMode.FULL;
 				m_dt.makeDirty();
 			}
 		});
@@ -106,11 +106,11 @@ public class GridPanel extends JPanel {
 		gbc_lblDigits.gridy = 4;
 		add(lblDigits, gbc_lblDigits);
 		
-		significantDigitsModel = new SpinnerNumberModel(m_dt.m_nGridDigits, 0, 5, 1);
+		significantDigitsModel = new SpinnerNumberModel(m_dt.m_gridDrawer.m_nGridDigits, 0, 5, 1);
 		JSpinner spinner = new JSpinner(significantDigitsModel);
 		significantDigitsModel.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				m_dt.m_nGridDigits = (Integer) significantDigitsModel.getValue();
+				m_dt.m_gridDrawer.m_nGridDigits = (Integer) significantDigitsModel.getValue();
 				m_dt.makeDirty();
 			}
 		});
@@ -135,7 +135,7 @@ public class GridPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JCheckBox button = (JCheckBox) e.getSource();
-				m_dt.m_bReverseGrid = button.isSelected();
+				m_dt.m_gridDrawer.m_bReverseGrid = button.isSelected();
 				m_dt.m_Panel.clearImage();
 				m_dt.repaint();
 			}
@@ -155,12 +155,12 @@ public class GridPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				JFontChooser fontChooser = new JFontChooser();
-				if (m_dt.m_gridfont != null) {
-					fontChooser.setSelectedFont(m_dt.m_gridfont);
+				if (m_dt.m_gridDrawer.m_gridfont != null) {
+					fontChooser.setSelectedFont(m_dt.m_gridDrawer.m_gridfont);
 				}
 				int result = fontChooser.showDialog(null);
 				if (result == JFontChooser.OK_OPTION) {
-					m_dt.m_gridfont = fontChooser.getSelectedFont();
+					m_dt.m_gridDrawer.m_gridfont = fontChooser.getSelectedFont();
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
@@ -199,7 +199,7 @@ public class GridPanel extends JPanel {
 		add(lblOffset, c4);
 
 		m_offsetTextField = new JTextField();
-		m_offsetTextField.setText(m_dt.m_fGridOffset + "");
+		m_offsetTextField.setText(m_dt.m_gridDrawer.m_fGridOffset + "");
 		GridBagConstraints c8 = new GridBagConstraints();
 		c8.gridwidth = 2;
 		c8.fill = GridBagConstraints.HORIZONTAL;
@@ -210,14 +210,14 @@ public class GridPanel extends JPanel {
 		m_offsetTextField.setColumns(4);
 
 		JCheckBox chckbxAutomatic = new JCheckBox("Automatic");
-		chckbxAutomatic.setSelected(m_dt.m_bAutoGrid);
+		chckbxAutomatic.setSelected(m_dt.m_gridDrawer.m_bAutoGrid);
 		chckbxAutomatic.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean bPrev = m_dt.m_bAutoGrid;
-				m_dt.m_bAutoGrid = ((JCheckBox) e.getSource()).isSelected();
-				m_ticksTextField.setEnabled(!m_dt.m_bAutoGrid);
-				m_originTextField.setEnabled(!m_dt.m_bAutoGrid);
-				if (bPrev != m_dt.m_bAutoGrid) {
+				boolean bPrev = m_dt.m_gridDrawer.m_bAutoGrid;
+				m_dt.m_gridDrawer.m_bAutoGrid = ((JCheckBox) e.getSource()).isSelected();
+				m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+				m_originTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+				if (bPrev != m_dt.m_gridDrawer.m_bAutoGrid) {
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
@@ -240,11 +240,11 @@ public class GridPanel extends JPanel {
 		add(lblTicks, gbc_lblTicks);
 
 		m_ticksTextField = new JTextField();
-		m_ticksTextField.setText(m_dt.m_fGridTicks+"");
+		m_ticksTextField.setText(m_dt.m_gridDrawer.m_fGridTicks+"");
 		m_ticksTextField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					m_dt.m_fGridTicks = Float.parseFloat(m_ticksTextField.getText());
+					m_dt.m_gridDrawer.m_fGridTicks = Float.parseFloat(m_ticksTextField.getText());
 					m_dt.makeDirty();
 					m_dt.repaint();
 				} catch (Exception ex) {
@@ -269,11 +269,11 @@ public class GridPanel extends JPanel {
 		add(lblOrigin, gbc_lblOrigin);
 
 		m_originTextField = new JTextField();
-		m_originTextField.setText(m_dt.m_fGridOrigin+"");
+		m_originTextField.setText(m_dt.m_gridDrawer.m_fGridOrigin+"");
 		m_originTextField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					m_dt.m_fGridOrigin = Float.parseFloat(m_originTextField.getText());
+					m_dt.m_gridDrawer.m_fGridOrigin = Float.parseFloat(m_originTextField.getText());
 					m_dt.makeDirty();
 					m_dt.repaint();
 				} catch (Exception ex) {
@@ -306,7 +306,7 @@ public class GridPanel extends JPanel {
 
 			private void updateOffset() {
 				try {
-					m_dt.m_fGridOffset = Float.parseFloat(m_offsetTextField.getText());
+					m_dt.m_gridDrawer.m_fGridOffset = Float.parseFloat(m_offsetTextField.getText());
 					m_dt.m_Panel.clearImage();
 					m_dt.repaint();
 				} catch (NumberFormatException e) {
@@ -315,8 +315,8 @@ public class GridPanel extends JPanel {
 			}
 
 		});
-		m_ticksTextField.setEnabled(!m_dt.m_bAutoGrid);
-		m_originTextField.setEnabled(!m_dt.m_bAutoGrid);
+		m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+		m_originTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
 	}
 
 }
