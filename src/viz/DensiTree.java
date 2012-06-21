@@ -78,6 +78,7 @@ import com.itextpdf.awt.PdfGraphics2D;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import viz.GridDrawer.GridMode;
 import viz.graphics.*;
 import viz.panel.BurninPanel;
 import viz.panel.ColorPanel;
@@ -188,7 +189,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	float m_fTreeOffset = 0;
 	float m_fTreeScale = 1;
 
-	
+	public GridDrawer m_gridDrawer = new GridDrawer();
 	
 	/** flag to indicate not to draw anything due to being busy initialising **/
 	boolean m_bInitializing;
@@ -493,11 +494,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-scalemode")) {
 						String sMode = args[i+1].toLowerCase();
 						if (sMode.equals("none")) {
-							m_nGridMode = GridMode.NONE;
+							m_gridDrawer.m_nGridMode = GridMode.NONE;
 						} else if (sMode.equals("short")) {
-							m_nGridMode = GridMode.SHORT;
+							m_gridDrawer.m_nGridMode = GridMode.SHORT;
 						} else if (sMode.equals("full")) {
-							m_nGridMode = GridMode.FULL;
+							m_gridDrawer.m_nGridMode = GridMode.FULL;
 						} else 
 							throw new Exception("expected scalemode to be NONE, SHORT or FULL");
 						i += 2;
@@ -606,6 +607,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_jStatusBar.setText("Initializing...");
 			m_jStatusBar.repaint();
 		}
+		m_gridDrawer.m_dt = this;
 		m_sFileName = sFile;
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
@@ -624,8 +626,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_random = new Random();
 		m_drawThread = new Thread[m_nDrawThreads];
 
-		m_bReverseGrid = false;
-		m_fGridOffset = 0;
+		m_gridDrawer.m_bReverseGrid = false;
+		m_gridDrawer.m_fGridOffset = 0;
 
 		try {
 			/** contains strings with tree in Newick format **/
@@ -2853,140 +2855,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		} // DrawThread
 
-		void drawHeightInfoSVG(StringBuffer buf) {
-			if (m_nGridMode != GridMode.NONE && m_fHeight > 0) {
-				DecimalFormat formatter = new DecimalFormat("##.##");
-				if (m_treeDrawer.m_bRootAtTop) {
-					int nW = getWidth();
-					if (m_nGridMode == GridMode.SHORT) {
-						nW = 10;
-					}
-					buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + ","
-							+ m_color[HEIGHTCOLOR].getGreen() + "," + m_color[HEIGHTCOLOR].getBlue() + ")' "
-							+ "stroke-width='" + 1 + "' " + " d='");
-					if (m_bAutoGrid) {
-						float fHeight = (float) adjust(m_fHeight);
-						for (int i = 0; i <= m_nTicks; i++) {
-							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
-						}
-						
-						buf.append("'/>\n");
-
-						for (int i = 0; i <= m_nTicks; i++) {
-							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-									formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-									);
-							buf.append("<text x='"
-									+ m_gridfont.getSize()
-									+ "' y='"
-									+ y
-									+ "' font-family='" + m_gridfont.getFamily() + "' "
-									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-									+
-									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
-						}
-					} else {
-						float fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
-							fHeight += Math.abs(m_fGridTicks);
-						}
-						buf.append("'/>\n");
-						
-						fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-
-							String sStr = (m_bReverseGrid ?  
-									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
-									formatter.format(m_fGridOffset + fHeight)
-									);
-							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							buf.append("<text x='"
-									+ m_gridfont.getSize()
-									+ "' y='"
-									+ y
-									+ "' font-family='" + m_gridfont.getFamily() + "' "
-									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-									+
-									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
-							fHeight += Math.abs(m_fGridTicks);
-						}
-					}
-				} else {
-					int nH = getHeight();
-					if (m_nGridMode == GridMode.SHORT) {
-						nH = 10;
-					}
-					buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + ","
-							+ m_color[HEIGHTCOLOR].getGreen() + "," + m_color[HEIGHTCOLOR].getBlue() + ")' "
-							+ "stroke-width='" + 1 + "' " + " d='");
-					if (m_bAutoGrid) {
-						float fHeight = (float) adjust(m_fHeight);
-						
-						for (int i = 0; i <= m_nTicks; i++) {
-							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							buf.append("M" + x + " " + 0 + "L" + x + " " + nH);
-						}
-						buf.append("'/>\n");
-					
-						for (int i = 0; i <= m_nTicks; i++) {
-							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
-									formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
-									);
-							buf.append("<text x='"
-									+ x
-									+ "' y='"
-									+ m_gridfont.getSize()
-									+ "' font-family='" + m_gridfont.getFamily() + "' "
-									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-									+
-									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
-						}
-					} else {
-						float fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							buf.append("M" + x + " " + 0 + "L" + x + " " + nH);
-							fHeight += Math.abs(m_fGridTicks);
-						}
-						buf.append("'/>\n");
-
-						fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
-									formatter.format(m_fGridOffset + fHeight)
-									);
-							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							buf.append("<text x='"
-									+ x
-									+ "' y='"
-									+ m_gridfont.getSize()
-									+ "' font-family='" + m_gridfont.getFamily() + "' "
-									+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
-									+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
-									+
-									"stroke='rgb(" + m_color[HEIGHTCOLOR].getRed() + "," + m_color[HEIGHTCOLOR].getGreen()
-									+ "," + m_color[HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
-
-							fHeight += Math.abs(m_fGridTicks);
-						}
-					}
-				}
-			}
-		} // drawHeightInfoSVG
 
 		void drawLabelsSVG(Node node, StringBuffer buf) {
 			if (node.isLeaf()) {
@@ -3037,7 +2905,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				DrawThread thread = new DrawThread("draw thread", 0, m_trees.length, 1, treeDrawer);
 				thread.run();
 				drawLabelsSVG(m_trees[0], buf);
-				drawHeightInfoSVG(buf);
+				m_gridDrawer.drawHeightInfoSVG(buf);
 
 				PrintStream out = new PrintStream(sFileName);
 				out.println("<?xml version='1.0'?>\n" + "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'\n"
@@ -3076,117 +2944,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // calcImageEntropy
 
 		
-		/** maps most significant digit to nr of ticks on graph **/ 
-		final int [] NR_OF_TICKS = new int [] {5,10,8,6,8,10,6,7,8,9, 10};
-		int m_nTicks = 10;
 		
-		private double adjust(double fYMax) {
-			// adjust fYMax so that the ticks come out right
-			int k = 0;
-			double fY = fYMax;
-			while (fY > 10) {
-				fY /= 10;
-				k++;
-			}
-			while (fY < 1 && fY > 0) {
-				fY *= 10;
-				k--;
-			}
-			fY = Math.ceil(fY);
-			m_nTicks = NR_OF_TICKS[(int) fY];
-			m_nTicks *= (int) m_fTreeScale;
-			for (int i = 0; i < k; i++) {
-				fY *= 10;
-			}
-			for (int i = k; i < 0; i++) {
-				fY /= 10;
-			}
-			return fY;
-		}	
-		
-		/** draw height bar and/or height grid if desired **/
-		void paintHeightInfo(Graphics g) {
-			if (m_nGridMode != GridMode.NONE && m_fHeight > 0) {
-				String format = "##.";
-				for (int i = 0; i < m_nGridDigits; i++) {
-					format += "#";
-				}
-				DecimalFormat formatter = new DecimalFormat(format);
-				
-				((Graphics2D) g).setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
-				((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-				if (m_gridfont == null) {
-					m_gridfont = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
-				}
-				g.setFont(m_gridfont);
-				if (m_treeDrawer.m_bRootAtTop) {
-					int nW = getWidth();
-					if (m_nGridMode == GridMode.SHORT) {
-						nW = 10;
-					}
-					g.setColor(m_color[HEIGHTCOLOR]);
-
-					if (m_bAutoGrid) {
-						float fHeight = (float) adjust(m_fHeight);
-						
-						for (int i = 0; i <= m_nTicks; i++) {
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
-									formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
-									);
-							int y = getPosY((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							g.drawString(sStr, 0, y - 2);
-							g.drawLine(0, y, nW, y);
-						}
-					} else {
-						float fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-							String sStr = (m_bReverseGrid ?  
-									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
-									formatter.format(m_fGridOffset + fHeight)
-									);
-							int y = getPosY((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							g.drawString(sStr, 0, y - 2);
-							g.drawLine(0, y, nW, y);
-							fHeight += Math.abs(m_fGridTicks);
-						}
-					}
-				} else {
-					int nH = getHeight();
-					if (m_nGridMode == GridMode.SHORT) {
-						nH = 10;
-					}
-					g.setColor(m_color[HEIGHTCOLOR]);
-					
-					
-					if (m_bAutoGrid) {
-						float fHeight = (float) adjust(m_fHeight);
-						
-						for (int i = 0; i <= m_nTicks; i++) {
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
-									formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
-									);
-							int x = getPosX((m_fHeight - fHeight * i / m_nTicks - m_fTreeOffset) * m_fTreeScale);
-							g.drawString(sStr, x+2, m_gridfont.getSize());
-							g.drawLine(x, 0, x, nH);
-						}
-					} else {
-						float fHeight = m_fGridOrigin;
-						while (fHeight < m_fHeight) {
-							String sStr = (m_bReverseGrid ?   
-									formatter.format(m_fGridOffset + m_fHeight - fHeight) :
-									formatter.format(m_fGridOffset + fHeight)
-									);
-							int x = getPosX((m_fHeight - fHeight - m_fTreeOffset) * m_fTreeScale);
-							g.drawString(sStr, x+2, m_gridfont.getSize());
-							g.drawLine(x, 0, x, nH);
-							fHeight += Math.abs(m_fGridTicks);
-						}
-					}
-				}
-			}
-		} // paintHeightInfo
 
 		/**
 		 * Updates the screen contents.
@@ -3204,7 +2962,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			case ANIMATE:
 				drawFrame(g);
-				paintHeightInfo(g);
+				m_gridDrawer.paintHeightInfo(g);
 				try {
 					Thread.sleep(m_nAnimationDelay);
 				} catch (Exception ex) {
@@ -3215,7 +2973,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				return;
 			case BROWSE:
 				drawFrame(g);
-				paintHeightInfo(g);
+				m_gridDrawer.paintHeightInfo(g);
 				m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				return;
 			}
@@ -3416,7 +3174,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						((Graphics2D) g2).setStroke(stroke);
 						drawGeo(m_cTrees[0], g2);
 					}
-					paintHeightInfo(g2);
+					m_gridDrawer.paintHeightInfo(g2);
 					//drawLabels(m_trees[0], g2);
 					m_image.SyncIntToRGBImage();
 
@@ -3538,7 +3296,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					((Graphics2D) g2).setStroke(stroke);
 					drawGeo(m_cTrees[0], g2);
 				}
-				paintHeightInfo(g2);
+				m_gridDrawer.paintHeightInfo(g2);
 				drawLabels(m_trees[0], g2);
 				m_image.SyncIntToRGBImage();
 			}
@@ -3897,15 +3655,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	boolean m_bUseLogScale = false;
 	double m_fExponent = 1.0;
 
-	public Font m_gridfont = Font.getFont(Font.MONOSPACED);
-	public enum GridMode {NONE, SHORT, FULL};
-	public GridMode m_nGridMode = GridMode.NONE;
-	public float m_fGridOffset = 0;
-	public boolean m_bReverseGrid = false;
-	public boolean m_bAutoGrid = true;
-	public float m_fGridTicks = 1;
-	public float m_fGridOrigin = 0;
-	public int m_nGridDigits = 2;
 
 	/** show consensus tree in multiple colours, or just main colour */
 	public boolean m_bViewMultiColor = false;
@@ -5118,21 +4867,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class SetFont
 
-	Action a_setgridfont = new MyAction("Set Grid Font", "Set Grid Font", "gridfont", "") {
-		private static final long serialVersionUID = 1L;
-
-		// @SuppressWarnings("deprecation")
-		public void actionPerformed(ActionEvent ae) {
-			JFontChooser fontChooser = new JFontChooser();
-			// fontChooser.setFont(m_font);
-			int result = fontChooser.showDialog(null);
-			if (result == JFontChooser.OK_OPTION) {
-				m_gridfont = fontChooser.getSelectedFont();
-				repaint();
-			}
-		} // actionPerformed
-	}; // class SetFont
-
 	SettingAction a_animationSpeedUp = new SettingAction("Animation Speed+", "Increase Animation Speed", "aspeedup",
 			"F");
 	SettingAction a_animationSpeedDown = new SettingAction("Animation Speed-", "Decrease Animation Speed",
@@ -5534,328 +5268,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		JMenu settingsMenu = new JMenu("Settings");
 		settingsMenu.setMnemonic('S');
 		m_menuBar.add(settingsMenu);
-//		final JCheckBoxMenuItem a_viewCTrees = new JCheckBoxMenuItem("Show Consensus Trees", m_bViewCTrees);
-//		setIcon(a_viewCTrees, "viewctrees");
-//		a_viewCTrees.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bViewCTrees;
-//				m_bViewCTrees = a_viewCTrees.getState();
-//				if (bPrev != m_bViewCTrees) {
-//					makeDirty();
-//				}
-//			}
-//		});
-//		settingsMenu.add(a_viewCTrees);
-//		final JCheckBoxMenuItem viewAllTrees = new JCheckBoxMenuItem("Show All Trees", m_bViewAllTrees);
-//		viewAllTrees.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bViewAllTrees;
-//				m_bViewAllTrees = viewAllTrees.getState();
-//				if (bPrev != m_bViewAllTrees) {
-//					makeDirty();
-//				}
-//			}
-//		});
-//		settingsMenu.add(viewAllTrees);
-//		final JCheckBoxMenuItem viewRootCanal = new JCheckBoxMenuItem("Show Root Canal", m_bShowRootCanalTopology);
-//		viewRootCanal.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bShowRootCanalTopology;
-//				m_bShowRootCanalTopology = viewRootCanal.getState();
-//				if (bPrev != m_bShowRootCanalTopology) {
-//					m_Panel.clearImage();
-//					makeDirty();
-//				}
-//			}
-//		});
-//		settingsMenu.add(viewRootCanal);
-//		
-//		final JCheckBoxMenuItem viewRootAtTop = new JCheckBoxMenuItem("Show Root At Top", m_treeDrawer.m_bRootAtTop);
-//		viewRootAtTop.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_treeDrawer.m_bRootAtTop;
-//				m_treeDrawer.m_bRootAtTop = viewRootAtTop.getState();
-//				if (bPrev != m_treeDrawer.m_bRootAtTop) {
-//					fitToScreen();
-//					// makeDirty();
-//				}
-//			}
-//		});
-//		settingsMenu.add(viewRootAtTop);
-//		
-//		
-//
-//		JMenu modeMenu = new JMenu("Method");
-//		settingsMenu.add(modeMenu);
-//
-//		JRadioButtonMenuItem defaultMode = new JRadioButtonMenuItem("Default");
-//		defaultMode.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				selectMode(0);
-//			}
-//		});
-//		modeMenu.add(defaultMode);
-//
-//		JRadioButtonMenuItem starTreeMode = new JRadioButtonMenuItem("Star Tree");
-//		starTreeMode.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				selectMode(1);
-//			}
-//		});
-//		modeMenu.add(starTreeMode);
-//
-//		JRadioButtonMenuItem centralisedMode = new JRadioButtonMenuItem("Centralised");
-//		centralisedMode.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				selectMode(2);
-//			}
-//		});
-//		modeMenu.add(centralisedMode);
-//
-//		JRadioButtonMenuItem centralisedCorrectedMode = new JRadioButtonMenuItem("Centralised angle corrected");
-//		centralisedCorrectedMode.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				selectMode(3);
-//			}
-//		});
-//		modeMenu.add(centralisedCorrectedMode);
-//		modeMenu.addSeparator();
-//		modeMenu.add(a_angleThresholdUp);
-//		modeMenu.add(a_a_angleThresholdDown);
-//
-//		m_modeGroup.add(defaultMode);
-//		m_modeGroup.add(starTreeMode);
-//		m_modeGroup.add(centralisedMode);
-//		m_modeGroup.add(centralisedCorrectedMode);
-//		m_modeGroup.setSelected(defaultMode.getModel(), true);
-
-
-		
-//		JMenu styleMenu = new JMenu("Style");
-//		settingsMenu.add(styleMenu);
-//		
-//		JRadioButtonMenuItem triangleStyle = new JRadioButtonMenuItem("Triangle");
-//		triangleStyle.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				setStyle(0);
-//			}
-//		});
-//		styleMenu.add(triangleStyle);		
-//		JRadioButtonMenuItem blockStyle = new JRadioButtonMenuItem("Block");
-//		blockStyle.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				setStyle(1);
-//			}
-//		});
-//		styleMenu.add(blockStyle);		
-//		JRadioButtonMenuItem arcStyle = new JRadioButtonMenuItem("Arc");
-//		arcStyle.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				setStyle(2);
-//			}
-//		});
-//		styleMenu.add(arcStyle);		
-//		JRadioButtonMenuItem steepStyle = new JRadioButtonMenuItem("Steep arc");
-//		steepStyle.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				setStyle(3);
-//			}
-//		});
-//		styleMenu.add(steepStyle);		
-//		
-//		m_styleGroup.add(triangleStyle);
-//		m_styleGroup.add(blockStyle);
-//		m_styleGroup.add(arcStyle);
-//		m_styleGroup.add(steepStyle);
-//		m_styleGroup.setSelected(triangleStyle.getModel(), true);
-
-		
-		
-		
-		
-		
-		
-//		JMenu gridMenu = new JMenu("Grid");
-//		settingsMenu.add(gridMenu);
-//
-//		JRadioButtonMenuItem gridModeNone = new JRadioButtonMenuItem("No grid");
-//		gridModeNone.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				m_nGridMode = GridMode.NONE;
-//				makeDirty();
-//			}
-//		});
-//		gridMenu.add(gridModeNone);
-//
-//		JRadioButtonMenuItem gridModeShort = new JRadioButtonMenuItem("Short grid");
-//		gridModeShort.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				m_nGridMode = GridMode.SHORT;
-//				makeDirty();
-//			}
-//		});
-//		gridMenu.add(gridModeShort);
-//
-//		JRadioButtonMenuItem gridModeFull = new JRadioButtonMenuItem("Full grid");
-//		gridModeFull.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				m_nGridMode = GridMode.FULL;
-//				makeDirty();
-//			}
-//		});
-//		gridMenu.add(gridModeFull);
-//		gridMenu.addSeparator();
-//		gridMenu.add(new ColorAction("Grid color ", "Grid color ", "", "", HEIGHTCOLOR));
-//		gridMenu.add(a_setgridfont);
-//		
-//		JRadioButtonMenuItem reverseGrid = new JRadioButtonMenuItem("Reverse");
-//		reverseGrid.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				JRadioButtonMenuItem button = (JRadioButtonMenuItem) e.getSource();
-//				m_bReverseGrid = button.isSelected();
-//				m_Panel.clearImage();
-//				repaint();
-//			}
-//		});
-//		gridMenu.add(reverseGrid);
-//		gridMenu.add(new AbstractAction("Grid offset") {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				Object o = JOptionPane.showInputDialog("Grid offset value", m_fGridOffset);
-//				if (o != null) {
-//					m_fGridOffset = Float.parseFloat(o.toString());
-//					m_Panel.clearImage();
-//					repaint();
-//				}
-//			}
-//		});
-//		
-//		ButtonGroup gridgroup = new ButtonGroup();
-//		gridgroup.add(gridModeNone);
-//		gridgroup.add(gridModeShort);
-//		gridgroup.add(gridModeFull);
-//		gridgroup.setSelected(gridModeNone.getModel(), true);
-		
-
-//		JMenu metaDataMenu = new JMenu("Meta data");
-//		settingsMenu.add(metaDataMenu);
-//		final JCheckBoxMenuItem metaDataAsLineWidth = new JCheckBoxMenuItem("Use meta data for line width", m_bMetaDataForLineWidth);
-//		metaDataAsLineWidth.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bMetaDataForLineWidth;
-//				m_bMetaDataForLineWidth = metaDataAsLineWidth.getState();
-//				if (bPrev != m_bMetaDataForLineWidth) {
-//					if (m_bMetaDataForLineWidth) {
-//						m_treeDrawer.setBranchDrawer(new TrapeziumBranchDrawer());
-//					} else {
-//						m_treeDrawer.setBranchDrawer(new BranchDrawer());
-//					}
-//					m_fLineWidth = null;
-//					m_fCLineWidth = null;
-//					m_fTopLineWidth = null;
-//					m_fTopCLineWidth = null;
-//					calcLines();
-//					makeDirty();
-//				}
-//			}
-//		});
-//		metaDataMenu.add(metaDataAsLineWidth);
-//		metaDataMenu.add(a_patternBottom);
-//		metaDataMenu.add(a_patternTop);
-//		metaDataMenu.add(a_pattern);
-//		metaDataMenu.add(a_metadatascale);
-//		
-//		final JCheckBoxMenuItem a_calcTopOfBranch = new JCheckBoxMenuItem("Correct top of branch", m_bCorrectTopOfBranch);
-//		a_calcTopOfBranch.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bCorrectTopOfBranch;
-//				m_bCorrectTopOfBranch = a_calcTopOfBranch.getState();
-//				if (bPrev != m_bCorrectTopOfBranch) {
-//					calcLines();
-//					makeDirty();
-//				}
-//			}
-//		});
-//		metaDataMenu.add(a_calcTopOfBranch);		
-		
-//		JMenu geoMenu = new JMenu("Geography");
-//		settingsMenu.add(geoMenu);
-//		
-//		final JCheckBoxMenuItem viewGeoInfo = new JCheckBoxMenuItem("Show Geo info", m_bDrawGeo);
-//		viewGeoInfo.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				boolean bPrev = m_bDrawGeo;
-//				m_bDrawGeo = viewGeoInfo.getState();
-//				if (bPrev != m_bDrawGeo) {
-//					makeDirty();
-//				}
-//			}
-//		});
-//		geoMenu.add(viewGeoInfo);
-//		geoMenu.add(a_loadkml);
-//		a_loadkml.setEnabled(m_nNrOfLabels > 0);
-//		geoMenu.add(a_geolinewidth);
-//		geoMenu.add(new ColorAction("Line color ", "Geo line color ", "", "", GEOCOLOR));
-////		final JCheckBoxMenuItem logScale = new JCheckBoxMenuItem("Use Log scale for Height", m_bUseLogScale);
-////		logScale.addActionListener(new ActionListener() {
-////			public void actionPerformed(ActionEvent ae) {
-////				boolean bPrev = m_bUseLogScale;
-////				m_bUseLogScale = logScale.getState();
-////				if (bPrev != m_bUseLogScale) {
-////					calcLines();
-////					m_Panel.clearImage();
-////					repaint();
-////				}
-////			}
-////		});
-////		settingsMenu.add(logScale);
-//		settingsMenu.addSeparator();
-//		JMenu labelMenu = new JMenu("Label");
-//		settingsMenu.add(labelMenu);
-//		labelMenu.add(a_setfont);
-//		labelMenu.add(a_labelwidth);
-//		labelMenu.add(new ColorAction("Label color ", "Label color ", "", "", LABELCOLOR));
-//		final JCheckBoxMenuItem rotateWhenRootAtTop = new JCheckBoxMenuItem("Rotate labels", m_bRotateTextWhenRootAtTop);
-//		rotateWhenRootAtTop.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				m_bRotateTextWhenRootAtTop = rotateWhenRootAtTop.getState();
-//				fitToScreen();
-//			}
-//		});
-//		labelMenu.add(rotateWhenRootAtTop);
-
-//		JMenu colorMenu = new JMenu("Line Color");
-//		final JCheckBoxMenuItem viewMultiColor = new JCheckBoxMenuItem("Multi Color Consensus trees", m_bViewMultiColor);
-//		viewMultiColor.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent ae) {
-//				m_bViewMultiColor = viewMultiColor.getState();
-//				makeDirty();
-//			}
-//		});
-//		colorMenu.add(viewMultiColor);
-//		colorMenu.addSeparator();
-//		colorMenu.add(new ColorAction("Color 1", "Color of most popular topolgy", "", "", 0));
-//		colorMenu.add(new ColorAction("Color 2", "Color of second most popular topolgy", "", "", 1));
-//		colorMenu.add(new ColorAction("Color 3", "Color of third most popular topolgy", "", "", 2));
-//		colorMenu.add(new ColorAction("Default color ", "Default color ", "", "", 3));
-//		colorMenu.add(new ColorAction("Consensus color ", "Consensus tree color ", "", "", CONSCOLOR));
-//		colorMenu.add(new ColorAction("Background color ", "Background color ", "", "", BGCOLOR));
-//		colorMenu.add(new ColorAction("Root canal color ", "Root canal color ", "", "", ROOTCANALCOLOR));
-//		settingsMenu.add(colorMenu);
 
 		settingsMenu.addSeparator();
 		settingsMenu.add(a_intensityUp);
