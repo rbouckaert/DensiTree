@@ -81,6 +81,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import viz.GridDrawer.GridMode;
 import viz.graphics.*;
 import viz.panel.BurninPanel;
+import viz.panel.CladePanel;
 import viz.panel.ColorPanel;
 import viz.panel.ExpandablePanel;
 import viz.panel.GeoPanel;
@@ -189,7 +190,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	float m_fTreeOffset = 0;
 	float m_fTreeScale = 1;
 
-	public GridDrawer m_gridDrawer = new GridDrawer();
+	public GridDrawer m_gridDrawer;
+	public CladeDrawer m_cladeDrawer;
 	
 	/** flag to indicate not to draw anything due to being busy initialising **/
 	boolean m_bInitializing;
@@ -602,7 +604,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_jStatusBar.setText("Initializing...");
 			m_jStatusBar.repaint();
 		}
-		m_gridDrawer.m_dt = this;
+		m_gridDrawer = new GridDrawer(this);
+		m_cladeDrawer = new CladeDrawer(this);
 		m_sFileName = sFile;
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
@@ -792,7 +795,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// m_fCTLinesX = new float[m_nTopologies][];
 			// m_fCTLinesY = new float[m_nTopologies][];
 			// calcLines();
-			calcClades();
+			
+			m_bCladesReady = false;
+//			new Thread() {
+//				public void run() {
+					calcClades();
+					m_bCladesReady = true;
+//					reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
+//					calcPositions();
+//					makeDirty();
+//				};
+//			}.start();
 
 			reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
 			
@@ -825,12 +838,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 		System.err.println("Done");
 	} // init
 
+	
+	boolean m_bCladesReady;
 	/** represent clade as arrays of leaf indices **/
 	List<int[]> m_clades;
 	/** proportion of trees containing the clade **/
 	List<Double> m_cladeWeight;
 	/** average height of a clade **/
 	List<Double> m_cladeHeight;
+	List<Double> m_cladeHeight95HPDup;
+	List<Double> m_cladeHeight95HPDdown;
+	List<List<Double>> m_cladeHeightSet;
 	/** UI component for manipulating clade selection **/
 	JList m_cladelist;
 	DefaultListModel m_cladelistmodel = new DefaultListModel();
@@ -860,6 +878,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_clades = new ArrayList<int[]>();
 		m_cladeWeight = new ArrayList<Double>();
 		m_cladeHeight = new ArrayList<Double>();
+		
+		m_cladeHeight95HPDup = new ArrayList<Double>();
+		m_cladeHeight95HPDdown = new ArrayList<Double>();
+		
+		m_cladeHeightSet = new ArrayList<List<Double>>();
 		m_cladeChildren = new ArrayList<List<ChildClade>>();
 		Map<String, Integer> mapCladeToIndex = new HashMap<String, Integer>();
 
@@ -870,6 +893,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_clades.add(clade);
 			m_cladeWeight.add(1.0);
 			m_cladeHeight.add(0.0);
+			m_cladeHeight95HPDup.add(0.0);
+			m_cladeHeight95HPDdown.add(0.0);
+			m_cladeHeightSet.add(new ArrayList<Double>());
 			m_cladeChildren.add(new ArrayList<ChildClade>());
 			mapCladeToIndex.put(Arrays.toString(clade), mapCladeToIndex.size());
 		}
@@ -878,12 +904,28 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < m_cTrees.length; i++) {
 			calcCladeForNode(m_cTrees[i], mapCladeToIndex, m_fTreeWeight[i], m_cTrees[i].m_fPosY);
 		}
+		System.err.println("WARNING: THE CALC CLADES CODE IS NOT QUITE RIGHT SINCE IT ONLY USES CTREES NOT ALL TREES");
+		for (int i = 0; i < m_trees.length; i++) {
+			calcCladeForNode2(m_trees[i], mapCladeToIndex, 1.0 / m_trees.length, m_trees[i].m_fPosY);
+		}
 
 		// normalise clade heights, so m_cladeHeight represent average clade
 		// height
 		for (int i = 0; i < m_cladeHeight.size(); i++) {
 			m_cladeHeight.set(i, m_cladeHeight.get(i) / m_cladeWeight.get(i));
 		}
+
+		for (int i = 0; i < m_cladeHeight.size(); i++) {
+			List<Double> heights = m_cladeHeightSet.get(i);
+			Collections.sort(heights);
+			int upIndex = heights.size() * 190 / 200;
+			int downIndex = heights.size() * 5 / 200;
+			m_cladeHeight95HPDup.set(i, heights.get(upIndex));
+			m_cladeHeight95HPDdown.set(i, heights.get(downIndex));
+		}
+		// save memory
+		m_cladeHeightSet = null;
+		
 		double fHeight0 = m_fHeight;
 		for (int i = 0; i < m_cladeHeight.size(); i++) {
 			fHeight0 = Math.min(fHeight0, m_cladeHeight.get(i));
@@ -912,16 +954,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 		List<int[]> clades = new ArrayList<int[]>();
 		List<Double> cladeWeight = new ArrayList<Double>();
 		List<Double> cladeHeight = new ArrayList<Double>();
+		List<Double> cladeHeight95HPDup = new ArrayList<Double>();
+		List<Double> cladeHeight95HPDdown = new ArrayList<Double>();
 		List<List<ChildClade>> cladeChildren = new ArrayList<List<ChildClade>>();
 		for (int i = 0; i < m_cladePosition.length; i++) {
 			clades.add(m_clades.get(index[i]));
 			cladeWeight.add(m_cladeWeight.get(index[i]));
 			cladeHeight.add(m_cladeHeight.get(index[i]));
+			cladeHeight95HPDdown.add(m_cladeHeight95HPDdown.get(index[i]));
+			cladeHeight95HPDup.add(m_cladeHeight95HPDup.get(index[i]));
 			cladeChildren.add(m_cladeChildren.get(index[i]));
 		}
 		m_clades = clades;
 		m_cladeWeight = cladeWeight;
 		m_cladeHeight = cladeHeight;
+		m_cladeHeight95HPDdown = cladeHeight95HPDdown;
+		m_cladeHeight95HPDup = cladeHeight95HPDup;
 		m_cladeChildren = cladeChildren;
 
 
@@ -1013,7 +1061,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < m_cladePosition.length; i++) {
 			String sStr = "";
 			//if (m_clades.get(i).length > 1) {
-				sStr += (format.format(m_cladeWeight.get(i) * 100) + "% [");
+				sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
+				sStr += format.format(m_cladeHeight95HPDdown.get(i)) + " ";
+				sStr += format.format(m_cladeHeight95HPDup.get(i)) + " ";
+				sStr += "[";
 				int j = 0;
 				for (j = 0; j < m_clades.get(i).length - 1; j++) {
 					sStr += (m_sLabels.get(m_clades.get(i)[j]) + ",");
@@ -1054,6 +1105,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			clade[0] = node.getNr();
 			node.m_iClade = node.getNr();
 			m_cladeHeight.set(node.m_iClade, m_cladeHeight.get(node.m_iClade) + fWeight * fHeight);
+			//m_cladeHeightSet.get(node.m_iClade).add(fHeight);
 			return clade;
 		} else {
 			int[] cladeLeft = calcCladeForNode(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
@@ -1082,11 +1134,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_clades.add(clade);
 				m_cladeWeight.add(0.0);
 				m_cladeHeight.add(0.0);
+				m_cladeHeight95HPDup.add(0.0);
+				m_cladeHeight95HPDdown.add(0.0);
+				m_cladeHeightSet.add(new ArrayList<Double>());
 				m_cladeChildren.add(new ArrayList<ChildClade>());
 			}
 			int iClade = mapCladeToIndex.get(sClade);
 			m_cladeWeight.set(iClade, m_cladeWeight.get(iClade) + fWeight);
 			m_cladeHeight.set(iClade, m_cladeHeight.get(iClade) + fWeight * fHeight);
+			//m_cladeHeightSet.get(iClade).add(fHeight);
 			node.m_iClade = iClade;
 
 			// update child clades
@@ -1114,6 +1170,69 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	}
 
+	private int[] calcCladeForNode2(Node node, Map<String, Integer> mapCladeToIndex, double fWeight, double fHeight) {
+		if (node.isLeaf()) {
+			int[] clade = new int[1];
+			clade[0] = node.getNr();
+			node.m_iClade = node.getNr();
+			m_cladeHeightSet.get(node.m_iClade).add(fHeight);
+			return clade;
+		} else {
+			int[] cladeLeft = calcCladeForNode2(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
+			int[] cladeRight = calcCladeForNode2(node.m_right, mapCladeToIndex, fWeight, fHeight
+					+ node.m_right.m_fLength);
+			// merge clades, keep in sorted order
+			int[] clade = new int[cladeLeft.length + cladeRight.length];
+			int iLeft = 0;
+			int iRight = 0;
+			for (int i = 0; i < clade.length; i++) {
+				if (iLeft == cladeLeft.length) {
+					clade[i] = cladeRight[iRight++];
+				} else if (iRight == cladeRight.length) {
+					clade[i] = cladeLeft[iLeft++];
+				} else if (cladeRight[iRight] > cladeLeft[iLeft]) {
+					clade[i] = cladeLeft[iLeft++];
+				} else {
+					clade[i] = cladeRight[iRight++];
+				}
+			}
+
+			// update clade weights
+			String sClade = Arrays.toString(clade);
+//			if (!mapCladeToIndex.containsKey(sClade)) {
+//				mapCladeToIndex.put(sClade, mapCladeToIndex.size());
+//				m_cladeHeight95HPDup.add(0.0);
+//				m_cladeHeight95HPDdown.add(0.0);
+//				m_cladeHeightSet.add(new ArrayList<Double>());
+//			}
+			int iClade = mapCladeToIndex.get(sClade);
+			m_cladeHeightSet.get(iClade).add(fHeight);
+			node.m_iClade = iClade;
+
+			// update child clades
+			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
+			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);
+			List<ChildClade> children = m_cladeChildren.get(iClade);
+			boolean bFound = false;
+			for (ChildClade child : children) {
+				if (child.m_iLeft == iCladeLeft && child.m_iRight == iCladeRight) {
+					child.m_fWeight += fWeight;
+					bFound = true;
+					break;
+				}
+			}
+			if (!bFound) {
+				ChildClade child = new ChildClade();
+				child.m_iLeft = iCladeLeft;
+				child.m_iRight = iCladeRight;
+				child.m_fWeight = fWeight;
+				m_cladeChildren.get(iClade).add(child);
+			}
+
+			return clade;
+		}
+
+	}
 	void calcColorPattern() {
 		m_iColor = new int[m_sLabels.size()];
 		Pattern pattern = Pattern.compile(".*" + m_sColorPattern + ".*");
@@ -4131,6 +4250,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_jTbTools2.add(new ExpandablePanel("Meta Data", new MetaDataPanel(this)));
 		m_jTbTools2.add(new ExpandablePanel("Line Color", new ColorPanel(this)));
 		m_jTbTools2.add(new ExpandablePanel("Burn in", new BurninPanel(this)));
+		m_jTbTools2.add(new ExpandablePanel("Clades", new CladePanel(this)));
 		for (int i = 0; i < 100; i++) {
 			m_jTbTools2.add(Box.createVerticalGlue());
 		}
