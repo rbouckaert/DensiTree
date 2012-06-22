@@ -20,6 +20,10 @@ public class GridDrawer {
 	public int m_nGridDigits = 2;
 	
 	DensiTree m_dt;
+	
+	public GridDrawer(DensiTree dt) {
+		m_dt = dt;
+	}
 
 	void drawHeightInfoSVG(StringBuffer buf) {
 		if (m_nGridMode != GridMode.NONE && m_dt.m_fHeight > 0) {

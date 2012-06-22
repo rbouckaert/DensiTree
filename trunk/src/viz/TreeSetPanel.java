@@ -359,32 +359,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_dt.m_bViewEditTree && m_dt.m_Xmode == 0) {
 			viewEditTree(g);
 		}
-		if (m_dt.m_bViewClades && (m_dt.m_Xmode == 1 || m_dt.m_Xmode == 2)) {
-			viewClades(g);
+		if (m_dt.m_bViewClades && m_dt.m_bCladesReady && (m_dt.m_Xmode == 1 || m_dt.m_Xmode == 2)) {
+			m_dt.m_cladeDrawer.viewClades(g);
 		}
 	}
 
-	/**
-	 * Represents point over which the tree can be 'rotated' when editing
-	 * the tree.
-	 */
-	private class RotationPoint {
-		// location of the point on screen
-		int m_nX, m_nY;
-
-		RotationPoint(int nX, int nY) {
-			m_nX = nX;
-			m_nY = nY;
-		}
-
-		boolean intersects(int nX, int nY) {
-			return (Math.abs(nX - m_nX) < 5 && Math.abs(nY - m_nY) < 5);
-		}
-		
-		public String toString() {
-			return "(" + m_nX + "," + m_nY + ")";
-		}
-	}; // class RotationPoint
 
 	RotationPoint[] m_rotationPoints = null;
 
@@ -443,72 +422,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 	} // viewEditTree
 
-	/** show all clades **/
-	void viewClades(Graphics g) {
-		float fScaleX = m_dt.m_fScaleX;
-		float fScaleY = m_dt.m_fScaleY;
-		if (m_dt.m_bUseLogScale) {
-			if (m_dt.m_treeDrawer.m_bRootAtTop) {
-				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
-			} else {
-				fScaleX *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
-			}
-		}
-		int x = 0;
-		int y = 0;
-		g.setColor(Color.BLACK);
-		Stroke stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-		((Graphics2D) g).setStroke(stroke);
-		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-
-		int h = m_dt.m_rotate.getHeight(null);
-		int w = m_dt.m_rotate.getWidth(null);
-		boolean bUpdatePoints = false;
-		if (m_rotationPoints == null) {
-			m_rotationPoints = new RotationPoint[m_dt.m_cladeHeight.size()];
-			bUpdatePoints = true;
-		}
-		int nHeight = getHeight();
-		for (int i = 0/* m_dt.m_sLabels.size() */; i < m_dt.m_cladeHeight.size(); i++) {
-			if (m_dt.m_cladeWeight.get(i) > 0.01 && ((m_dt.m_Xmode == 1 && m_dt.m_clades.get(i).length > 1) || (m_dt.m_Xmode == 2 && m_dt.m_clades.get(i).length == 1))) {
-				if (!m_dt.m_treeDrawer.m_bRootAtTop) {
-					x = (int) ((m_dt.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
-					y = (int) (m_dt.m_cladePosition[i] * fScaleY);
-				} else {
-					x = (int) (m_dt.m_cladePosition[i] * fScaleX);
-					y = /*nHeight -*/ (int) ((m_dt.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
-				}
-			} else {
-				x = -100;
-				y = -100;
-			}
-			w = (int)(10 +  m_dt.m_cladeWeight.get(i)*10);
-			h = w;
-			g.drawOval(x- w / 2, y- h / 2, w, h);
-			//g.drawImage(m_dt.m_rotate, x - w / 2, y - h / 2, x + h / 2, y + w / 2, 0, 0, h, w, null);
-			if (bUpdatePoints) {
-				m_rotationPoints[i] = new RotationPoint(x, y);
-			}
-		}
-
-		// draw selection
-		stroke = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-		((Graphics2D) g).setStroke(stroke);
-		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-		for (int i :  m_dt.m_cladeSelection) {
-			if (!m_dt.m_treeDrawer.m_bRootAtTop) {
-				x = (int) ((m_dt.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
-				y = (int) (m_dt.m_cladePosition[i] * fScaleY);
-			} else {
-				x = (int) (m_dt.m_cladePosition[i] * fScaleX);
-				y = /*nHeight -*/ (int) ((m_dt.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
-			}
-			w = (int)(10 +  m_dt.m_cladeWeight.get(i)*10);
-			h = w;
-			g.drawOval(x- w / 2, y- h / 2, w, h);
-		}
-	
-	}
 
 	/** draw complete set of trees **/
 	void drawTreeSet(Graphics2D g) {
