@@ -77,7 +77,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		GridBagConstraints gbc_chckbxShowClades = new GridBagConstraints();
 		gbc_chckbxShowClades.anchor = GridBagConstraints.WEST;
 		gbc_chckbxShowClades.gridwidth = 3;
-		gbc_chckbxShowClades.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxShowClades.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxShowClades.gridx = 0;
 		gbc_chckbxShowClades.gridy = 0;
 		add(chckbxShowClades, gbc_chckbxShowClades);
@@ -85,7 +85,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		GridBagConstraints gbc_chckbxSelectionOnly = new GridBagConstraints();
 		gbc_chckbxSelectionOnly.gridwidth = 3;
 		gbc_chckbxSelectionOnly.anchor = GridBagConstraints.WEST;
-		gbc_chckbxSelectionOnly.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxSelectionOnly.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxSelectionOnly.gridx = 0;
 		gbc_chckbxSelectionOnly.gridy = 1;
 		add(chckbxSelectionOnly, gbc_chckbxSelectionOnly);
@@ -94,7 +94,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		GridBagConstraints gbc_btnDraw = new GridBagConstraints();
 		gbc_btnDraw.anchor = GridBagConstraints.EAST;
 		gbc_btnDraw.gridwidth = 2;
-		gbc_btnDraw.insets = new Insets(0, 0, 5, 5);
+		gbc_btnDraw.insets = new Insets(0, 0, 5, 0);
 		//gbc_btnDraw.insets = new Insets(0, 0, 5, 0);
 		gbc_btnDraw.gridx = 0;
 		gbc_btnDraw.gridy = 2;
@@ -103,7 +103,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		JLabel btnText = new JLabel("text");
 		GridBagConstraints gbc_btnText = new GridBagConstraints();
 		gbc_btnText.anchor = GridBagConstraints.EAST;
-		gbc_btnText.insets = new Insets(0, 0, 5, 5);
+		gbc_btnText.insets = new Insets(0, 0, 5, 0);
 		gbc_btnText.gridx = 2;
 		gbc_btnText.gridy = 2;
 		add(btnText, gbc_btnText);
@@ -112,7 +112,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		lblMean.setHorizontalAlignment(SwingConstants.LEFT);
 		GridBagConstraints gbc_lblMean = new GridBagConstraints();
 		gbc_lblMean.anchor = GridBagConstraints.EAST;
-		gbc_lblMean.insets = new Insets(0, 0, 5, 5);
+		gbc_lblMean.insets = new Insets(0, 0, 5, 0);
 		gbc_lblMean.gridx = 0;
 		gbc_lblMean.gridy = 3;
 		add(lblMean, gbc_lblMean);
@@ -128,7 +128,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		chckbxMean.setSelected(m_dt.m_cladeDrawer.m_bDrawMean);
 		GridBagConstraints gbc_chckbxMean = new GridBagConstraints();
-		gbc_chckbxMean.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxMean.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxMean.gridx = 1;
 		gbc_chckbxMean.gridy = 3;
 		add(chckbxMean, gbc_chckbxMean);
@@ -145,7 +145,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox = new GridBagConstraints();
-		gbc_checkBox.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox.gridx = 2;
 		gbc_checkBox.gridy = 3;
 		add(checkBox, gbc_checkBox);
@@ -153,7 +153,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		JLabel lblhpd = new JLabel("95%HPD");
 		GridBagConstraints gbc_lblhpd = new GridBagConstraints();
 		gbc_lblhpd.anchor = GridBagConstraints.EAST;
-		gbc_lblhpd.insets = new Insets(0, 0, 5, 5);
+		gbc_lblhpd.insets = new Insets(0, 0, 5, 0);
 		gbc_lblhpd.gridx = 0;
 		gbc_lblhpd.gridy = 4;
 		add(lblhpd, gbc_lblhpd);
@@ -170,7 +170,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		GridBagConstraints gbc_chckbxhpd = new GridBagConstraints();
 		gbc_chckbxhpd.anchor = GridBagConstraints.NORTH;
-		gbc_chckbxhpd.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxhpd.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxhpd.gridx = 1;
 		gbc_chckbxhpd.gridy = 4;
 		add(chckbxhpd, gbc_chckbxhpd);
@@ -187,7 +187,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		checkBox_1.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox_1 = new GridBagConstraints();
-		gbc_checkBox_1.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox_1.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox_1.gridx = 2;
 		gbc_checkBox_1.gridy = 4;
 		add(checkBox_1, gbc_checkBox_1);
@@ -196,7 +196,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		JLabel lblSupport = new JLabel("Support");
 		GridBagConstraints gbc_lblSupport = new GridBagConstraints();
 		gbc_lblSupport.anchor = GridBagConstraints.EAST;
-		gbc_lblSupport.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSupport.insets = new Insets(0, 0, 5, 0);
 		gbc_lblSupport.gridx = 0;
 		gbc_lblSupport.gridy = 5;
 		add(lblSupport, gbc_lblSupport);
@@ -212,7 +212,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 			}
 		});
 		GridBagConstraints gbc_chckbxSupport = new GridBagConstraints();
-		gbc_chckbxSupport.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxSupport.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxSupport.gridx = 1;
 		gbc_chckbxSupport.gridy = 5;
 		add(chckbxSupport, gbc_chckbxSupport);
@@ -229,7 +229,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		checkBox_2.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox_2 = new GridBagConstraints();
-		gbc_checkBox_2.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox_2.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox_2.gridx = 2;
 		gbc_checkBox_2.gridy = 5;
 		add(checkBox_2, gbc_checkBox_2);
@@ -248,7 +248,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		GridBagConstraints gbc_lblDigits = new GridBagConstraints();
 		gbc_lblDigits.gridwidth = 2;
 		gbc_lblDigits.anchor = GridBagConstraints.EAST;
-		gbc_lblDigits.insets = new Insets(0, 0, 5, 5);
+		gbc_lblDigits.insets = new Insets(0, 0, 5, 0);
 		gbc_lblDigits.gridx = 0;
 		gbc_lblDigits.gridy = 7;
 		add(lblDigits, gbc_lblDigits);
@@ -279,12 +279,12 @@ public class CladePanel extends JPanel implements ChangeListener {
 		spinner = new JSpinner(significantDigitsModel);
 		GridBagConstraints gbc_spinner = new GridBagConstraints();
 		gbc_spinner.anchor = GridBagConstraints.WEST;
-		gbc_spinner.insets = new Insets(0, 0, 5, 5);
+		gbc_spinner.insets = new Insets(0, 0, 5, 0);
 		gbc_spinner.gridx = 2;
 		gbc_spinner.gridy = 7;
 		add(spinner, gbc_spinner);
 		GridBagConstraints gbc_btnFont = new GridBagConstraints();
-		gbc_btnFont.insets = new Insets(0, 0, 5, 5);
+		gbc_btnFont.insets = new Insets(0, 0, 5, 0);
 		gbc_btnFont.gridx = 0;
 		gbc_btnFont.gridy = 8;
 		add(btnFont, gbc_btnFont);
@@ -302,7 +302,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
 		gbc_btnColor.gridwidth = 2;
-		gbc_btnColor.insets = new Insets(0, 0, 5, 5);
+		gbc_btnColor.insets = new Insets(0, 0, 5, 0);
 		gbc_btnColor.gridx = 1;
 		gbc_btnColor.gridy = 8;
 		add(btnColor, gbc_btnColor);
