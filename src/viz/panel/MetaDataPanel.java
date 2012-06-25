@@ -61,8 +61,10 @@ public class MetaDataPanel extends JPanel {
 				}
 				m_dt.m_fLineWidth = null;
 				m_dt.m_fCLineWidth = null;
+				m_dt.m_fRLineWidth = null;
 				m_dt.m_fTopLineWidth = null;
 				m_dt.m_fTopCLineWidth = null;
+				m_dt.m_fRTopLineWidth = null;
 				m_dt.calcLines();
 				m_dt.makeDirty();
 			}

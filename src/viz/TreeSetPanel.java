@@ -161,7 +161,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 								g.setColor(m_dt.m_color[3]);
 							}
 
-							m_dt.m_treeDrawer.draw(i, m_dt.m_fLinesX, m_dt.m_fLinesY, m_dt.m_fLineWidth, m_dt.m_fTopLineWidth, g, fScaleX,
+							m_dt.m_treeDrawer.draw(i, m_dt.m_fLinesX, m_dt.m_fLinesY, m_dt.m_fLineWidth, m_dt.m_fTopLineWidth, m_dt.m_nLineColor, g, fScaleX,
 									fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('.');
@@ -188,7 +188,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 						if (m_iTreeTopology < 0 || m_iTreeTopology == i) {
 							((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
 									Math.min(1.0f, 0.5f * m_dt.m_fCTreeIntensity * m_dt.m_fTreeWeight[i])));
-							m_dt.m_treeDrawer.draw(i, m_dt.m_fCLinesX, m_dt.m_fCLinesY, m_dt.m_fCLineWidth, m_dt.m_fTopCLineWidth, g,
+							m_dt.m_treeDrawer.draw(i, m_dt.m_fCLinesX, m_dt.m_fCLinesY, m_dt.m_fCLineWidth, m_dt.m_fTopCLineWidth, m_dt.m_nCLineColor, g,
 									fScaleX, fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('x');
@@ -482,8 +482,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 					((Graphics2D) g).setStroke(stroke);
 					g.setColor(m_dt.m_color[DensiTree.ROOTCANALCOLOR]);
-					m_dt.m_treeDrawer.draw(0, m_dt.m_fRLinesX, m_dt.m_fRLinesY, m_dt.m_fLineWidth,
-							m_dt.m_fTopLineWidth, g, fScaleX, fScaleY);
+					m_dt.m_treeDrawer.draw(0, m_dt.m_fRLinesX, m_dt.m_fRLinesY, m_dt.m_fRLineWidth,
+							m_dt.m_fRTopLineWidth, m_dt.m_nRLineColor, g, fScaleX, fScaleY);
 				}
 			}
 

@@ -38,7 +38,8 @@ public class BranchDrawer {
 	 * This base implementation ignores these widths and draws a line with the
 	 * width defined in the stroke of graphics environment g.
 	 */
-	public void draw(BufferedImageF image, Graphics2D g, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
+	public void draw(BufferedImageF image, int color, Graphics2D g, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
+		
 		if (x1 == -1 || x2 == -1 || y1 == -1 || y2 == -1) {
 			x1 = Math.max(x1, 0);
 			x2 = Math.max(x2, 0);
@@ -52,9 +53,9 @@ public class BranchDrawer {
 			return;
 		}
 			//g.drawLine(x1, y1, x2, y2);
-			int nRed = g.getColor().getRed();
-			int nGreen = g.getColor().getGreen();
-			int nBlue = g.getColor().getBlue();
+			int nRed = (color >> 16) & 0xFF;//g.getColor().getRed();
+			int nGreen = (color >> 8) & 0xFF;//g.getColor().getGreen();
+			int nBlue = (color >> 0) & 0xFF;//g.getColor().getBlue();
 			nRed = (nRed<<16);
 			nGreen = (nGreen<<16);
 			nBlue = (nBlue<<16);

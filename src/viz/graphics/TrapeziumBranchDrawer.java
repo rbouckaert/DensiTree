@@ -25,15 +25,16 @@ import java.awt.Graphics2D;
 
 public class TrapeziumBranchDrawer extends BranchDrawer {
 
-	public void draw(BufferedImageF image, Graphics2D g, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
+	@Override
+	public void draw(BufferedImageF image, int color, Graphics2D g, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
 		if (fBottomWidth == 0) {
-			super.draw(image, g, x1, y1, x2, y2, fBottomWidth, fTopWidth);
+			super.draw(image, color, g, x1, y1, x2, y2, fBottomWidth, fTopWidth);
 			return;
 		}
 			//g.drawLine(x1, y1, x2, y2);
-			int nRed = g.getColor().getRed();
-			int nGreen = g.getColor().getGreen();
-			int nBlue = g.getColor().getBlue();
+			int nRed = (color >> 16) & 0xFF;//g.getColor().getRed();
+			int nGreen = (color >> 8) & 0xFF;//g.getColor().getGreen();
+			int nBlue = (color >> 0) & 0xFF;//g.getColor().getBlue();
 			nRed = (nRed<<16);
 			nGreen = (nGreen<<16);
 			nBlue = (nBlue<<16);

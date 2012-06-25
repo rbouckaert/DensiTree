@@ -58,7 +58,7 @@ public class CladeDrawer {
 			m_dt.m_Panel.m_rotationPoints = new RotationPoint[m_dt.m_cladeHeight.size()];
 			bUpdatePoints = true;
 		}
-		String format = "##.";
+		String format = (m_nSignificantDigits > 0 ? "##.": "##");
 		for (int i = 0; i < m_nSignificantDigits; i++) {
 			format += "#";
 		}
@@ -73,7 +73,7 @@ public class CladeDrawer {
 						g.drawLine(x, y- 3, x, y+6);
 					}
 					if (m_bTextMean && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_cladeHeight.get(i)), x, y - 1);
+						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)), x, y - 1);
 					}
 					if (m_bTextSupport && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
 						g.drawString(supportFormatter.format(100*m_dt.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
@@ -85,7 +85,7 @@ public class CladeDrawer {
 						g.drawLine(x -3, y, x + 3, y);
 					}
 					if (m_bTextMean && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_cladeHeight.get(i)), x, y - 1);
+						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)), x, y - 1);
 					}
 					if (m_bTextSupport && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
 						g.drawString(supportFormatter.format(100*m_dt.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
