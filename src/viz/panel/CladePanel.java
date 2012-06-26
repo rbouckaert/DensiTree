@@ -306,6 +306,8 @@ public class CladePanel extends JPanel implements ChangeListener {
 		gbc_btnColor.gridx = 1;
 		gbc_btnColor.gridy = 8;
 		add(btnColor, gbc_btnColor);
+		
+		stateChanged(null);
 	}
 
 	@Override

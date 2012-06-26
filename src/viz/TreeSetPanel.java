@@ -147,19 +147,19 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 							return;
 						}
 						if (m_iTreeTopology < 0 || m_iTreeTopology == m_dt.m_nTopologyByPopularity[i]) {
-							switch (m_dt.m_nTopologyByPopularity[i]) {
-							case 0:
-								g.setColor(m_dt.m_color[0]);
-								break;
-							case 1:
-								g.setColor(m_dt.m_color[1]);
-								break;
-							case 2:
-								g.setColor(m_dt.m_color[2]);
-								break;
-							default:
-								g.setColor(m_dt.m_color[3]);
-							}
+//							switch (m_dt.m_nTopologyByPopularity[i]) {
+//							case 0:
+//								g.setColor(m_dt.m_color[0]);
+//								break;
+//							case 1:
+//								g.setColor(m_dt.m_color[1]);
+//								break;
+//							case 2:
+//								g.setColor(m_dt.m_color[2]);
+//								break;
+//							default:
+//								g.setColor(m_dt.m_color[3]);
+//							}
 
 							m_dt.m_treeDrawer.draw(i, m_dt.m_fLinesX, m_dt.m_fLinesY, m_dt.m_fLineWidth, m_dt.m_fTopLineWidth, m_dt.m_nLineColor, g, fScaleX,
 									fScaleY);
@@ -173,7 +173,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				// draw consensus trees if necessary
 				if (m_dt.m_bViewCTrees) {
 					m_dt.m_jStatusBar.setText("Drawing consensus trees");
-					g.setColor(m_dt.m_color[DensiTree.CONSCOLOR]);
+//					g.setColor(m_dt.m_color[DensiTree.CONSCOLOR]);
 					Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 					((Graphics2D) g).setStroke(stroke);
 					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
@@ -183,8 +183,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 						if (m_bStop) {
 							return;
 						}
-						if (m_dt.m_bViewMultiColor) {
-							g.setColor(m_dt.m_color[9 + (i % (m_dt.m_color.length - 9))]);						}
+//						if (m_dt.m_bViewMultiColor) {
+//							g.setColor(m_dt.m_color[9 + (i % (m_dt.m_color.length - 9))]);						}
 						if (m_iTreeTopology < 0 || m_iTreeTopology == i) {
 							((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
 									Math.min(1.0f, 0.5f * m_dt.m_fCTreeIntensity * m_dt.m_fTreeWeight[i])));

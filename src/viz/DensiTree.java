@@ -625,7 +625,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
 		a_animateStart.setIcon("start");
-
+		m_prevLineColorMode = null;
+		
 		System.err.print("Initializing...");
 		m_iAnimateTree = 0;
 		m_fHeight = 0;
@@ -1940,10 +1941,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 
 	public enum LineColorMode {COLOR_BY_CLADE, COLOR_BY_METADATA, COLOR_DEFAULT};
-	LineColorMode m_lineColorMode = LineColorMode.COLOR_BY_METADATA;
+	public LineColorMode m_lineColorMode = LineColorMode.COLOR_DEFAULT;
+	public LineColorMode m_prevLineColorMode = null;
 	List<String> m_metaDataCategories;
 
-	void calcColors() {
+	public void calcColors() {
+		if (m_lineColorMode == m_prevLineColorMode) {
+			return;
+		}
+		m_prevLineColorMode = m_lineColorMode; 
 		switch (m_lineColorMode) {
 		case COLOR_BY_CLADE:
 			m_nLineColor = new int[m_trees.length][];
@@ -1969,6 +1975,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		case COLOR_BY_METADATA:
 			m_pattern = Pattern.compile(m_sPattern);
@@ -1996,18 +2003,40 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		case COLOR_DEFAULT:
+			m_nLineColor = new int[m_trees.length][];
+			m_nCLineColor = new int[m_cTrees.length][];
+			m_nRLineColor = new int[1][];
 			for (int i = 0; i < m_trees.length; i++) {
 				m_nLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				int color = 0;
+				switch (m_nTopologyByPopularity[i]) {
+				case 0:
+					color = m_color[0].getRGB();
+					break;
+				case 1:
+					color = m_color[1].getRGB();
+					break;
+				case 2:
+					color = m_color[2].getRGB();
+					break;
+				default:
+					color = m_color[3].getRGB();
+				}
+				Arrays.fill(m_nLineColor[i], color);
 			}
 			for (int i = 0; i < m_cTrees.length; i++) {
+				int color = m_color[CONSCOLOR].getRGB();
+				if (m_bViewMultiColor) {
+					color = m_color[9 + (i % (m_color.length - 9))].getRGB();
+				}
 				m_nCLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				Arrays.fill(m_nCLineColor[i], color);
 			}
 			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
-			m_nCLineColor = null;
-			m_nRLineColor = null;
-			m_nLineColor = null;
+			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		}
 	}
