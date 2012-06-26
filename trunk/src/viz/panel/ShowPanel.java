@@ -18,7 +18,6 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	
 	DensiTree m_dt;
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
-	JCheckBox chckbxShowClades = new JCheckBox("Clades");
 
 	public ShowPanel(DensiTree dt) {
 		m_dt = dt;
@@ -119,27 +118,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		gbc_chckbxShowEditTree.gridy = 4;
 		add(chckbxShowEditTree, gbc_chckbxShowEditTree);
 		
-		chckbxShowClades.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				boolean bPrev = m_dt.m_bViewClades;
-				m_dt.m_bViewClades = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.m_bViewClades) {
-					m_dt.makeDirty();
-				}
-			}
-		});
-		GridBagConstraints gbc_chckbxShowClades = new GridBagConstraints();
-		gbc_chckbxShowClades.anchor = GridBagConstraints.WEST;
-		gbc_chckbxShowClades.gridx = 0;
-		gbc_chckbxShowClades.gridy = 5;
-		add(chckbxShowClades, gbc_chckbxShowClades);
-		
 		stateChanged(null);
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		chckbxShowEditTree.setEnabled(m_dt.m_Xmode == 0);
-		chckbxShowClades.setEnabled(m_dt.m_Xmode != 0);
 	}
 }
