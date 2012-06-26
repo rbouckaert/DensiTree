@@ -97,6 +97,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
 		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
 		"doi: 10.1093/bioinformatics/btq110";
+	static int instances = 0;
 
 	final static int B = 16;
 	
@@ -352,9 +353,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	/** constructors **/
 	public DensiTree() {
+		m_gridDrawer = new GridDrawer(this);
+		m_cladeDrawer = new CladeDrawer(this);
+		instances++;
 	}
 
 	public DensiTree(String[] args) {
+		this();
 		System.out.println(banner());
 		m_bSelection = new boolean[0];
 		m_nRevOrder = new int[0];
@@ -616,8 +621,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_jStatusBar.setText("Initializing...");
 			m_jStatusBar.repaint();
 		}
-		m_gridDrawer = new GridDrawer(this);
-		m_cladeDrawer = new CladeDrawer(this);
 		m_sFileName = sFile;
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
@@ -3379,6 +3382,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionPrint
 
+	Action a_new = new MyAction("New", "New instance of DensiTree", "new", "ctrl N") {
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent ae) {
+			startNew(new String[]{});
+		}
+	};
+
 	Action a_load = new MyAction("Load", "Load Graph", "open", "ctrl O") {
 		private static final long serialVersionUID = -2038911085935515L;
 
@@ -4452,6 +4463,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		// ----------------------------------------------------------------------
 		// File menu */
 		m_menuBar.add(fileMenu);
+		fileMenu.add(a_new);
 		fileMenu.add(a_load);
 		fileMenu.add(a_saveas);
 		fileMenu.add(a_loadimage);
@@ -4654,6 +4666,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		Dimension dim = a.getSize();
 		f.setSize(dim.width + 31, dim.height + 40 + 84);
+		f.setLocation(DensiTree.instances * 10 , DensiTree.instances * 10);
 		a.fitToScreen();
 		java.net.URL tempURL = ClassLoader.getSystemResource(DensiTree.ICONPATH + "DensiTree.png");
 		try {
