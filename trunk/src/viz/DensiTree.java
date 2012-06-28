@@ -32,17 +32,12 @@ package viz;
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
  * @version $Revision: 2.01 $
  */
+
 // the magic sentence to look for when releasing:
 //RRB: not for public release
 
 //TODO: truncate % of root
 // log scale
-//DONE  integrate DensiTreeS with DensiTree
-//DONE suppress ill documented menu items
-//DONE make root canal use clade heights
-//DONE visibility of clades/edit list
-//DONE make upgma default ordering
-//DONE set root canal color
 
 
 import java.awt.*;
@@ -379,8 +374,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		addComponentListener(this);
 		this.setLayout(new BorderLayout());
 		this.add(m_jScrollPane, BorderLayout.CENTER);
-//		m_ctrlPanel = new ControlPanel(this);
-//		this.add(m_ctrlPanel, BorderLayout.EAST);
 
 		a_zoomout.setEnabled(false);
 		a_zoomouttree.setEnabled(false);
@@ -450,21 +443,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // initColors
 
 	/** parse command line arguments, and load file if specified **/
-	// float [] _posX;
 	void parseArgs(String[] args) {
-		// String s =
-		// "0.0 0.0644496624519727 0.12299647366370955 0.1828288771357618 0.24316465205713314 0.3028449582299141 0.42152474393619127 12.3484018687757 12.759547734427285 12.954877607260375 13.230334083463442 13.429915461276531 13.971822041254056 14.027609363472253 14.378202179942885 14.573394447865825 14.883272119141479 15.706679247293694 20.06935659213848 20.4884115559945 21.791709181174685 21.81735939822871 21.90854930926544 22.32272627756748 25.41919254544952 25.58907861292301 25.61961045037131 25.64894722757623 25.790188196949746 25.885354383260974 25.978148567327818 26.101344212017736 26.185331217457495 26.30434055572244 27.436803291652968 27.622851571370656 27.786418338375235 27.998656423704908 28.1890612221116 31.05949918936486 31.0903750554418 31.118216207430315 31.37773862184774 31.53781800317268 31.61654313086494 31.8186486031974 31.976062650728036 32.1076454110957 32.245417100342735 32.41364820267639 36.924327658783966 37.15009883265346 37.25582133523053 41.07961235620318 41.21854289228307 41.233788893780805 41.33591174666764 41.48919742389697 49.60963720518882 49.92539961497576 50.34285755376211 50.38418471730719 57.49225747193808 57.506750222943865 65.0679117036763 65.08585925184093 65.16616692334262 65.18065967726604 66.59015420277673 66.62455729165168 66.64617329575445 66.89485330403363 66.92126039074965 68.88226901829195 68.89676177188156 69.03964685094547 69.07581717168495 69.1024089483164 119.94775800960682 120.18097473681449 120.4024907816688 120.60068516332306 120.79182872371103 121.0034946304536 121.1965502748277 121.3864806742199 121.59708913864887 121.79647133214245 121.9939776519638 122.18833699453252 122.38530010766122 122.58324099319238 122.80380462558588 122.98492421035952 123.17830940143261 123.39499815291641 123.60840594844468 123.81513591736105 124.0074491812512 128.18457075558996 128.3692356650195 128.54248961828273 128.68918800875954 128.82993647565806 128.97564623003794 129.10998485839428 129.2304789597451 129.44206156988903 129.57809138157216 129.74273008114125 132.98851661889998 133.0151083953181 133.06612998624703 195.55173137217838 195.60526619719994 195.98648500769107 196.00260738091475 196.07478143846288 196.08927419175797 196.1838174995088 196.5417580974765 196.55786236373194 196.6205085764241 199.35983456290018 199.5330848945147 199.62915642291463 199.80924029376996 199.82587690311593 199.9415219789236 200.10731227287508 200.1332847936744 200.16139754928815 200.66806450469502 200.95405918846848 201.325087442503 201.39471205044535 201.43184203615462 201.45095566774376";
-		// String [] s2 = s.split(" ");
-		// _posX = new float[s2.length];
-		// double fMax = 0;
-		// for (int i = 0; i < s2.length; i++) {
-		// _posX[i] = Float.parseFloat(s2[i]);
-		// fMax = Math.max(fMax, _posX[i]);
-		// }
-		// for (int i = 0; i < s2.length; i++) {
-		// _posX[i] *= s2.length / fMax;
-		// }
-		
 		int i = 0;
 		try {
 			while (i < args.length) {
@@ -1761,25 +1740,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_fTreeScale);
 			} else {
 				calcLinesForNode(m_trees[i], m_fLinesX[i], m_fLinesY[i]);
-//				switch (m_Xmode) {
-//				case 0:
-//					m_trees[i].drawDry(m_fLinesX[i], m_fLinesY[i], 0, b, m_bSelection, m_fTreeOffset, m_fTreeScale);
-//					break;
-//				case 1:
-//					m_trees[i].drawDryCentralised(m_fLinesX[i], m_fLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
-//							m_fTreeScale, new float[2], new float[m_nNrOfLabels * 2 - 1],
-//							new float[m_nNrOfLabels * 2 - 1], m_cladePosition);
-//					break;
-//				case 2:
-//					float[] fCladeCenterX = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fCladeCenterY = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fPosX = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fPosY = new float[m_nNrOfLabels * 2 - 1];
-//					m_trees[i].getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition, m_sLabels.size());
-//					m_trees[i].drawStarTree(m_fLinesX[i], m_fLinesY[i], fPosX, fPosY, fCladeCenterX, fCladeCenterY,
-//							m_bSelection, m_fTreeOffset, m_fTreeScale);
-//					break;
-//				}
 			}
 		}
 		// calculate coordinates of lines for drawing consensus trees
@@ -1793,26 +1753,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_fTreeScale);
 			} else {
 				calcLinesForNode(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i]);
-//			
-//				switch (m_Xmode) {
-//				case 0:
-//					m_cTrees[i].drawDry(m_fCLinesX[i], m_fCLinesY[i], 0, b, m_bSelection, m_fTreeOffset, m_fTreeScale);
-//					break;
-//				case 1:
-//					m_cTrees[i].drawDryCentralised(m_fCLinesX[i], m_fCLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
-//							m_fTreeScale, new float[2], new float[m_nNrOfLabels * 2 - 1],
-//							new float[m_nNrOfLabels * 2 - 1], m_cladePosition);
-//					break;
-//				case 2:
-//					float[] fCladeCenterX = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fCladeCenterY = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fPosX = new float[m_nNrOfLabels * 2 - 1];
-//					float[] fPosY = new float[m_nNrOfLabels * 2 - 1];
-//					m_cTrees[i].getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition);
-//					m_cTrees[i].drawStarTree(m_fCLinesX[i], m_fCLinesY[i], fPosX, fPosY, fCladeCenterX, fCladeCenterY,
-//							m_bSelection, m_fTreeOffset, m_fTreeScale);
-//					break;
-//				}
 			}
 		}
 
@@ -2841,121 +2781,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (bd != null) {
 			m_treeDrawer.setBranchDrawer(bd);
 			makeDirty();
-//			Enumeration<AbstractButton> enumeration = m_styleGroup.getElements();
-//			for (int i = 0; i < nStyle; i++) {
-//				enumeration.nextElement();
-//			}
-//			m_styleGroup.setSelected(enumeration.nextElement().getModel(), true);
 		}
 	}
 	
 	
-//	public class ControlPanel extends JPanel {
-//		private static final long serialVersionUID = 1L;
-//		DensiTree m_densiTree;
-//		
-//		ControlPanel(DensiTree densiTree) {
-//			m_densiTree = densiTree;
-//			Box box = Box.createVerticalBox();
-//			box.add(createModeBox());
-//			box.add(createLineBox());
-//			box.add(createCTreeSetBox());
-//			box.add(createTreeSetBox());
-//			this.add(box);
-//		}
-//
-//		private Component createModeBox() {
-//			Box box = Box.createVerticalBox();
-//			JButton defaultButton = new JButton(getIcon("modedefault"));
-//			defaultButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					selectMode(0);
-//				}
-//			});
-//			box.add(defaultButton);
-//
-//
-//			JButton blockStarTree = new JButton(getIcon("modestar"));
-//			blockStarTree.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					selectMode(1);
-//				}
-//			});
-//			box.add(blockStarTree);
-//
-//			JButton modeCentralised = new JButton(getIcon("modecentralised"));
-//			modeCentralised.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					selectMode(2);
-//				}
-//			});
-//			box.add(modeCentralised);
-//
-//			JButton modeCentralisedAngleCorrected = new JButton(getIcon("modeanglecorrected"));
-//			modeCentralisedAngleCorrected.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					selectMode(3);
-//				}
-//			});
-//			box.add(modeCentralisedAngleCorrected);
-//			return box;
-//		}
-//
-//		private Component createLineBox() {
-//			Box box = Box.createVerticalBox();
-//
-//			JButton straightButton = new JButton(getIcon("stylestraight"));
-//			straightButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					if (m_bMetaDataForLineWidth) {
-//						m_treeDrawer.setBranchDrawer(new TrapeziumBranchDrawer());
-//					} else {
-//						m_treeDrawer.setBranchDrawer(new BranchDrawer());
-//					}
-//					makeDirty();
-//				}
-//			});
-//			box.add(straightButton);
-//
-//			JButton arcedButton = new JButton(getIcon("stylearced"));
-//			arcedButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					m_treeDrawer.setBranchDrawer(new ArcBranchDrawer());
-//					makeDirty();
-//				}
-//			});
-//			box.add(arcedButton);
-//
-//			JButton steepButton = new JButton(getIcon("stylesteep"));
-//			steepButton.addActionListener(new ActionListener() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					m_treeDrawer.setBranchDrawer(new SteepArcBranchDrawer());
-//					makeDirty();
-//				}
-//			});
-//			box.add(steepButton);
-//			return box;
-//		}
-//
-//		private Component createCTreeSetBox() {
-//			Box box = Box.createHorizontalBox();
-//			return box;
-//		}
-//
-//		private Component createTreeSetBox() {
-//			Box box = Box.createHorizontalBox();
-//			return box;
-//		}
-//
-//		
-//	} // class ControlPanel
 	
 	Icon getIcon(String sIcon) {
 		java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
@@ -2970,17 +2799,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 	JScrollPane m_jScrollPane;
 	/** panel for drawing the trees **/
 	public TreeSetPanel m_Panel;
-	/** panel for controlling properties of DensiTree **/
-	//ControlPanel m_ctrlPanel;
-	//ButtonGroup m_modeGroup = new ButtonGroup();
-	//ButtonGroup m_styleGroup = new ButtonGroup();
 	/** the menu bar for this application. */
 	JMenuBar m_menuBar;
 	/** status bar at bottom of window */
 	final JLabel m_jStatusBar = new JLabel("Status bar");;
 	/** toolbar containing buttons at top of window */
 	final JToolBar m_jTbTools = new JToolBar();
-	//final JToolBar m_jTbTools2 = new JToolBar();
 	final JPanel m_jTbTools2 = new JPanel();
 	final JToolBar m_jTbCladeTools = new JToolBar();
 	/** font for all text being printed (e.g. labels, height info) **/
@@ -3754,42 +3578,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionGeoWidth
 
-//	Action a_branchDrawer = new MyAction("Branch type", "Choose branch drawing type", "branchdraw", "") {
-//		private static final long serialVersionUID = -2L;
-//
-//		public void actionPerformed(ActionEvent ae) {
-//			String[] choices = { "Line", "Block", "Arced", "Steep"/* , "Trapezium" */};
-//			int nChoice = JOptionPane.showOptionDialog(null, "BranchDrawer :", "Branch type",
-//					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, choices, choices[0]);
-//			BranchDrawer bd = null;
-//			switch (nChoice) {
-//			case 0:
-//				bd = new BranchDrawer();
-//				m_treeDrawer.m_bViewBlockTree = false;
-//				break;
-//			case 1:
-//				bd = new BranchDrawer();
-//				m_treeDrawer.m_bViewBlockTree = true;
-//				break;
-//			case 2:
-//				bd = new ArcBranchDrawer();
-//				m_treeDrawer.m_bViewBlockTree = false;
-//				break;
-//			// case 2: bd = new KoruBranchDrawer();break;
-//			// case 3: bd = new TrapeziumBranchDrawer();break;
-//			// case 3: bd = new BrownianBridgeBranchDrawer();break;
-//			case 3:
-//				bd = new SteepArcBranchDrawer();
-//				m_treeDrawer.m_bViewBlockTree = false;
-//				break;
-//			}
-//			if (bd != null) {
-//				m_treeDrawer.setBranchDrawer(bd);
-//				makeDirty();
-//			}
-//		}
-//	}; // class ActionBranchDrawer
-
 	Action a_viewstatusbar = new MyAction("View statusbar", "View statusbar", "statusbar", "") {
 		private static final long serialVersionUID = -20389330812354L;
 
@@ -3822,14 +3610,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (m_jTbCladeTools.isVisible()) {
 				JSplitPane pane = (JSplitPane) m_Panel.getParent().getParent().getParent().getParent();
 				int loc = pane.getDividerLocation();
-//
-//			// Set a new location using an absolution location; center the divider
-//				loc = (int)((pane.getBounds().getWidth()-pane.getDividerSize())/2);
-//				pane.setDividerLocation(loc);
-//
-//			double propLoc = .5D;
-			// Set a proportional location
-			pane.setDividerLocation(0.8);
+				// Set a proportional location
+				pane.setDividerLocation(0.8);
 			}
 			
 		} // actionPerformed
@@ -4253,9 +4035,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		    	m_pattern = Pattern.compile(m_sPattern);
 		    	calcLines();
 		    	makeDirty();
-//				JOptionPane.showMessageDialog(null,
-//						"Pattern in is now set to " + m_sPattern +"\nReload file to apply to a tree set.", "Pattern message",
-//						JOptionPane.PLAIN_MESSAGE);
 				} catch (Exception e) {}
 			}
 		}
@@ -4387,14 +4166,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		panel.add(createToolBarButton(action5));
 		m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
 		m_jTbTools2.add(panel);
-		
-//		m_jTbTools2.add(createToolBarButton(action));
-////		m_jTbTools2.add(createToolBarButton(action2));
-//		m_jTbTools2.add(createToolBarButton(action3));
-//		m_jTbTools2.add(createToolBarButton(action4));
-//		m_jTbTools2.add(createToolBarButton(action5));
-		//m_jTbTools2.addSeparator();
-		
+				
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -4427,11 +4199,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		panel.add(createToolBarButton(action8));
 		panel.add(createToolBarButton(action9));
 		m_jTbTools2.add(panel);
-//		m_jTbTools2.add(createToolBarButton(action6));
-//		m_jTbTools2.add(createToolBarButton(action7));
-//		m_jTbTools2.add(createToolBarButton(action8));
-//		m_jTbTools2.add(createToolBarButton(action9));
-		//m_jTbTools2.setOrientation(JToolBar.VERTICAL);
 		m_jTbTools2.add(new ExpandablePanel("Show", new ShowPanel(this)));
 		m_jTbTools2.add(new ExpandablePanel("Grid", new GridPanel(this)));
 		m_jTbTools2.add(new ExpandablePanel("Label", new LabelPanel(this)));
@@ -4637,8 +4404,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		settingsMenu.addSeparator();
 		settingsMenu.add(a_threadsUp);
 		settingsMenu.add(a_threadsDown);
-//		settingsMenu.addSeparator();
-//		settingsMenu.add(a_burnin);
 
 
 		// ----------------------------------------------------------------------
