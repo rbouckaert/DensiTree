@@ -45,7 +45,7 @@ public class RoundedButton extends JButton implements MouseListener {
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawLine(4, getHeight() - 3, getWidth() - 4, getHeight() - 3);
 
-        g2.dispose();
+        //g2.dispose();
     }
 
 	public void mouseClicked(MouseEvent e) {

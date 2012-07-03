@@ -44,28 +44,28 @@ public class AddSpeed extends DensiTree {
 			addSpeed(node.m_right);
 		} else {
 			if (node.isLeaf()) {
-				if (node.getParent().m_sMetaData != null) {
+				if (node.getParent().getMetaData() != null) {
 					float fX = g_densitree.m_fLongitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]%32;
 					float fY = g_densitree.m_fLatitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]/32;
-					Matcher matcher2 = g_pattern.matcher(node.getParent().m_sMetaData);
+					Matcher matcher2 = g_pattern.matcher(node.getParent().getMetaData());
 					matcher2.find();
 					float fX2 = Float.parseFloat(matcher2.group(1));
 					float fY2 = Float.parseFloat(matcher2.group(2));
-					node.m_sMetaData += ",s="+(float)(Math.sqrt((fX-fX2)*(fX-fX2)+(fY-fY2)*(fY-fY2))/Math.abs(node.m_fLength));
+					node.setMetaData(node.getMetaData() + (",s="+(float)(Math.sqrt((fX-fX2)*(fX-fX2)+(fY-fY2)*(fY-fY2))/Math.abs(node.m_fLength))));
 				}
 			} else {
 				addSpeed(node.m_left);
 				addSpeed(node.m_right);
-				if (node.m_sMetaData != null && node.getParent().m_sMetaData != null) {
-					Matcher matcher = g_pattern.matcher(node.m_sMetaData);
+				if (node.getMetaData() != null && node.getParent().getMetaData() != null) {
+					Matcher matcher = g_pattern.matcher(node.getMetaData());
 					matcher.find();
 					float fX = Float.parseFloat(matcher.group(1));
 					float fY = Float.parseFloat(matcher.group(2));
-					Matcher matcher2 = g_pattern.matcher(node.getParent().m_sMetaData);
+					Matcher matcher2 = g_pattern.matcher(node.getParent().getMetaData());
 					matcher2.find();
 					float fX2 = Float.parseFloat(matcher2.group(1));
 					float fY2 = Float.parseFloat(matcher2.group(2));
-					node.m_sMetaData += ",s="+(float)(Math.sqrt((fX-fX2)*(fX-fX2)+(fY-fY2)*(fY-fY2))/Math.abs(node.m_fLength));
+					node.setMetaData(node.getMetaData() + (",s="+(float)(Math.sqrt((fX-fX2)*(fX-fX2)+(fY-fY2)*(fY-fY2))/Math.abs(node.m_fLength))));
 				}
 			}
 		}

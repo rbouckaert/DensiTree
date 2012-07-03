@@ -15,6 +15,7 @@ import java.awt.RenderingHints;
 import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.TitledBorder;
@@ -43,7 +44,6 @@ public class ExpandablePanel extends JPanel {
 
 	
 	public class DropDownButton extends JButton implements MouseListener {
-
 		boolean mouseIn = false;
 		boolean isOpen = false;
 		void setOpen(boolean isOpen) {
@@ -70,7 +70,7 @@ public class ExpandablePanel extends JPanel {
 	        g2.setFont(Font.getFont(Font.DIALOG));
 	        super.paintComponent(g);
 	        //g2.drawString(label, 17, getHeight() - 6);
-	        int x = 1, y = 1;
+	        int x = 5, y = 3;
 			if (isOpen) {
 				int w = DOWN_ICON.getWidth(null);
 				int h = DOWN_ICON.getHeight(null);
