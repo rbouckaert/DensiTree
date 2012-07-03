@@ -8,7 +8,6 @@ import javax.swing.JButton;
 
 import java.awt.Color;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
@@ -32,21 +31,25 @@ public class LabelPanel extends JPanel {
 		GridBagLayout layout = new GridBagLayout();
 		//layout.setHgap(30);
 		setLayout(layout);
-		JPanel panel = new JPanel();
+//		JPanel panel = new JPanel();
+//		add(panel, gbc_panel);
+		
+		JLabel lblWidth = new JLabel("Width");
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.anchor = GridBagConstraints.WEST;
-		gbc_panel.gridwidth = 2;
 		gbc_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 0;
-		add(panel, gbc_panel);
-		
-		JLabel lblWidth = new JLabel("Width");
-		panel.add(lblWidth);
+		add(lblWidth, gbc_panel);
 		
 		textField = new JTextField();
 		textField.setText(m_dt.m_nLabelWidth+"");
-		panel.add(textField);
+		GridBagConstraints gbc_width = new GridBagConstraints();
+		gbc_width.anchor = GridBagConstraints.WEST;
+		gbc_width.insets = new Insets(0, 0, 5, 0);
+		gbc_width.gridx = 1;
+		gbc_width.gridy = 0;
+		add(textField, gbc_width);
 		textField.setColumns(5);
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 			
@@ -78,9 +81,8 @@ public class LabelPanel extends JPanel {
 		});
 		GridBagConstraints gbc_chckbxRotate = new GridBagConstraints();
 		gbc_chckbxRotate.anchor = GridBagConstraints.WEST;
-		gbc_chckbxRotate.gridwidth = 2;
 		gbc_chckbxRotate.insets = new Insets(0, 0, 5, 0);
-		gbc_chckbxRotate.gridx = 0;
+		gbc_chckbxRotate.gridx = 1;
 		gbc_chckbxRotate.gridy = 1;
 		add(chckbxRotate, gbc_chckbxRotate);
 		
@@ -111,14 +113,29 @@ public class LabelPanel extends JPanel {
 				}
 			}
 		});
+		
+		JCheckBox chckbxAlign = new JCheckBox("Align");
+		chckbxAlign.setSelected(m_dt.m_bAlignLabels);
+		chckbxAlign.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				m_dt.m_bAlignLabels = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.makeDirty();
+			}
+		});
+		GridBagConstraints gbc_chckbxAlign = new GridBagConstraints();
+		gbc_chckbxAlign.anchor = GridBagConstraints.WEST;
+		gbc_chckbxAlign.insets = new Insets(0, 0, 5, 0);
+		gbc_chckbxAlign.gridx = 1;
+		gbc_chckbxAlign.gridy = 2;
+		add(chckbxAlign, gbc_chckbxAlign);
 		GridBagConstraints gbc_btnFont = new GridBagConstraints();
 		gbc_btnFont.insets = new Insets(0, 0, 0, 5);
 		gbc_btnFont.gridx = 0;
-		gbc_btnFont.gridy = 2;
+		gbc_btnFont.gridy = 3;
 		add(btnFont, gbc_btnFont);
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
 		gbc_btnColor.gridx = 1;
-		gbc_btnColor.gridy = 2;
+		gbc_btnColor.gridy = 3;
 		add(btnColor, gbc_btnColor);
 	}
 }

@@ -61,20 +61,6 @@ public class GeoPanel extends JPanel {
 		gbc_chckbxShowGeoInfo.gridy = 0;
 		add(chckbxShowGeoInfo, gbc_chckbxShowGeoInfo);
 		
-		JButton btnLoadLocations = new RoundedButton("Load locations");
-		btnLoadLocations.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				m_dt.a_loadkml.actionPerformed(e);
-			}
-		});
-		GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
-		gbc_btnLoadLocations.gridwidth = 2;
-		gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnLoadLocations.insets = new Insets(0, 0, 5, 0);
-		gbc_btnLoadLocations.gridx = 0;
-		gbc_btnLoadLocations.gridy = 1;
-		add(btnLoadLocations, gbc_btnLoadLocations);
-		
 		JLabel lblLineWidth = new JLabel("Line width");
 		GridBagConstraints gbc_lblLineWidth = new GridBagConstraints();
 		gbc_lblLineWidth.anchor = GridBagConstraints.EAST;
@@ -82,18 +68,6 @@ public class GeoPanel extends JPanel {
 		gbc_lblLineWidth.gridx = 0;
 		gbc_lblLineWidth.gridy = 2;
 		add(lblLineWidth, gbc_lblLineWidth);
-		
-		JButton btnLineColor = new RoundedButton("Line color");
-		btnLineColor.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
-				if (newColor != null) {
-					m_dt.m_color[DensiTree.GEOCOLOR] = newColor;
-					m_dt.makeDirty();
-				}
-				m_dt.repaint();
-			}
-		});
 		
 		
 		model =  new SpinnerNumberModel(m_dt.m_nGeoWidth, //initial value
@@ -118,15 +92,39 @@ public class GeoPanel extends JPanel {
 				} catch (Exception ex) {}
 			}
 		});
-
-		
-		GridBagConstraints gbc_btnLineColor = new GridBagConstraints();
-		gbc_btnLineColor.gridwidth = 2;
-		gbc_btnLineColor.insets = new Insets(0, 0, 5, 0);
-		gbc_btnLineColor.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnLineColor.gridx = 0;
-		gbc_btnLineColor.gridy = 3;
-		add(btnLineColor, gbc_btnLineColor);
+				
+				JButton btnLoadLocations = new RoundedButton("<html>Load<br>locations</html>");
+				btnLoadLocations.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						m_dt.a_loadkml.actionPerformed(e);
+					}
+				});
+				GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
+				gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
+				gbc_btnLoadLocations.insets = new Insets(0, 0, 5, 5);
+				gbc_btnLoadLocations.gridx = 0;
+				gbc_btnLoadLocations.gridy = 3;
+				add(btnLoadLocations, gbc_btnLoadLocations);
+				
+				JButton btnLineColor = new RoundedButton("Color");
+				btnLineColor.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
+						if (newColor != null) {
+							m_dt.m_color[DensiTree.GEOCOLOR] = newColor;
+							m_dt.makeDirty();
+						}
+						m_dt.repaint();
+					}
+				});
+				
+						
+						GridBagConstraints gbc_btnLineColor = new GridBagConstraints();
+						gbc_btnLineColor.insets = new Insets(0, 0, 5, 0);
+						gbc_btnLineColor.fill = GridBagConstraints.HORIZONTAL;
+						gbc_btnLineColor.gridx = 1;
+						gbc_btnLineColor.gridy = 3;
+						add(btnLineColor, gbc_btnLineColor);
 		
 	}
 }

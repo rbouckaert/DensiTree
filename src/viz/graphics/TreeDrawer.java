@@ -54,7 +54,7 @@ public class TreeDrawer {
 	/** width of lines used for drawing trees, etc. **/
 	int m_nTreeWidth = 1;
 	/** scale factor of width for meta data **/
-	public float LINE_WIDTH_SCALE = 2000;
+	public float LINE_WIDTH_SCALE = 20;
 
 
 
