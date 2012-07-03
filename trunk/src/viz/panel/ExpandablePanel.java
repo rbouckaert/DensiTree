@@ -13,6 +13,7 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -164,8 +165,7 @@ public class ExpandablePanel extends JPanel {
 		m_sLabel = sLabel;
 		//setBorder(new TitledBorder(null, sLabel, TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		m_panel = panel;
-//		Box box = Box.createHorizontalBox();
-//		box.add(Box.createHorizontalGlue());
+		panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 		
 		editButton = new DropDownButton(sLabel);
 		Dimension size = new Dimension(200,20);
@@ -174,24 +174,9 @@ public class ExpandablePanel extends JPanel {
         editButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-                //JButton editButton = (JButton) e.getSource();
 				boolean isVisible = m_panel.isVisible();
                 m_panel.setVisible(!isVisible);
                 editButton.setOpen(!isVisible);
-               // m_panel.setVisible(!m_panel.isVisible());
-//                if (m_panel.isVisible()) {
-//                    try {
-//                    	editButton.setIcon(DOWN_ICON);
-//                    }catch (Exception e2) {
-//						// TODO: handle exception
-//					}
-//                } else {
-//                	try {
-//                		editButton.setIcon(LEFT_ICON);
-//                    }catch (Exception e2) {
-//						// TODO: handle exception
-//					}
-//                }
             }
         });
         
