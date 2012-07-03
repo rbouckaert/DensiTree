@@ -4,7 +4,11 @@ package viz.panel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 
 import javax.swing.JCheckBox;
 
@@ -20,7 +24,9 @@ import java.awt.Insets;
 import java.util.List;
 import java.util.ArrayList;
 
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
@@ -166,4 +172,101 @@ public class ColorPanel extends JPanel {
 		add(btnLineColors, gbc_btnLineColors);
 		
 	}
+	
+	public class ColorDialog extends JDialog {
+		private static final long serialVersionUID = 1L;
+		
+		DensiTree m_dt;
+		
+		
+		public ColorDialog(DensiTree dt) {
+			m_dt = dt;
+			getContentPane().setLayout(new GridLayout(0, 3, 0, 0));
+			
+			
+			addColorAction("Color 1", "Color of most popular topolgy", 0);
+			addColorAction("Color 2", "Color of second most popular topolgy", 1);
+			addColorAction("Color 3", "Color of third most popular topolgy", 2);
+			addColorAction("Default", "Default color ", 3);
+			addColorAction("Consensus", "Consensus tree color ", DensiTree.CONSCOLOR);
+			addColorAction("Background", "Background color ", DensiTree.BGCOLOR);
+			addColorAction("Root canal", "Root canal color ", DensiTree.ROOTCANALCOLOR);
+					
+			for (int k = 9; k < m_dt.m_color.length; k++) {
+				addColorAction("Color " + k, "Custom line color " + k, k);
+			}
+			
+			JButton button = new RoundedButton("Close");
+			button.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dispose();
+				}
+			});
+			add(button);
+			
+			setPreferredSize(new Dimension(300,200));
+			setSize(new Dimension(300,200));
+			setLocation(300, 200);
+			setModal(true);
+			setVisible(true);
+		}
+		
+		
+		private void addColorAction(String label, String tiptext, int colorID) {
+			JButton button = new ColorButton(label, m_dt.m_color[colorID]);
+			button.setToolTipText(tiptext);
+			button.addActionListener(new ColorActionListener(colorID, tiptext));
+			
+			JButton btnColors = new JButton("colors");
+			btnColors.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					new ColorDialog(m_dt);
+				}
+			});
+			add(button);
+		}
+		
+		class ColorButton extends RoundedButton {
+			private static final long serialVersionUID = 1L;
+
+			Color m_color;
+			
+			ColorButton(String label, Color color) {
+				super(label);
+				m_color = color;
+			}
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				g.setColor(m_color);
+				g.fillRect(3, 3, 10, getHeight() - 6);
+			}
+			
+		}
+
+		class ColorActionListener implements ActionListener {
+			int m_colorID;
+			String m_sName;
+			
+			public ColorActionListener(int colorID, String name) {
+				m_colorID = colorID;
+				m_sName = name;
+			}
+			public void actionPerformed(ActionEvent e) {
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.m_color[m_colorID]);
+				if (newColor != null && m_dt.m_color[m_colorID] != newColor) {
+					ColorButton button = ((ColorButton)e.getSource());
+					button.m_color = newColor;
+					button.repaint();
+					m_dt.m_color[m_colorID] = newColor;
+					m_dt.calcColors(true);
+					m_dt.makeDirty();
+				}
+				m_dt.repaint();
+			}
+		}
+
+	}
+
 }
