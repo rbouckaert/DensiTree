@@ -577,10 +577,10 @@ public class TreeFileParser {
 				}
 				break;
 			case META_DATA:
-				if (stack.lastElement().m_sMetaData == null) {
-					stack.lastElement().m_sMetaData = sStr.substring(m_iTokenStart+1, m_iTokenEnd-1);
+				if (stack.lastElement().getMetaData() == null) {
+					stack.lastElement().setMetaData(sStr.substring(m_iTokenStart+1, m_iTokenEnd-1));
 				} else {
-					stack.lastElement().m_sMetaData += " " +sStr.substring(m_iTokenStart+1, m_iTokenEnd-1);
+					stack.lastElement().setMetaData(stack.lastElement().getMetaData() + (" " +sStr.substring(m_iTokenStart+1, m_iTokenEnd-1)));
 				}
 				break;
 			case SEMI_COLON:

@@ -25,7 +25,7 @@ import javax.swing.JSpinner;
 import javax.swing.border.TitledBorder;
 import java.awt.GridLayout;
 
-public class MetaDataPanel extends JPanel {
+public class LineWidthPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private JTextField textField_1;
 	private JTextField textField_3;
@@ -34,7 +34,7 @@ public class MetaDataPanel extends JPanel {
 	
 	DensiTree m_dt;
 	
-	public MetaDataPanel(DensiTree dt) {
+	public LineWidthPanel(DensiTree dt) {
 		m_dt = dt;
 		GridBagLayout gridBagLayout = new GridBagLayout();
 //		gridBagLayout.rowWeights = new double[]{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
