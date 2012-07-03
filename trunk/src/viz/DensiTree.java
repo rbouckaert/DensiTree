@@ -4164,8 +4164,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 		panel.add(createToolBarButton(action3));
 		panel.add(createToolBarButton(action4));
 		panel.add(createToolBarButton(action5));
-		m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
-		m_jTbTools2.add(panel);
+
+		
+		JPanel toolPanel = new JPanel();
+		toolPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridwidth = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.PAGE_START;
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		//m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
+		toolPanel.add(panel, gbc);
 				
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			@Override
@@ -4198,18 +4208,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 		panel.add(createToolBarButton(action7));
 		panel.add(createToolBarButton(action8));
 		panel.add(createToolBarButton(action9));
-		m_jTbTools2.add(panel);
-		m_jTbTools2.add(new ExpandablePanel("Show", new ShowPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Grid", new GridPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Label", new LabelPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Geography", new GeoPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Meta Data", new MetaDataPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Line Color", new ColorPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Burn in", new BurninPanel(this)));
-		m_jTbTools2.add(new ExpandablePanel("Clades", new CladePanel(this)));
-		for (int i = 0; i < 100; i++) {
-			m_jTbTools2.add(Box.createVerticalGlue());
-		}
+		
+		gbc.gridy++;
+		toolPanel.add(panel, gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Show", new ShowPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Grid", new GridPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Label", new LabelPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Geography", new GeoPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Meta Data", new MetaDataPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Line Color", new ColorPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
+		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
+		m_jTbTools2.add(toolPanel);
+//		for (int i = 0; i < 100; i++) {
+//			gbc.gridy++;
+//			m_jTbTools2.add(Box.createVerticalGlue(), gbc);
+//		}
 
 		m_cladelist = new JList(m_cladelistmodel);
 		m_cladelist.addListSelectionListener(new ListSelectionListener() {
