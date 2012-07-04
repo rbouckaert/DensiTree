@@ -2,6 +2,7 @@ package viz.panel;
 
 
 
+
 import javax.swing.JPanel;
 
 import java.awt.Dimension;
@@ -12,6 +13,9 @@ import javax.swing.JCheckBox;
 import java.awt.GridBagConstraints;
 import javax.swing.JLabel;
 import java.awt.Insets;
+
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -22,19 +26,16 @@ import javax.swing.event.ChangeListener;
 import viz.DensiTree;
 import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
-import viz.graphics.BranchDrawer;
-import viz.graphics.TrapeziumBranchDrawer;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSpinner;
 import javax.swing.border.TitledBorder;
-import java.awt.GridLayout;
 import java.util.ArrayList;
 
 import javax.swing.JComboBox;
 
-public class LineWidthPanel extends JPanel {
+public class LineWidthPanel extends JPanel implements ChangeListener {
 	private static final long serialVersionUID = 1L;
 	private JTextField textField_1;
 	private JTextField textField_3;
@@ -47,30 +48,16 @@ public class LineWidthPanel extends JPanel {
 	
 	public LineWidthPanel(DensiTree dt) {
 		m_dt = dt;
+		m_dt.addChangeListener(this);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWeights = new double[]{1.0, 0.0, 0.0};
-//		gridBagLayout.rowWeights = new double[]{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
-//		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
-//		gridBagLayout.columnWeights = new double[]{1.0, 0.0, 0.0};
-//		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-//		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-//		gridBagLayout.rowHeights = new int[]{0, 0, 156, 0, 0};
-//		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-//		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
-		List<String> selection = new ArrayList<String>();
-		selection.add(LineWidthMode.DEFAULT.toString());
-		selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
-		selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
-		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
-			if (m_dt.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
-				selection.add(m_dt.m_metaDataTags.get(i));				
-			}
-		}
-		comboBox = new JComboBox(selection.toArray(new String[0]));
+		comboBox = new JComboBox();
+		stateChanged(null);
+		comboBox.setPreferredSize(new Dimension(130,20));
+		comboBox.setMaximumSize(new Dimension(130,200));
 		comboBox.setSelectedItem(m_dt.m_lineWidthMode);
-		
 		
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -98,8 +85,9 @@ public class LineWidthPanel extends JPanel {
 							m_dt.calcLinesWidths(true);
 							m_dt.makeDirty();
 						}
-						textField_1.setVisible(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
+						textField_1.setEnabled(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
 						panel.setVisible(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER);
+						repaint();
 					}
 				});
 			}
@@ -107,7 +95,7 @@ public class LineWidthPanel extends JPanel {
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.gridwidth = 2;
 		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
+		//gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbc_comboBox.gridx = 0;
 		gbc_comboBox.gridy = 0;
 		add(comboBox, gbc_comboBox);
@@ -135,7 +123,7 @@ public class LineWidthPanel extends JPanel {
 				} catch (Exception ex) {}
 			}
 		});
-		textField_1.setVisible(false);
+		textField_1.setEnabled(false);
 		
 		GridBagConstraints gbc_lblMetaDataScale = new GridBagConstraints();
 		gbc_lblMetaDataScale.anchor = GridBagConstraints.EAST;
@@ -211,12 +199,12 @@ public class LineWidthPanel extends JPanel {
 		
 		
 		
-		JCheckBox chckbxCorrectTopOf = new JCheckBox("Correct top of branch");
+		JCheckBox chckbxCorrectTopOf = new JCheckBox("Top correction");
 		chckbxCorrectTopOf.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
-				m_dt.m_bCorrectTopOfBranch = ((JCheckBox) e.getSource()).isVisible();
-				if (bPrev != m_dt.m_bCorrectTopOfBranch && m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+				m_dt.m_bCorrectTopOfBranch = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_bCorrectTopOfBranch) {// && m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 					m_dt.calcLinesWidths(true);
 					m_dt.makeDirty();
 				}
@@ -227,7 +215,7 @@ public class LineWidthPanel extends JPanel {
 		
 		panel = new JPanel();
 		panel.setVisible(false);
-		panel.setBorder(new TitledBorder(null, "Pattern", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel.setBorder(new TitledBorder(null, "Number", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.gridwidth = 2;
 		gbc_panel.insets = new Insets(0, 0, 5, 5);
@@ -237,7 +225,7 @@ public class LineWidthPanel extends JPanel {
 		add(panel, gbc_panel);
 		panel.setLayout(new GridBagLayout());
 		
-		JLabel lblNumberOfItem_1 = new JLabel("top of branch");
+		JLabel lblNumberOfItem_1 = new JLabel("top");
 		GridBagConstraints gbc_label = new GridBagConstraints();
 		gbc_label.anchor = GridBagConstraints.WEST;
 		gbc_label.gridx = 0;
@@ -249,9 +237,9 @@ public class LineWidthPanel extends JPanel {
 				gbc_spinner.gridx = 1;
 				gbc_spinner.gridy = 1;
 				panel.add(spinner, gbc_spinner);
-				spinner.setMaximumSize(new Dimension(3,20));
+				spinner.setMaximumSize(new Dimension(1,20));
 				
-				JLabel lblNumberOfItem = new JLabel("bottom of branch");
+				JLabel lblNumberOfItem = new JLabel("bottom");
 				GridBagConstraints gbc_label2 = new GridBagConstraints();
 				gbc_label2.anchor = GridBagConstraints.WEST;
 				gbc_label2.gridx = 0;
@@ -263,7 +251,7 @@ public class LineWidthPanel extends JPanel {
 				gbc_spinner2.gridy = 2;
 				panel.add(spinner_1, gbc_spinner2);
 				spinner_1.setToolTipText("when 0, top will be egual to bottom");
-				spinner_1.setMaximumSize(new Dimension(3,20));
+				spinner_1.setMaximumSize(new Dimension(1,20));
 		
 		chckbxCorrectTopOf.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_chckbxCorrectTopOf = new GridBagConstraints();
@@ -272,5 +260,20 @@ public class LineWidthPanel extends JPanel {
 		gbc_chckbxCorrectTopOf.gridx = 0;
 		gbc_chckbxCorrectTopOf.gridy = 7;
 		add(chckbxCorrectTopOf, gbc_chckbxCorrectTopOf);
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		List<String> selection = new ArrayList<String>();
+		selection.add(LineWidthMode.DEFAULT.toString());
+		selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
+		selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
+		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
+			if (m_dt.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
+				selection.add(m_dt.m_metaDataTags.get(i));				
+			}
+		}
+		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
+		comboBox.setModel(model);
 	}
 }

@@ -43,6 +43,15 @@ public class LabelPanel extends JPanel {
 		add(lblWidth, gbc_panel);
 		
 		textField = new JTextField();
+		textField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try{
+				m_dt.m_nLabelWidth = Integer.parseInt(textField.getText());
+				} catch (Exception ex) {
+				}
+				m_dt.fitToScreen();
+			}
+		});
 		textField.setText(m_dt.m_nLabelWidth+"");
 		GridBagConstraints gbc_width = new GridBagConstraints();
 		gbc_width.anchor = GridBagConstraints.WEST;
@@ -51,25 +60,6 @@ public class LabelPanel extends JPanel {
 		gbc_width.gridy = 0;
 		add(textField, gbc_width);
 		textField.setColumns(5);
-		textField.getDocument().addDocumentListener(new DocumentListener() {
-			
-			@Override
-			public void removeUpdate(DocumentEvent e) {update();}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {update();}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {update();}
-
-			private void update() {
-				try{
-				m_dt.m_nLabelWidth = Integer.parseInt(textField.getText());
-				} catch (Exception e) {
-				}
-				m_dt.fitToScreen();
-			}
-		});
 		
 		JCheckBox chckbxRotate = new JCheckBox("Rotate");
 		chckbxRotate.addActionListener(new ActionListener() {

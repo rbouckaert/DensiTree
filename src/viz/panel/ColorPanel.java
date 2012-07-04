@@ -24,13 +24,17 @@ import java.awt.Insets;
 import java.util.List;
 import java.util.ArrayList;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class ColorPanel extends JPanel {
+public class ColorPanel extends JPanel implements ChangeListener {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -42,34 +46,21 @@ public class ColorPanel extends JPanel {
 	
 	public ColorPanel(DensiTree dt) {
 		m_dt = dt;
+		m_dt.addChangeListener(this);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE, 0.0};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE, 0.0};
 		setLayout(gridBagLayout);
+
 		
 		
-		List<String> selection = new ArrayList<String>();
-		selection.add(LineColorMode.DEFAULT.toString());
-		selection.add(LineColorMode.COLOR_BY_CLADE.toString());
-		selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
-		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
-			if (!m_dt.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
-				selection.add(m_dt.m_metaDataTags.get(i));				
-			}
-		}
-		
-		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color cons. trees</html>");
-		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
-				m_dt.makeDirty();
-			}
-		});
-		
-		comboBox = new JComboBox(selection.toArray(new String[0]));
+		comboBox = new JComboBox(); 
+		stateChanged(null);
 		comboBox.setSelectedItem(m_dt.m_lineColorMode);
+		comboBox.setPreferredSize(new Dimension(130,20));
+		comboBox.setMaximumSize(new Dimension(130,200));
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -103,7 +94,7 @@ public class ColorPanel extends JPanel {
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.gridwidth = 2;
 		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
+		//gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbc_comboBox.gridx = 0;
 		gbc_comboBox.gridy = 0;
 		add(comboBox, gbc_comboBox);
@@ -123,6 +114,16 @@ public class ColorPanel extends JPanel {
 		gbc_chckbxShowLegend.gridx = 0;
 		gbc_chckbxShowLegend.gridy = 1;
 		add(chckbxShowLegend, gbc_chckbxShowLegend);
+		
+		
+		
+		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons-trees</html>");
+		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.makeDirty();
+			}
+		});
 		GridBagConstraints gbc_chckbxMultiColorConsensus = new GridBagConstraints();
 		gbc_chckbxMultiColorConsensus.anchor = GridBagConstraints.WEST;
 		gbc_chckbxMultiColorConsensus.gridwidth = 3;
@@ -130,13 +131,6 @@ public class ColorPanel extends JPanel {
 		gbc_chckbxMultiColorConsensus.gridx = 0;
 		gbc_chckbxMultiColorConsensus.gridy = 2;
 		add(chckbxMultiColorConsensus, gbc_chckbxMultiColorConsensus);
-		JLabel lblPattern = new JLabel("pattern");
-		GridBagConstraints gbc_lblPattern = new GridBagConstraints();
-		gbc_lblPattern.anchor = GridBagConstraints.EAST;
-		gbc_lblPattern.insets = new Insets(0, 0, 5, 5);
-		gbc_lblPattern.gridx = 0;
-		gbc_lblPattern.gridy = 3;
-		add(lblPattern, gbc_lblPattern);
 		
 		txtPattern = new JTextField(m_dt.m_sLineColorPattern);
 		txtPattern.addActionListener(new ActionListener() {
@@ -149,11 +143,19 @@ public class ColorPanel extends JPanel {
 				}
 			}
 		});
+		JLabel lblPattern = new JLabel("pattern:");
+		GridBagConstraints gbc_lblPattern = new GridBagConstraints();
+		gbc_lblPattern.anchor = GridBagConstraints.EAST;
+		gbc_lblPattern.insets = new Insets(0, 0, 5, 5);
+		gbc_lblPattern.gridx = 0;
+		gbc_lblPattern.gridy = 3;
+		add(lblPattern, gbc_lblPattern);
 		GridBagConstraints gbc_txtPattern = new GridBagConstraints();
+		gbc_txtPattern.gridwidth = 2;
 		gbc_txtPattern.insets = new Insets(0, 0, 5, 5);
 		gbc_txtPattern.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtPattern.gridx = 1;
-		gbc_txtPattern.gridy = 3;
+		gbc_txtPattern.gridx = 0;
+		gbc_txtPattern.gridy = 4;
 		add(txtPattern, gbc_txtPattern);
 		txtPattern.setColumns(10);
 		txtPattern.setEnabled(false);
@@ -165,10 +167,11 @@ public class ColorPanel extends JPanel {
 			}
 		});
 		GridBagConstraints gbc_btnLineColors = new GridBagConstraints();
+		gbc_btnLineColors.gridwidth = 2;
 		gbc_btnLineColors.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnLineColors.insets = new Insets(0, 0, 0, 5);
-		gbc_btnLineColors.gridx = 1;
-		gbc_btnLineColors.gridy = 4;
+		gbc_btnLineColors.gridx = 0;
+		gbc_btnLineColors.gridy = 5;
 		add(btnLineColors, gbc_btnLineColors);
 		
 	}
@@ -267,6 +270,21 @@ public class ColorPanel extends JPanel {
 			}
 		}
 
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		List<String> selection = new ArrayList<String>();
+		selection.add(LineColorMode.DEFAULT.toString());
+		selection.add(LineColorMode.COLOR_BY_CLADE.toString());
+		selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
+		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
+			if (!m_dt.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
+				selection.add(m_dt.m_metaDataTags.get(i));				
+			}
+		}
+		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
+		comboBox.setModel(model);
 	}
 
 }

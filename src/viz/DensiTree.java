@@ -40,6 +40,7 @@ package viz;
 // log scale
 
 
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -58,7 +59,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
-import javax.print.DocFlavor.STRING;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
@@ -93,9 +93,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
 		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
 		"doi: 10.1093/bioinformatics/btq110";
-	static int instances = 0;
+	static int instances = 1;
 
-	final static int B = 16;
+	final static int B = 1;
 	
 	private static final long serialVersionUID = 1L;
 	/** path for icons */
@@ -811,6 +811,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_metaDataTypes = new ArrayList<MetaDataType>();
 			collectMetaDataTags(m_trees[0]);
 
+			for (ChangeListener listener : m_changeListeners) {
+				listener.stateChanged(null);
+			}
 		} catch (OutOfMemoryError e) {
 			clear();
 			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
@@ -1520,6 +1523,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		int nNodes = getNrOfNodes(m_trees[0]);
 		if (nMethod < NodeOrderer.META_ALL) {
 			m_bShowBounds = false;
 			calcPositions();
@@ -1559,8 +1563,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					collectHeights(m_trees[i], fHeights, 0);
 					Arrays.sort(fHeights);
 					collectMetaData(m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_fLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-					m_fLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+					m_fLinesX[i] = new float[nNodes * 2 + 2];
+					m_fLinesY[i] = new float[nNodes * 2 + 2];
 					for (int j = 0; j < fMetas.length - 1; j++) {
 						m_fLinesX[i][j * 2] = fMetas[j];
 						m_fLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
@@ -1585,8 +1589,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					collectHeights(m_cTrees[i], fHeights, 0);
 					Arrays.sort(fHeights);
 					collectMetaData(m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_fCLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-					m_fCLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+					m_fCLinesX[i] = new float[nNodes * 2 + 2];
+					m_fCLinesY[i] = new float[nNodes * 2 + 2];
 					for (int j = 0; j < fMetas.length - 1; j++) {
 						m_fCLinesX[i][j * 2] = fMetas[j];
 						m_fCLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
@@ -1757,8 +1761,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		boolean[] b = new boolean[1];
 		for (int i = 0; i < m_trees.length; i++) {
-			// m_fLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			// m_fLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+			// m_fLinesX[i] = new float[nNodes * 2 + 2];
+			// m_fLinesY[i] = new float[nNodes * 2 + 2];
 			m_fLinesX[i] = new float[nNodes * 2 + 2];
 			m_fLinesY[i] = new float[nNodes * 2 + 2];
 			if (m_bAllowSingleChild) {
@@ -1770,8 +1774,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		// calculate coordinates of lines for drawing consensus trees
 		for (int i = 0; i < m_cTrees.length; i++) {
-			// m_fCLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			// m_fCLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+			// m_fCLinesX[i] = new float[nNodes * 2 + 2];
+			// m_fCLinesY[i] = new float[nNodes * 2 + 2];
 			m_fCLinesX[i] = new float[nNodes * 2 + 2];
 			m_fCLinesY[i] = new float[nNodes * 2 + 2];
 			if (m_bAllowSingleChild) {
@@ -1860,6 +1864,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 				return;
 			}
 		}
+		if (m_sLabels == null) {
+			// no trees loaded
+			return;
+		}
 		
 		if (m_lineWidthMode == LineWidthMode.DEFAULT) {
 			m_fLineWidth = null;
@@ -1878,7 +1886,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fRTopLineWidth = new float[1][];
 		checkSelection();
 		m_bGroupOverflow = false;
-		
+		int nNodes = getNrOfNodes(m_trees[0]);
+
 		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
 			m_pattern = Pattern.compile(m_sLineWidthPattern);
 		}
@@ -1889,23 +1898,23 @@ public class DensiTree extends JPanel implements ComponentListener {
 		// calculate coordinates of lines for drawing trees
 		boolean[] b = new boolean[1];
 		for (int i = 0; i < m_trees.length; i++) {
-			//m_fLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			//m_fLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			m_fLineWidth[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			m_fTopLineWidth[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+			//m_fLinesX[i] = new float[nNodes * 2 + 2];
+			//m_fLinesY[i] = new float[nNodes * 2 + 2];
+			m_fLineWidth[i] = new float[nNodes * 2 + 2];
+			m_fTopLineWidth[i] = new float[nNodes * 2 + 2];
 			drawTreeS(m_trees[i], m_fLinesX[i], m_fLinesY[i], m_fLineWidth[i], m_fTopLineWidth[i], 0, b);
 		}
 
 		// calculate coordinates of lines for drawing consensus trees
 		for (int i = 0; i < m_cTrees.length; i++) {
-			//m_fCLinesX[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			//m_fCLinesY[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			m_fCLineWidth[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
-			m_fTopCLineWidth[i] = new float[(m_sLabels.size() - 1) * 4 + 2];
+			//m_fCLinesX[i] = new float[nNodes * 2 + 2];
+			//m_fCLinesY[i] = new float[nNodes * 2 + 2];
+			m_fCLineWidth[i] = new float[nNodes * 2 + 2];
+			m_fTopCLineWidth[i] = new float[nNodes * 2 + 2];
 			drawTreeS(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i], m_fCLineWidth[i], m_fTopCLineWidth[i], 0, b);
 			int nTopologies = 0;
-			float [] fCLineWidth = new float[(m_sLabels.size() - 1) * 4 + 2];
-			float [] fTopCLineWidth = new float[(m_sLabels.size() - 1) * 4 + 2];
+			float [] fCLineWidth = new float[nNodes * 2 + 2];
+			float [] fTopCLineWidth = new float[nNodes * 2 + 2];
 			for (int j = 0; j < m_trees.length; j++) {
 				if (m_nTopologyByPopularity[j] == i) {
 					for (int k = 0; k < fCLineWidth.length; k++) {
@@ -1925,13 +1934,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		// TODO: don't know how to set line width of root canal tree, so keep it unspecified
-		m_fRLineWidth[0] = new float[(m_sLabels.size() - 1) * 4 + 2];
-		m_fRTopLineWidth[0] = new float[(m_sLabels.size() - 1) * 4 + 2];
+		m_fRLineWidth[0] = new float[nNodes * 2 + 2];
+		m_fRTopLineWidth[0] = new float[nNodes * 2 + 2];
 		drawTreeS(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0], m_fRLineWidth[0], m_fRTopLineWidth[0], 0, b);
 		m_fRLineWidth = null;
 		m_fRTopLineWidth = null;
 
-	} // calcLines
+	} // calcLinesWidths
 
 
 	/** variables that deal with width of lines **/
@@ -1950,9 +1959,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public LineColorMode m_prevLineColorMode = null;
 	public String m_sLineColorPattern = DEFAULT_PATTERN;
 	String m_sPrevLineColorPattern = null;
-	List<String> m_colorMetaDataCategories;
-	public List<String> m_metaDataTags;
-	public List<MetaDataType> m_metaDataTypes;
+	List<String> m_colorMetaDataCategories = new ArrayList<String>();
+	public List<String> m_metaDataTags = new ArrayList<String>();
+	public List<MetaDataType> m_metaDataTypes = new ArrayList<MetaDataType>();
 	public String m_lineColorTag;
 	String m_prevLineColorTag;
 	public boolean m_showLegend = false;
@@ -1965,22 +1974,28 @@ public class DensiTree extends JPanel implements ComponentListener {
 				return;
 			}
 		}
+		if (m_sLabels == null) {
+			// no trees loaded
+			return;
+		}
+		
 		m_prevLineColorMode = m_lineColorMode; 
 		m_prevLineColorTag = m_lineColorTag;
 		m_sPrevLineColorPattern = m_sLineColorPattern;
+		int nNodes = getNrOfNodes(m_trees[0]);
 		switch (m_lineColorMode) {
 		case COLOR_BY_CLADE:
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			for (int i = 0; i < m_trees.length; i++) {
-				m_nLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTree(m_trees[i], m_nLineColor[i], 0);
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				m_nCLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
@@ -1992,7 +2007,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		case BY_METADATA_PATTERN:
@@ -2002,13 +2017,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nRLineColor = new int[1][];
 			m_colorMetaDataCategories = new ArrayList<String>();
 			for (int i = 0; i < m_trees.length; i++) {
-				m_nLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTreeByMetaData(m_trees[i], m_nLineColor[i], 0);
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				m_nCLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
@@ -2020,7 +2035,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		case COLOR_BY_METADATA_TAG:
@@ -2039,13 +2054,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			for (int i = 0; i < m_trees.length; i++) {
-				m_nLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTreeByMetaDataTag(m_trees[i], m_nLineColor[i], 0, colorByCategory);
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				m_nCLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
@@ -2057,7 +2072,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		case DEFAULT:
@@ -2065,7 +2080,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			for (int i = 0; i < m_trees.length; i++) {
-				m_nLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				int color = 0;
 				switch (m_nTopologyByPopularity[i]) {
 				case 0:
@@ -2087,20 +2102,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (m_bViewMultiColor) {
 					color = m_color[9 + (i % (m_color.length - 9))].getRGB();
 				}
-				m_nCLineColor[i] = new int[(m_sLabels.size() - 1) * 4 + 2];
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				Arrays.fill(m_nCLineColor[i], color);
 			}
-			m_nRLineColor[0] = new int[(m_sLabels.size() - 1) * 4 + 2];
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
 			break;
 		}
-	}
+	} // calcColors
 
 
 	private int colorTreeByMetaData(Node node, int[] nLineColor, int iPos) {
 		if (!node.isLeaf()) {
 			iPos = colorTreeByMetaData(node.m_left, nLineColor, iPos);
-			iPos = colorTreeByMetaData(node.m_right, nLineColor, iPos);
+			if (node.m_right != null) {
+				iPos = colorTreeByMetaData(node.m_right, nLineColor, iPos);
+			}
 			int color = m_color[9 + getMetaDataCategory(node) % (m_color.length - 9)].getRGB();
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
@@ -2117,7 +2134,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	private int colorTreeByMetaDataTag(Node node, int[] nLineColor, int iPos, boolean colorByCategory) {
 		if (!node.isLeaf()) {
 			iPos = colorTreeByMetaDataTag(node.m_left, nLineColor, iPos, colorByCategory);
-			iPos = colorTreeByMetaDataTag(node.m_right, nLineColor, iPos, colorByCategory);
+			if (node.m_right != null) {
+				iPos = colorTreeByMetaDataTag(node.m_right, nLineColor, iPos, colorByCategory);
+			}
 			int color = 0;
 			Object o = node.getMetaDataSet().get(m_lineColorTag);
 			if (colorByCategory) {
@@ -2177,8 +2196,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 			boolean[] bChildNeedsDrawing = new boolean[2];
 			iPos = drawTreeS(node.m_left, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
 			bChildNeedsDrawing[0] = bNeedsDrawing[0];
-			iPos = drawTreeS(node.m_right, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
-			bChildNeedsDrawing[1] = bNeedsDrawing[0];
+			if (node.m_right != null) {
+				iPos = drawTreeS(node.m_right, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
+				bChildNeedsDrawing[1] = bNeedsDrawing[0];
+			} else {
+				bChildNeedsDrawing[1] = false;
+			}
 			bNeedsDrawing[0] = false;
 				if (bChildNeedsDrawing[0]) {
 //					nX[iPos] = node.m_left.m_fPosX;
@@ -2926,19 +2949,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_treeDrawer.m_bViewBlockTree = true;
 			break;
 		case 2:
-			if (m_lineWidthMode == LineWidthMode.DEFAULT) {
+			//if (m_lineWidthMode == LineWidthMode.DEFAULT) {
 				bd = new ArcBranchDrawer();
 				m_treeDrawer.m_bViewBlockTree = false;
-			}
+			//}
 			break;
 		// case 2: bd = new KoruBranchDrawer();break;
 		// case 3: bd = new TrapeziumBranchDrawer();break;
 		// case 3: bd = new BrownianBridgeBranchDrawer();break;
 		case 3:
-			if (m_lineWidthMode == LineWidthMode.DEFAULT) {
+			//if (m_lineWidthMode == LineWidthMode.DEFAULT) {
 				bd = new SteepArcBranchDrawer();
 				m_treeDrawer.m_bViewBlockTree = false;
-			}
+			//}
 			break;
 		}
 		if (bd != null) {
@@ -2971,7 +2994,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	final JPanel m_jTbTools2 = new JPanel();
 	final JToolBar m_jTbCladeTools = new JToolBar();
 	/** font for all text being printed (e.g. labels, height info) **/
-	public Font m_font = new Font("sansserif", Font.PLAIN, 8);
+	public Font m_font = new Font("sansserif", Font.PLAIN, 12);
 	public boolean m_bAlignLabels = false;
 	
 	/** flag to indicate consensus trees should be shown **/
