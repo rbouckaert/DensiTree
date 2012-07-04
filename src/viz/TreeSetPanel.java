@@ -369,7 +369,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			Font font = new Font(g.getFont().getName(), Font.BOLD, 14);
 			g.setFont(font);
 			for (int k = 0; k < m_dt.m_colorMetaDataCategories.size(); k++) {
-				g.setColor(m_dt.m_color[9 + k % 9]);
+				g.setColor(m_dt.m_color[9 + k % (m_dt.m_color.length - 9)]);
 				g.drawString(m_dt.m_colorMetaDataCategories.get(k), 10, k*15+15);
 			}
 		}
