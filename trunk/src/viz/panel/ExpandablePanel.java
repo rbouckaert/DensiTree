@@ -168,7 +168,7 @@ public class ExpandablePanel extends JPanel {
 		panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 		
 		editButton = new DropDownButton(sLabel);
-		Dimension size = new Dimension(200,20);
+		Dimension size = new Dimension(150,20);
 		editButton.setPreferredSize(size);
 		
         editButton.addActionListener(new ActionListener() {

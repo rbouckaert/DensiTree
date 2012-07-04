@@ -94,37 +94,39 @@ public class GeoPanel extends JPanel {
 		});
 				
 				JButton btnLoadLocations = new RoundedButton("<html>Load<br>locations</html>");
+				btnLoadLocations.setText("<html>Load locations</html>");
 				btnLoadLocations.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						m_dt.a_loadkml.actionPerformed(e);
 					}
 				});
 				GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
+				gbc_btnLoadLocations.gridwidth = 2;
 				gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
 				gbc_btnLoadLocations.insets = new Insets(0, 0, 5, 5);
 				gbc_btnLoadLocations.gridx = 0;
 				gbc_btnLoadLocations.gridy = 3;
 				add(btnLoadLocations, gbc_btnLoadLocations);
-				
-				JButton btnLineColor = new RoundedButton("Color");
-				btnLineColor.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
-						if (newColor != null) {
-							m_dt.m_color[DensiTree.GEOCOLOR] = newColor;
-							m_dt.makeDirty();
-						}
-						m_dt.repaint();
-					}
-				});
-				
 						
-						GridBagConstraints gbc_btnLineColor = new GridBagConstraints();
-						gbc_btnLineColor.insets = new Insets(0, 0, 5, 0);
-						gbc_btnLineColor.fill = GridBagConstraints.HORIZONTAL;
-						gbc_btnLineColor.gridx = 1;
-						gbc_btnLineColor.gridy = 3;
-						add(btnLineColor, gbc_btnLineColor);
+						JButton btnLineColor = new RoundedButton("Color");
+						btnLineColor.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
+								if (newColor != null) {
+									m_dt.m_color[DensiTree.GEOCOLOR] = newColor;
+									m_dt.makeDirty();
+								}
+								m_dt.repaint();
+							}
+						});
+						
+								
+								GridBagConstraints gbc_btnLineColor = new GridBagConstraints();
+								gbc_btnLineColor.gridwidth = 2;
+								gbc_btnLineColor.fill = GridBagConstraints.HORIZONTAL;
+								gbc_btnLineColor.gridx = 0;
+								gbc_btnLineColor.gridy = 4;
+								add(btnLineColor, gbc_btnLineColor);
 		
 	}
 }
