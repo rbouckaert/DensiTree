@@ -31,6 +31,7 @@ import java.awt.Graphics2D;
  * to create customized branches (like trapeziums, arcs, etc.). **/
 public class BranchDrawer {
 	
+	final static int MAX_LINE_WIDTH = 400;
 
 
 	/* Draw a branch from point (x1,y1) to (x2,y2)
@@ -60,7 +61,7 @@ public class BranchDrawer {
 			nGreen = (nGreen<<16);
 			nBlue = (nBlue<<16);
 			float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
-			float fLineWidth = ((BasicStroke)g.getStroke()).getLineWidth();
+			float fLineWidth = Math.min(((BasicStroke)g.getStroke()).getLineWidth(), MAX_LINE_WIDTH);
 //			nRed = (int)(nRed * fAlpha);
 //			nGreen = (int)(nGreen * fAlpha);
 //			nBlue = (int)(nBlue * fAlpha);
