@@ -153,8 +153,8 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				} catch (Exception ex) {}
 			}
 		});
-		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom + 1, 1, 100, 1);
-		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop + 1, 0, 100, 1);
+		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom + 1, 0, 100, 1);
+		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop + 1, -1, 100, 1);
 		
 		bottomOfBranchModel.addChangeListener(new ChangeListener() {
 			

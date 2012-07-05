@@ -399,7 +399,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		sPattern += "([0-9\\.Ee-]+)";
 		if (m_iPatternForTop > m_iPatternForBottom) {
-			sPattern += "[^0-9]+";
+			//sPattern += "[^0-9]+";
 			for (int i = m_iPatternForBottom + 1; i < m_iPatternForTop; i++) {
 				sPattern += "[0-9\\.Ee-]+[^0-9]+";
 			}
@@ -2306,8 +2306,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (node.isRoot()) {
 //				nX[iPos] = node.m_fPosX;
 //				nY[iPos] = node.m_fPosY;
-				fWidth[iPos] = getGamma(node, 1);
-				fWidthTop[iPos] = getGamma(node, 1);
+				fWidth[iPos] = 0;//getGamma(node, 1);
+				fWidthTop[iPos] = 0;//getGamma(node, 1);
 				iPos++;
 //				nX[iPos] = node.m_fPosX;
 //				nY[iPos] = node.m_fPosY - node.m_fLength;
