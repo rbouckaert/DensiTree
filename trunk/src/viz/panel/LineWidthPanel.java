@@ -82,7 +82,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 //						chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 //								|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
 						if (m_dt.m_lineWidthMode != oldMode || m_dt.m_lineWidthTag != oldTag) {
-							m_dt.calcLinesWidths(true);
+							m_dt.calcLineWidths(true);
 							m_dt.makeDirty();
 						}
 						textField_1.setEnabled(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
@@ -117,7 +117,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				try {
 					m_dt.m_sLineWidthPattern = textField_1.getText();
 					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-						m_dt.calcLinesWidths(true);
+						m_dt.calcLineWidths(true);
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
@@ -166,7 +166,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				}
 				if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 					m_dt.m_pattern = m_dt.createPattern();
-					m_dt.calcLinesWidths(true);
+					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
 			}
@@ -182,7 +182,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				}
 				if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 					m_dt.m_pattern = m_dt.createPattern();
-					m_dt.calcLinesWidths(true);
+					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
 			}
@@ -205,7 +205,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
 				m_dt.m_bCorrectTopOfBranch = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bCorrectTopOfBranch) {// && m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-					m_dt.calcLinesWidths(true);
+					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
 			}
