@@ -1829,7 +1829,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		calcColors(false);
-		calcLinesWidths(false);
+		calcLineWidths(false);
 	} // calcLines
 	
 	
@@ -1867,12 +1867,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * m_nCLines and m_nCTLines (but not m_nLines,m_nTLines), arrays
 	 **/
 
-	public void calcLinesWidths(boolean forceRecalc) {
+	public void calcLineWidths(boolean forceRecalc) {
 		if (!forceRecalc) {
 			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag == m_prevLineWidthTag
 					&& m_sLineWidthPattern == m_sPrevLineWidthPattern) {
 				return;
 			}
+		} else {
+			calcPositions();
+			calcLines();
 		}
 		if (m_sLabels == null) {
 			// no trees loaded
@@ -2318,7 +2321,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	float getGamma(Node node , int nGroup) {
-		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN || m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
 			String sMetaData = node.getMetaData();
 			try {
 				Matcher matcher = m_pattern.matcher(sMetaData);
@@ -2333,6 +2336,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        return f;
 			} catch (Exception e) {
 			}
+		} else if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+			int index = 0;
+			if (nGroup == 1) {
+				index = m_iPatternForBottom - 1;
+			} else {
+				index = m_iPatternForTop;
+				if (index < 0) {
+					index = m_iPatternForBottom - 1;
+				}
+			}
+			if (index < 0) {
+				index = 0;
+			}
+			return (float) (node.getMetaDataList().get(index)/node.g_maxListValue.get(index));
 		} else {
 			Object o = node.getMetaDataSet().get(m_lineWidthTag);
 			if (o != null) {
