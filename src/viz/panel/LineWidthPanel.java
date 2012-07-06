@@ -153,16 +153,16 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				} catch (Exception ex) {}
 			}
 		});
-		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom + 1, 0, 100, 1);
-		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop + 1, -1, 100, 1);
+		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom, 1, 100, 1);
+		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop, 0, 100, 1);
 		
 		bottomOfBranchModel.addChangeListener(new ChangeListener() {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				m_dt.m_iPatternForBottom = (Integer) bottomOfBranchModel.getValue();
-				if (m_dt.m_iPatternForBottom < 0) {
-					m_dt.m_iPatternForBottom = 0;
+				if (m_dt.m_iPatternForBottom < 1) {
+					m_dt.m_iPatternForBottom = 1;
 				}
 				if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 					m_dt.m_pattern = m_dt.createPattern();

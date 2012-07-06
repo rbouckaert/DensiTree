@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
- * @version $Revision: 2.01 $
+ * @version $Revision: 2.1 $
  */
 
 // the magic sentence to look for when releasing:
@@ -87,7 +87,7 @@ import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.01";
+	final static String VERSION = "2.1 release candidate";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -300,8 +300,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";
 	/** string containing reg exp for position matching **/
 	public String m_sPattern = DEFAULT_PATTERN;
-	public int m_iPatternForBottom = 0;
-	public int m_iPatternForTop = -1;
+	public int m_iPatternForBottom = 1;
+	public int m_iPatternForTop = 0;
 
 	/** string containing reg exp for grouping taxa **/
 	String m_sColorPattern = null;
