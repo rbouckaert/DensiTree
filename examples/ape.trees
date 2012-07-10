@@ -1,0 +1,25 @@
+#NEXUS
+
+Begin taxa;
+	Dimensions ntax=6;
+	Taxlabels
+		bonobo
+		chimp
+		gorilla
+		human
+		orangutan
+		siamang
+		;
+End;
+
+Begin trees;
+	Translate
+		1 bonobo,
+		2 chimp,
+		3 gorilla,
+		4 human,
+		5 orangutan,
+		6 siamang
+		;
+tree STATE_1000000 = [&R] (((3[&location="Africa"]:0.03351411935700156,(4[&location="New Zealand"]:0.020095429972171244,(2[&location="Africa"]:0.009603178109055574,1[&location="Africa"]:0.009603178109055574)[&location="Africa"]:0.01049225186311567)[&location="Africa"]:0.013418689384830318)[&location="Africa"]:0.02460624740645495,5[&location="Africa"]:0.05812036676345651)[&location="Africa"]:0.010656607109573349,6[&location="Africa"]:0.06877697387302986)[&location="Africa"]:0.0;
+End;

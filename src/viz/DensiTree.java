@@ -87,7 +87,7 @@ import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.1 release candidate";
+	final static String VERSION = "2.1.1 release candidate";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -608,6 +608,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_viewMode = ViewMode.DRAW;
 		a_animateStart.setIcon("start");
 		m_prevLineColorMode = null;
+		m_lineColorMode = LineColorMode.DEFAULT;
+		m_prevLineWidthMode = null;
+		m_lineWidthMode = LineWidthMode.DEFAULT;
 		
 		System.err.print("Initializing...");
 		m_iAnimateTree = 0;
@@ -810,6 +813,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// calculate y-position for tree set
 			calcPositions();
 			
+			m_bMetaDataReady = false;			
 			Thread thread = new Thread() {
 				public void run() {
 					m_jStatusBar.setText("Parsing metadata");
@@ -822,6 +826,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					calcPositions();
 					calcLines();
 					makeDirty();
+					m_bMetaDataReady = true;			
 					for (ChangeListener listener : m_changeListeners) {
 						listener.stateChanged(null);
 					}
@@ -839,7 +844,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				};
 				
 			};
-//			thread.start();
+			thread.start();
 			
 			m_metaDataTags = new ArrayList<String>();
 			m_metaDataTypes = new ArrayList<MetaDataType>();
@@ -905,6 +910,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 
 	boolean m_bCladesReady;
+	public boolean m_bMetaDataReady;
 	/** represent clade as arrays of leaf indices **/
 	List<int[]> m_clades;
 	/** proportion of trees containing the clade **/
@@ -2362,10 +2368,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int color = 0;
 			Object o = node.getMetaDataSet().get(m_lineColorTag);
 			if (colorByCategory) {
-				if (!m_colorMetaDataCategories.contains(o)) {
-					m_colorMetaDataCategories.add(o.toString());
+				if (o != null) {
+					if (!m_colorMetaDataCategories.contains(o)) {
+						m_colorMetaDataCategories.add(o.toString());
+					}
+					color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
 				}
-				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
 			} else {
 				if (o != null) {
 					double frac = (((Double) o) - Node.g_minValue.get(m_lineColorTag)) /
@@ -3508,7 +3516,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				} catch (Exception e) {
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(null, "Error pasting from clipboard: " + e.getMessage(),
-							"File load error", JOptionPane.PLAIN_MESSAGE);
+							"File paste error", JOptionPane.PLAIN_MESSAGE);
 				}
 			}
 		}
@@ -4823,7 +4831,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		helpMenu.add(a_about);
 	} // makeMenuBar
 
-	public static void startNew(String [] args) {
+	public static DensiTree startNew(String [] args) {
 		DensiTree a = new DensiTree(args);
 		
 		try {
@@ -4861,6 +4869,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// ignore
 		}
 		a.m_Panel.setFocusable(true);
+		return a;
 		// a.fitToScreen();
 	} // startNew
 

@@ -266,11 +266,13 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		List<String> selection = new ArrayList<String>();
 		selection.add(LineWidthMode.DEFAULT.toString());
-		selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
-		selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
-		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
-			if (m_dt.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
-				selection.add(m_dt.m_metaDataTags.get(i));				
+		if (m_dt.m_bMetaDataReady) {
+			selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
+			selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
+			for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
+				if (m_dt.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
+					selection.add(m_dt.m_metaDataTags.get(i));				
+				}
 			}
 		}
 		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
