@@ -15,7 +15,7 @@ public class DensiTreeSimpleTest extends DensiTreeBase {
 	public void simpleTest() throws Exception {
 		dtFrame.menuItemWithPath("File", "Load").click();
 		JFileChooserFixture fileChooser = findFileChooser().using(robot());
-		fileChooser.setCurrentDirectory(new File(""));
+		fileChooser.setCurrentDirectory(new File("examples"));
 		fileChooser.selectFile(new File("ape.trees")).approve();
 	}
 

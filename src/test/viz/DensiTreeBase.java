@@ -9,7 +9,6 @@ import javax.swing.SwingUtilities;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FrameFixture;
-import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.fest.swing.junit.testcase.FestSwingJUnitTestCase;
 
 import viz.DensiTree;
