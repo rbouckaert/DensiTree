@@ -26,8 +26,6 @@ public class DensiTreeBase extends FestSwingJUnitTestCase {
 	protected void onSetUp() {
 		dtFrame = new FrameFixture(robot(), createNewEditor());
 		dtFrame.show();
-		//dtFrame.resizeTo(new Dimension(1224, 786));
-		//JTabbedPaneFixture f = dtFrame.tabbedPane();
 	}
 
 	@RunsInEDT
