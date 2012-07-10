@@ -194,13 +194,15 @@ public class TreeFileParser {
 			while (fin.ready()) {
 				sStr = fin.readLine();
 				sStr = sStr.trim();
-				if (sStr.toLowerCase().startsWith("tree ")) {
-					k++;
-					if (nBurnIn <= 0) {
-						int i = sStr.indexOf('(');
-						if (i > 0) {
-							sStr = sStr.substring(i);
-						}
+				if (sStr.length() > 5) {
+					String sTree = sStr.substring(0,5);
+					if (sTree.toLowerCase().startsWith("tree ")) {
+						k++;
+						if (nBurnIn <= 0) {
+							int i = sStr.indexOf('(');
+							if (i > 0) {
+								sStr = sStr.substring(i);
+							}
 //						if (m_bSurpressMetadata) {
 //							while (sStr.indexOf('[') >= 0) {
 //								int i0 = sStr.indexOf('[');
@@ -208,15 +210,16 @@ public class TreeFileParser {
 //								sStr = sStr.substring(0, i0) + sStr.substring(i1 + 1);
 //							}
 //						}
-						Node tree = parseNewick(sStr);
-						//System.err.println(k + " " + tree);
-						tree.sort();
-						tree.labelInternalNodes(m_nNrOfLabels);
-						trees.add(tree);
-						if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
-						//sNewickTrees.add(sStr);
-					} else {
-						nBurnIn--;
+							Node tree = parseNewick(sStr);
+							//System.err.println(k + " " + tree);
+							tree.sort();
+							tree.labelInternalNodes(m_nNrOfLabels);
+							trees.add(tree);
+							if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
+							//sNewickTrees.add(sStr);
+						} else {
+							nBurnIn--;
+						}
 					}
 				}
 			}

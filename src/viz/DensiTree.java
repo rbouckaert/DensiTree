@@ -809,6 +809,38 @@ public class DensiTree extends JPanel implements ComponentListener {
 			
 			// calculate y-position for tree set
 			calcPositions();
+			
+			Thread thread = new Thread() {
+				public void run() {
+					m_jStatusBar.setText("Parsing metadata");
+					for (Node tree : m_trees) {
+						parseMetaData(tree);
+					}
+					m_metaDataTags = new ArrayList<String>();
+					m_metaDataTypes = new ArrayList<MetaDataType>();
+					collectMetaDataTags(m_trees[0]);
+					calcPositions();
+					calcLines();
+					makeDirty();
+					for (ChangeListener listener : m_changeListeners) {
+						listener.stateChanged(null);
+					}
+					m_jStatusBar.setText("Done parsing metadata");
+				}
+
+				private void parseMetaData(Node node) {
+					node.parseMetaData();
+					if (!node.isLeaf()) {
+						parseMetaData(node.m_left);
+						if (node.m_right != null) {
+							parseMetaData(node.m_right);
+						}
+					}
+				};
+				
+			};
+//			thread.start();
+			
 			m_metaDataTags = new ArrayList<String>();
 			m_metaDataTypes = new ArrayList<MetaDataType>();
 			collectMetaDataTags(m_trees[0]);

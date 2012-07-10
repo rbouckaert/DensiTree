@@ -670,6 +670,9 @@ public class Node {
 
 	public void setMetaData(String sMetaData) {
 		this.m_sMetaData = sMetaData;
+	}
+
+	public void parseMetaData() {
 		if (metaDataMap == null) {
 			metaDataMap	= new HashMap<String, Object>();
 			metaDataList = new ArrayList<Double>();
@@ -678,16 +681,16 @@ public class Node {
 		int i = 0;
 		int start = 1;
 		try {
-			while ((i = sMetaData.indexOf('=', i)) >= 0) {
-				String key = sMetaData.substring(start, i).trim();
+			while ((i = m_sMetaData.indexOf('=', i)) >= 0) {
+				String key = m_sMetaData.substring(start, i).trim();
 				String value = null;
 				int k = 0;
-				if ((k = sMetaData.indexOf('=', i+1)) >= 0) {
-					int j = sMetaData.lastIndexOf(',', k);
-					value = sMetaData.substring(i + 1, j);
+				if ((k = m_sMetaData.indexOf('=', i+1)) >= 0) {
+					int j = m_sMetaData.lastIndexOf(',', k);
+					value = m_sMetaData.substring(i + 1, j);
 					start = j + 1;
 				} else {
-					value = sMetaData.substring(i+1);
+					value = m_sMetaData.substring(i+1);
 				}
 				if (value.length() > 0 && value.charAt(0)!='{') {
 					try {
@@ -727,10 +730,10 @@ public class Node {
 		//Pattern pattern = Pattern.compile("^([+-0-9\\.]+)([eE]-??[0-9]+)??.*");
 		Pattern pattern = Pattern.compile("((-?[0-9]+(\\.[0-9]+)?)([eE]-?[0-9]+)?)");
 		try {
-			while (i < sMetaData.length()) {
-				char c = sMetaData.charAt(i);
+			while (i < m_sMetaData.length()) {
+				char c = m_sMetaData.charAt(i);
 				if ((c >= '0' && c <= '9') || c=='+' || c=='-') {
-					String str = sMetaData.substring(i);
+					String str = m_sMetaData.substring(i);
 					Matcher m = pattern.matcher(str);
 					m.find();
 					String mantissa = m.group(1);
