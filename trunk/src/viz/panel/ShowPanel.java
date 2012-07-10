@@ -105,10 +105,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox comboBox = ((JComboBox)e.getSource());
 				int i = comboBox.getSelectedIndex();
-				System.err.println("Select summary tree" + i);
-				m_dt.m_rootcanaltree = m_dt.m_summaryTree[i];
-				m_dt.calcLines();
-				m_dt.makeDirty();
+				if (m_dt.m_summaryTree != null) {
+					m_dt.m_rootcanaltree = m_dt.m_summaryTree[i];
+					m_dt.calcLines();
+					m_dt.makeDirty();
+				}
 			}
 		});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();

@@ -276,11 +276,13 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		List<String> selection = new ArrayList<String>();
 		selection.add(LineColorMode.DEFAULT.toString());
-		selection.add(LineColorMode.COLOR_BY_CLADE.toString());
-		selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
-		for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
-			if (!m_dt.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
-				selection.add(m_dt.m_metaDataTags.get(i));				
+		if (m_dt.m_bMetaDataReady) {
+			selection.add(LineColorMode.COLOR_BY_CLADE.toString());
+			selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
+			for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
+				if (!m_dt.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
+					selection.add(m_dt.m_metaDataTags.get(i));				
+				}
 			}
 		}
 		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));

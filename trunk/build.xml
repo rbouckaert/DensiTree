@@ -7,6 +7,7 @@
   <property name="build" location="build"/>
   <property name="lib" location="lib"/>
   <property name="dist"  location="dist"/>
+  <property name="report" value="build/junitreport" />
 
 	<property name="version" value="2.01" />
 
@@ -29,6 +30,21 @@
 		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
 	</path>
 
+	<path id="compileclasspath">
+        <pathelement path="build"/>
+		<fileset dir="lib" includes="itextpdf-5.2.1.jar"/>
+		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
+		<fileset dir="lib" includes="debug-1.0.jar"/>
+		<fileset dir="lib" includes="fest-assert-1.1.jar"/>
+		<fileset dir="lib" includes="fest-reflect-1.1.jar"/>
+		<fileset dir="lib" includes="fest-swing-1.2a3.jar"/>
+		<fileset dir="lib" includes="fest-swing-junit-1.2a3.jar"/>
+		<fileset dir="lib" includes="fest-swing-junit-4.5-1.2a3.jar"/>
+		<fileset dir="lib" includes="fest-util-1.1.jar"/>
+		<fileset dir="lib" includes="jcip-annotations-1.0.jar"/>
+		<fileset dir="lib" includes="junit-4.8.2.jar"/>
+	</path>
+
 
   <target name="init">
     <!-- Create the time stamp -->
@@ -41,7 +57,7 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
-    <javac srcdir="${src}" destdir="${build}" classpathref="classpath"/>
+    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath"/>
     <copy todir="${build}/viz/icons">
 	<resources>
     	<fileset dir="${src}/viz/icons/"/>
@@ -84,6 +100,30 @@
         </manifest>
     </jar>
   </target>
+
+	<!-- testing beauti gui-->
+	<target name="junit">
+		<mkdir dir="${report}" />
+		<junit printsummary="yes">
+			<!--showoutput='yes'-->
+			<classpath>
+				<path refid="compileclasspath" />
+				<path location="${build}" />
+			</classpath>
+
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${report}">
+				<fileset dir="${src}">
+                    <include name="test/**/*Test.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<echo message="JUnit test finished." />
+	</target>
+
+
+  <target name="all" depends="clean,dist,junit"/>
 
 
   <target name="distS" depends="compile"
