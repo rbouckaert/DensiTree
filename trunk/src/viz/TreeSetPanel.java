@@ -345,7 +345,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		case BROWSE:
 			drawFrame(g);
 			m_dt.m_gridDrawer.paintHeightInfo(g);
-			this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			m_dt.setDefaultCursor();
+			//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			return;
 		}
 		if (m_dt.m_sOutputFile != null && !isDrawing()) {
@@ -448,7 +449,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			return;
 		}
 		synchronized (this) {
-			this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			m_dt.setWaitCursor();
+			//this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			if (m_image == null) {
 				System.err.println("Setting up new image");
 				if (!m_dt.m_bShowBounds) {
@@ -538,7 +540,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				}
 			}
 		} else {
-			this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			m_dt.setDefaultCursor();
+			//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			if (m_dt.m_bRecord) {
 				try {
 					System.err.println(" writing /tmp/frame" + m_dt.m_nFrameNr + ".jpg " + isDrawing());
@@ -564,7 +567,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			// nothing to see
 			return;
 		}
-		this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		m_dt.setWaitCursor();
+		//this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		if (m_image == null || m_dt.m_bAnimateOverwrite || m_dt.m_iAnimateTree == 0) { // ||
 																				// m_viewMode
 																				// ==
@@ -610,7 +614,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			System.err.print("X");
 		}
 		m_image.drawImage(g, this);
-		this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		m_dt.setDefaultCursor();
+		//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	} // animate
 
 	/**
