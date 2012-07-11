@@ -96,6 +96,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 	static int instances = 1;
 
 	final static int B = 1;
+	JFrame frame;
+	public void setWaitCursor() {
+		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
+			frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		}
+	}
+	public void setDefaultCursor() {
+		if (frame != null && frame.getCursor().getType() != Cursor.DEFAULT_CURSOR) {
+			frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
 	
 	private static final long serialVersionUID = 1L;
 	/** path for icons */
@@ -597,7 +608,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 **/
 	public void init(String sFile) throws Exception {
 		if (m_Panel != null) {
-			m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			setWaitCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		}
 		if (m_jStatusBar != null) {
 			m_jStatusBar.setText("Initializing...");
@@ -816,10 +828,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_bMetaDataReady = false;			
 			Thread thread = new Thread() {
 				public void run() {
-					m_jStatusBar.setText("Parsing metadata");
-					for (Node tree : m_trees) {
-						parseMetaData(tree);
+					String statusMsg = "Parsing metadata";
+					for (int k = 0; k < m_trees.length; k++) {
+						parseMetaData(m_trees[k]);
+						if (k % 100 == 0) {
+							statusMsg += ".";
+							m_jStatusBar.setText(statusMsg);
+							setWaitCursor();
+//							if (getCursor().getType() != Cursor.WAIT_CURSOR) {
+//								setCursor(new Cursor(Cursor.WAIT_CURSOR));
+//							}
+						}
 					}
+					m_jStatusBar.setText("Parsing metadata");
 					m_metaDataTags = new ArrayList<String>();
 					m_metaDataTypes = new ArrayList<MetaDataType>();
 					collectMetaDataTags(m_trees[0]);
@@ -858,12 +879,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
 					+ "Try starting DensiTree with more memory\n\n(for example "
 					+ "use:\njava -Xmx3g DensiTree.jar\nfrom " + "the command line) where DensiTree is in the path");
-			m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			setDefaultCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			throw e;
 		} catch (Exception e) {
 			e.printStackTrace();
 			clear();
-			m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			setDefaultCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			throw e;
 		}
 		m_bInitializing = false;
@@ -1630,7 +1653,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 */
 	void reshuffle(int nMethod) {
 		m_nShuffleMode = nMethod;
-		m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		setWaitCursor();
+		//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		try {
 			switch (nMethod) {
 			case NodeOrderer.DEFAULT:
@@ -1933,6 +1957,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_trees.length == 0) {
 			return;
 		}
+		setWaitCursor();
+		
 		// calculate coordinates of lines for drawing trees
 		int nNodes = getNrOfNodes(m_trees[0]);
 
@@ -2050,6 +2076,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcPositions();
 			calcLines();
 		}
+		setWaitCursor();
+
 		if (m_sLabels == null) {
 			// no trees loaded
 			return;
@@ -2164,7 +2192,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// no trees loaded
 			return;
 		}
-		
+		setWaitCursor();
+
 		m_prevLineColorMode = m_lineColorMode; 
 		m_prevLineColorTag = m_lineColorTag;
 		m_sPrevLineColorPattern = m_sLineColorPattern;
@@ -2346,9 +2375,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (node.m_right != null) {
 				iPos = colorTreeByMetaData(node.m_right, nLineColor, iPos);
 			}
-			int color = m_color[9 + getMetaDataCategory(node) % (m_color.length - 9)].getRGB();
+			int color = m_color[9 + getMetaDataCategory(node.m_left) % (m_color.length - 9)].getRGB();
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
+			if (node.m_right != null) {
+				color = m_color[9 + getMetaDataCategory(node.m_right) % (m_color.length - 9)].getRGB();
+			}
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
 			if (node.isRoot()) {
@@ -2365,24 +2397,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (node.m_right != null) {
 				iPos = colorTreeByMetaDataTag(node.m_right, nLineColor, iPos, colorByCategory);
 			}
-			int color = 0;
-			Object o = node.getMetaDataSet().get(m_lineColorTag);
-			if (colorByCategory) {
-				if (o != null) {
-					if (!m_colorMetaDataCategories.contains(o)) {
-						m_colorMetaDataCategories.add(o.toString());
-					}
-					color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
-				}
-			} else {
-				if (o != null) {
-					double frac = (((Double) o) - Node.g_minValue.get(m_lineColorTag)) /
-							(Node.g_maxValue.get(m_lineColorTag) - Node.g_minValue.get(m_lineColorTag));
-					color = (int)(frac * 255.0) << 16;
-				}
+			int color = colorForNode(node.m_left, colorByCategory);
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			
+			if (node.m_right != null) {
+				color = colorForNode(node.m_right, colorByCategory);
 			}
-			nLineColor[iPos++] = color;
-			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
 			if (node.isRoot()) {
@@ -2393,6 +2414,27 @@ public class DensiTree extends JPanel implements ComponentListener {
 		return iPos;
 	}
 
+	int colorForNode(Node node, boolean colorByCategory) {
+		int color = 0;
+		Object o = node.getMetaDataSet().get(m_lineColorTag);
+		if (colorByCategory) {
+			if (o != null) {
+				if (!m_colorMetaDataCategories.contains(o)) {
+					m_colorMetaDataCategories.add(o.toString());
+				}
+				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
+			}
+		} else {
+			if (o != null) {
+				double frac = (((Double) o) - Node.g_minValue.get(m_lineColorTag)) /
+						(Node.g_maxValue.get(m_lineColorTag) - Node.g_minValue.get(m_lineColorTag));
+				color = (int)(frac * 255.0) << 16;
+			}
+		}
+		return color;
+	}
+	
+	
 	private int colorTree(Node node, int[] nLineColor, int iPos) {
 		if (!node.isLeaf()) {
 			iPos = colorTree(node.m_left, nLineColor, iPos);
@@ -2626,7 +2668,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// no trees loaded yet
 			return;
 		}
-		
+		setWaitCursor();
+
 		if (!m_bAllowSingleChild) {
 			Arrays.fill(m_cladePosition, -1);
 			boolean bProgress = true;
@@ -3376,9 +3419,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		public void actionPerformed(ActionEvent ae) {
-			m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			setWaitCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			reshuffle(m_nMode);
-			m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			setDefaultCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 		}
 	}; // class ActionReshuffle
 
@@ -3924,12 +3969,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			JDialog dlg = new JDialog();
 			dlg.setModal(true);
 			dlg.setSize(400, 400);
-			m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			setWaitCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			String sCladeText = "";
 			for (String s : cladesToString()) {
 				sCladeText += s;
 			}
-			m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			setDefaultCursor();
+			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			JTextArea textArea = new JTextArea(sCladeText);
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			dlg.add(scrollPane);
@@ -4136,6 +4183,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
+			setWaitCursor();
 			System.err.println("MODS=" + ae.getModifiers());
 			if (ae.getModifiers() == 18) {
 				// when menu item is selected & ctrl key is pressed
@@ -4146,6 +4194,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_viewMode = ViewMode.DRAW;
 			a_animateStart.setIcon("start");
 			if (m_bIsDirty) {
+				System.err.println("calclines");
 				calcLines();
 			}
 			m_Panel.clearImage();
@@ -4845,6 +4894,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		
 		JFrame f;
 		f = new JFrame(FRAME_TITLE);
+		a.frame = f;
 		f.setVisible(true);
 		JMenuBar menuBar = a.getMenuBar();
 		f.setJMenuBar(menuBar);

@@ -50,11 +50,11 @@ public class BurninPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_nBurnIn = Integer.parseInt(textField.getText());
-					setCursor(new Cursor(Cursor.WAIT_CURSOR));
+					//setCursor(new Cursor(Cursor.WAIT_CURSOR));
 					m_dt.init(m_dt.m_sFileName);
 					m_dt.calcLines();
 					m_dt.fitToScreen();
-					setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+					//setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				} catch (Exception e2) {}
 			}
 		});
