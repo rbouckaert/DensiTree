@@ -147,10 +147,12 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		chckbxShowEditTree.setEnabled(m_dt.m_Xmode == 0);
-        for (int i = 0; i < m_dt.m_summaryTree.length; i++) {
-            if (m_dt.m_rootcanaltree == m_dt.m_summaryTree[i]) {
-                    comboBox.setSelectedIndex(i);
-            }
-        }
+		if (m_dt.m_summaryTree != null) {
+	        for (int i = 0; i < m_dt.m_summaryTree.length; i++) {
+	            if (m_dt.m_rootcanaltree == m_dt.m_summaryTree[i]) {
+	                    comboBox.setSelectedIndex(i);
+	            }
+	        }
+		}
 	}
 }
