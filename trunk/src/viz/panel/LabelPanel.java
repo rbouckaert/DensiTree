@@ -18,17 +18,21 @@ import viz.DensiTree;
 import viz.graphics.JFontChooser;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LabelPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	private JTextField textField;
 	DensiTree m_dt;
+	private JTextField textField_1;
 	
 	public LabelPanel(DensiTree dt) {
 		//setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		m_dt = dt;
 		GridBagLayout layout = new GridBagLayout();
+		layout.columnWeights = new double[]{0.0, 1.0};
 		//layout.setHgap(30);
 		setLayout(layout);
 //		JPanel panel = new JPanel();
@@ -37,7 +41,7 @@ public class LabelPanel extends JPanel {
 		JLabel lblWidth = new JLabel("Width");
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.anchor = GridBagConstraints.WEST;
-		gbc_panel.insets = new Insets(0, 0, 5, 0);
+		gbc_panel.insets = new Insets(0, 0, 5, 5);
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 0;
 		add(lblWidth, gbc_panel);
@@ -119,13 +123,62 @@ public class LabelPanel extends JPanel {
 		gbc_chckbxAlign.gridy = 2;
 		add(chckbxAlign, gbc_chckbxAlign);
 		GridBagConstraints gbc_btnFont = new GridBagConstraints();
-		gbc_btnFont.insets = new Insets(0, 0, 0, 5);
+		gbc_btnFont.insets = new Insets(0, 0, 5, 5);
 		gbc_btnFont.gridx = 0;
 		gbc_btnFont.gridy = 3;
 		add(btnFont, gbc_btnFont);
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
+		gbc_btnColor.insets = new Insets(0, 0, 5, 0);
 		gbc_btnColor.gridx = 1;
 		gbc_btnColor.gridy = 3;
 		add(btnColor, gbc_btnColor);
+		
+		JLabel lblSearch = new JLabel("Search");
+		GridBagConstraints gbc_lblSearch = new GridBagConstraints();
+		gbc_lblSearch.insets = new Insets(0, 0, 0, 5);
+		gbc_lblSearch.anchor = GridBagConstraints.WEST;
+		gbc_lblSearch.gridx = 0;
+		gbc_lblSearch.gridy = 4;
+		add(lblSearch, gbc_lblSearch);
+		
+		textField_1 = new JTextField();
+		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
+		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField_1.gridx = 1;
+		gbc_textField_1.gridy = 4;
+		add(textField_1, gbc_textField_1);
+		textField_1.setColumns(5);
+		textField_1.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				updateSelection();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				updateSelection();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				updateSelection();
+			}
+
+			private void updateSelection() {
+				try {
+					String sPattern = ".*" + textField_1.getText() + ".*";
+					Pattern pattern = Pattern.compile(sPattern);
+					for (int i = 0; i < m_dt.m_sLabels.size(); i++) {
+						Matcher m = pattern.matcher(m_dt.m_sLabels.get(i));
+						m_dt.m_bSelection[i] = m.find();
+					}
+					//m_dt.m_bSelectionChanged = true;
+					m_dt.m_Panel.repaint();
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
+
+		});
 	}
 }

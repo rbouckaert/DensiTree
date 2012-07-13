@@ -232,9 +232,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public int m_nLabelWidth = 100;
 
 	/** flags whether a leaf node is selected **/
-	boolean[] m_bSelection;
+	public boolean[] m_bSelection;
 	/** flag to indicate the selection was changed but image was not updated yet **/
-	boolean m_bSelectionChanged;
+	public boolean m_bSelectionChanged;
 	/** rectangles with on screen coordinates of labels **/
 	Rectangle[] m_bLabelRectangle;
 	/** rectangles with geographic locations on screen **/
@@ -3360,6 +3360,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			putValue(Action.SHORT_DESCRIPTION, sToolTipText);
 			putValue(Action.LONG_DESCRIPTION, sToolTipText);
 			if (sAcceleratorKey.length() > 0) {
+				if (sAcceleratorKey.length() == 1) {
+					sAcceleratorKey = "alt " + sAcceleratorKey;
+				}
 				KeyStroke keyStroke = KeyStroke.getKeyStroke(sAcceleratorKey);
 				if (sAcceleratorKey.contains("+")) {
 					keyStroke = KeyStroke.getKeyStroke('+');
