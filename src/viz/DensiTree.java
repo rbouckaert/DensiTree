@@ -360,6 +360,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 */
 	boolean m_bGroupOverflow;	
 	
+	/** thread for processing meta data **/
+	Thread thread = null;
+	
 	/** constructors **/
 	public DensiTree() {
 		m_gridDrawer = new GridDrawer(this);
@@ -639,8 +642,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		m_gridDrawer.m_bReverseGrid = false;
 		m_gridDrawer.m_fGridOffset = 0;
-
+		m_rootcanaltree = null;
+		
 		try {
+			if (thread != null) {
+				try {
+					thread.stop();
+				} catch (Exception e) {
+					// ignore
+				}
+			}
 			/** contains strings with tree in Newick format **/
 			// Vector<String> sNewickTrees;
 			m_sLabels = new Vector<String>();
@@ -812,22 +823,34 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_bCladesReady = false;
 //			new Thread() {
 //				public void run() {
-					calcClades();
-					m_bCladesReady = true;
+//					calcClades();
+//					m_bCladesReady = true;
 //					reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
 //					calcPositions();
 //					makeDirty();
 //				};
 //			}.start();
 
-			reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
+			//reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
+			reshuffle(NodeOrderer.DEFAULT);
 			
 			// calculate y-position for tree set
 			calcPositions();
 			
 			m_bMetaDataReady = false;			
-			Thread thread = new Thread() {
+			thread = new Thread() {
 				public void run() {
+					m_jStatusBar.setText("Calculating clades");
+					calcClades();
+					m_bCladesReady = true;
+					m_jStatusBar.setText("Optimising node order");
+					if (!m_bAllowSingleChild) {
+						reshuffle(NodeOrderer.OPTIMISE);
+						calcPositions();
+						calcLines();
+						notifyChangeListeners();
+						makeDirty();
+					}
 					String statusMsg = "Parsing metadata";
 					for (int k = 0; k < m_trees.length; k++) {
 						parseMetaData(m_trees[k]);
@@ -840,18 +863,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 //							}
 						}
 					}
-					m_jStatusBar.setText("Parsing metadata");
 					m_metaDataTags = new ArrayList<String>();
 					m_metaDataTypes = new ArrayList<MetaDataType>();
 					collectMetaDataTags(m_trees[0]);
-					calcPositions();
-					calcLines();
-					makeDirty();
-					m_bMetaDataReady = true;			
-					for (ChangeListener listener : m_changeListeners) {
-						listener.stateChanged(null);
+					if (m_metaDataTags.size() > 0) {
+						calcPositions();
+						calcLines();
+						makeDirty();
 					}
+					m_bMetaDataReady = true;			
+					notifyChangeListeners();
 					m_jStatusBar.setText("Done parsing metadata");
+					thread = null;
 				}
 
 				private void parseMetaData(Node node) {
@@ -871,9 +894,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_metaDataTypes = new ArrayList<MetaDataType>();
 			collectMetaDataTags(m_trees[0]);
 
-			for (ChangeListener listener : m_changeListeners) {
-				listener.stateChanged(null);
-			}
+			notifyChangeListeners();
 		} catch (OutOfMemoryError e) {
 			clear();
 			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
@@ -900,7 +921,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 			frames[0].setTitle(FRAME_TITLE + " " + sFile);
 		}
 		System.err.println("Done");
+		
+System.exit(0);		
 	} // init
+
+	void notifyChangeListeners() {
+		for (ChangeListener listener : m_changeListeners) {
+			listener.stateChanged(null);
+		}
+	}
 
 	
 	private void collectMetaDataTags(Node node) {
@@ -1997,7 +2026,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		m_fRLinesX = new float[1][nNodes * 2 + 2];
 		m_fRLinesY = new float[1][nNodes * 2 + 2];
-		if (!m_bAllowSingleChild) {
+		if (!m_bAllowSingleChild && m_bCladesReady) {
 			calcLinesForNode(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0]);
 		}
 		
@@ -2670,7 +2699,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		setWaitCursor();
 
-		if (!m_bAllowSingleChild) {
+		if (!m_bAllowSingleChild && m_bCladesReady) {
 			Arrays.fill(m_cladePosition, -1);
 			boolean bProgress = true;
 			do {
@@ -2717,7 +2746,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			positionRest(m_cTrees[i]);
 		}
-		if (!m_bAllowSingleChild) {
+		if (!m_bAllowSingleChild && m_bCladesReady) {
 			for (Node tree : m_summaryTree) {
 				positionLeafs(tree);
 				positionRest(tree);

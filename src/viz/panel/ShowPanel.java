@@ -20,6 +20,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	DensiTree m_dt;
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
 	JComboBox comboBox;
+	JCheckBox checkBoxShowRotoCanal;
 	
 	public ShowPanel(DensiTree dt) {
 		m_dt = dt;
@@ -70,9 +71,9 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		gbc_checkBox.gridy = 1;
 		add(checkBox, gbc_checkBox);
 
-		JCheckBox checkBox_2 = new JCheckBox("Root Canal");
-		checkBox_2.setSelected(m_dt.m_bShowRootCanalTopology);
-		checkBox_2.addActionListener(new ActionListener() {
+		checkBoxShowRotoCanal = new JCheckBox("Root Canal");
+		checkBoxShowRotoCanal.setSelected(m_dt.m_bShowRootCanalTopology);
+		checkBoxShowRotoCanal.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bShowRootCanalTopology;
 				m_dt.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
@@ -86,7 +87,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		gbc_checkBox_2.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_2.gridx = 0;
 		gbc_checkBox_2.gridy = 2;
-		add(checkBox_2, gbc_checkBox_2);
+		add(checkBoxShowRotoCanal, gbc_checkBox_2);
 
 		JCheckBox checkBox_3 = new JCheckBox("Root At Top");
 		checkBox_3.setSelected(m_dt.m_treeDrawer.m_bRootAtTop);
@@ -154,5 +155,8 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	            }
 	        }
 		}
+		comboBox.setEnabled(m_dt.m_rootcanaltree != null);
+		checkBoxShowRotoCanal.setEnabled(m_dt.m_rootcanaltree != null);
+		System.err.println("rootcanaltree = " + (m_dt.m_rootcanaltree != null));
 	}
 }
