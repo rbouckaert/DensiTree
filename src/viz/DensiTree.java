@@ -922,7 +922,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		System.err.println("Done");
 		
-System.exit(0);		
 	} // init
 
 	void notifyChangeListeners() {
