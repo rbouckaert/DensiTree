@@ -87,7 +87,7 @@ import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.1.1 release candidate";
+	final static String VERSION = "2.1.3 release candidate";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -844,12 +844,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 					calcClades();
 					m_bCladesReady = true;
 					m_jStatusBar.setText("Optimising node order");
+					int [] oldOrder = m_nOrder.clone();
 					if (!m_bAllowSingleChild) {
 						reshuffle(NodeOrderer.OPTIMISE);
 						calcPositions();
 						calcLines();
 						notifyChangeListeners();
-						makeDirty();
+						if (orderChanged(oldOrder)) {
+							System.err.println("Node order changed");	
+							makeDirty();
+						}
 					}
 					String statusMsg = "Parsing metadata";
 					for (int k = 0; k < m_trees.length; k++) {
@@ -928,6 +932,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (ChangeListener listener : m_changeListeners) {
 			listener.stateChanged(null);
 		}
+	}
+
+	private boolean orderChanged(int[] oldOrder) {
+		for (int i = 0; i < oldOrder.length; i++) {
+			if (oldOrder[i] != m_nOrder[i]) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	
@@ -1680,6 +1693,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * investigation of some of the tree set features
 	 */
 	void reshuffle(int nMethod) {
+		int [] oldOrder = m_nOrder.clone();
 		m_nShuffleMode = nMethod;
 		setWaitCursor();
 		//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
@@ -1861,7 +1875,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 				break;
 			}
-			makeDirty();
+			if (orderChanged(oldOrder)) {
+				makeDirty();
+			}
 			// addAction(new DoAction());
 		}
 	} // reshuffle
