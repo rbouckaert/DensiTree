@@ -2613,15 +2613,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			return (float) (node.getMetaDataList().get(index)/node.g_maxListValue.get(index));
 		} else {
-			Object o = node.getMetaDataSet().get(m_lineWidthTag);
-			if (o != null) {
-				try {
-					double frac = (((Double) o) - Node.g_minValue.get(m_lineWidthTag)) /
-							(Node.g_maxValue.get(m_lineWidthTag) - Node.g_minValue.get(m_lineWidthTag));
-					return (float) frac;
-				} catch (Exception e) {
-					int h = 3;
-					h++;
+			Map<String,Object> map = node.getMetaDataSet();
+			if (map != null) {
+				Object o = map.get(m_lineWidthTag);
+				if (o != null) {
+					try {
+						double frac = (((Double) o) - Node.g_minValue.get(m_lineWidthTag)) /
+								(Node.g_maxValue.get(m_lineWidthTag) - Node.g_minValue.get(m_lineWidthTag));
+						return (float) frac;
+					} catch (Exception e) {
+						int h = 3;
+						h++;
+					}
 				}
 			}
 		}
@@ -4031,7 +4034,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			dlg.setTitle("Clades and their probabilities");
 			dlg.setVisible(true);
 		}
-	}; // class ActionHelp
+	}; // ActionViewClades
 
 	Action a_help = new MyAction("Help", "DensiTree - Tree Set Visualization Help", "help", "") {
 		private static final long serialVersionUID = -20389110859354L;
@@ -4079,7 +4082,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fitToScreen();
 			}
 		}
-	}; // class ActionBurnin
+	}; // class ActionLabelWidth
 
 	Action a_burnin = new MyAction("Burn in", "Burn in", "burnin", "") {
 		private static final long serialVersionUID = -2L;
@@ -4178,7 +4181,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomOut
 
-	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", "H") {
+	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", "X") {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4192,7 +4195,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomInTree
 
-	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", "ctrl H") {
+	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", "ctrl X") {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
