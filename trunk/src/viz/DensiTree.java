@@ -990,7 +990,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	DefaultListModel m_cladelistmodel = new DefaultListModel();
 
 	/** represent clade as arrays of leaf indices **/
-	List<Map<Integer, Double>> m_cladePairs;
+	Map<Integer, Double> m_cladePairs;
 	
 	List<List<ChildClade>> m_cladeChildren;
 	/** X-position of the clade **/
@@ -1025,8 +1025,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladeChildren = new ArrayList<List<ChildClade>>();
 		Map<String, Integer> mapCladeToIndex = new HashMap<String, Integer>();
 		
-		m_cladePairs = new ArrayList<Map<Integer, Double>>();
-
 		// add leafs as clades
 		for (int i = 0; i < m_nNrOfLabels; i++) {
 			int[] clade = new int[1];
@@ -1135,25 +1133,36 @@ public class DensiTree extends JPanel implements ComponentListener {
 			setCladeNr(m_trees[i], m_cTrees[m_nTopologyByPopularity[i]]);
 		}
 
+		
+		m_cladePairs = new HashMap<Integer, Double>();
+		for (int i = 0; i < m_cTrees.length; i++) {
+			calcCladePairs(m_cTrees[i], m_fTreeWeight[i]);
+		}
+		
+		
 		// find tree topology with highest product of clade support of all its clades
 		int iMaxCladeProbTopology = 0;
 		int iMaxMinCladeProbTopology = 0;
-		int iMaxCCDProbTopology = 0;
 		double fMaxCladeProb = cladeProb(m_cTrees[0], true);
 		double fMaxMinCladeProb = cladeProb(m_cTrees[0], false);
-		double fMaxCCDProb = CCDProb(m_cTrees[0], index);
+		int iMaxCCDProbTopology = 0;
+		double fMaxCCDProb = CCDProb(m_cTrees[0]);//, index);
 		for (int i = 1; i < m_cTrees.length; i++) {
 			double fCladeProb = cladeProb(m_cTrees[i], true);
 			if (fCladeProb > fMaxCladeProb) {
 				iMaxCladeProbTopology = i;
 				fMaxCladeProb = fCladeProb;
 			}
+		}
+		for (int i = 1; i < m_cTrees.length; i++) {
 			double fMinCladeProb = cladeProb(m_cTrees[i], false);
 			if (fMinCladeProb > fMaxMinCladeProb) {
 				iMaxMinCladeProbTopology = i;
 				fMaxMinCladeProb = fMinCladeProb;
 			}
-			double fCCDProb = CCDProb(m_cTrees[i], index);
+		}
+		for (int i = 1; i < m_cTrees.length; i++) {
+			double fCCDProb = CCDProb(m_cTrees[i]);//, index);
 			if (fCCDProb > fMaxCCDProb) {
 				iMaxCCDProbTopology = i;
 				fMaxCCDProb = fCCDProb;
@@ -1206,6 +1215,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
+	private void calcCladePairs(Node node, double fWeight) {
+		if (!node.isLeaf()) {
+			calcCladePairs(node.m_left, fWeight);
+			calcCladePairs(node.m_right, fWeight);
+			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
+			int iClade = node.m_iClade;
+			Integer i = iClade << 16 + iCladeLeft;
+			if (!m_cladePairs.containsKey(i)) {
+				m_cladePairs.put(i, fWeight);
+			} else {
+				m_cladePairs.put(i, m_cladePairs.get(i) + fWeight);
+			}
+		}
+	}
+	
 	private void removeNegBranches(Node node) {
 		if (!node.isLeaf()) {
 			removeNegBranches(node.m_left);
@@ -1369,18 +1393,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	private double CCDProb(Node node, Integer [] index) {
+	private double CCDProb(Node node) { //, Integer [] index) {
 		if (node.isLeaf()) {
 			return 1.0;
 		} else {
 			int iClade = node.m_iClade;
-			iClade = index[iClade];
+//			iClade = index[iClade];
+//			int iCladeLeft = Math.min(index[node.m_left.m_iClade], index[node.m_right.m_iClade]);
+//			iCladeLeft = index[iCladeLeft];
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			iCladeLeft = index[iCladeLeft];
+
+			Integer i = iClade << 16 + iCladeLeft;
+			Double f = m_cladePairs.get(i);
+			if (f == null) {
+				f = m_cladePairs.get(i);
+			}
 			
-			double fCladeProb = m_cladePairs.get(iClade).get(iCladeLeft) / m_cladeWeight.get(node.m_iClade);
-			fCladeProb *= CCDProb(node.m_left, index);
-			fCladeProb *= CCDProb(node.m_right, index);
+			double fCladeProb = f / m_cladeWeight.get(node.m_iClade);
+			fCladeProb *= CCDProb(node.m_left);//, index);
+			fCladeProb *= CCDProb(node.m_right);//, index);
 			return fCladeProb;
 		}
 		
@@ -1468,19 +1499,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_cladeChildren.get(iClade).add(child);
 			}
 
-			Integer [] cladePair = new Integer[2];
-			cladePair[0] = iClade;
-			cladePair[1] = iCladeLeft;
-			while (iClade >= m_cladePairs.size()) {
-				m_cladePairs.add(new HashMap<Integer,Double>());
-			}
-			if (!m_cladePairs.get(iClade).containsKey(iCladeLeft)) {
-				m_cladePairs.get(iClade).put(iCladeLeft, fWeight);
-			} else {
-				m_cladePairs.get(iClade).put(iCladeLeft, m_cladePairs.get(iClade).get(iCladeLeft) + fWeight);
-			}
-			
-			
+//			Integer [] cladePair = new Integer[2];
+//			cladePair[0] = iClade;
+//			cladePair[1] = iCladeLeft;
 			return clade;
 		}
 
