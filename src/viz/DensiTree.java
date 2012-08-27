@@ -989,6 +989,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	JList m_cladelist;
 	DefaultListModel m_cladelistmodel = new DefaultListModel();
 
+	/** represent clade as arrays of leaf indices **/
+	List<Map<Integer, Double>> m_cladePairs;
+	
 	List<List<ChildClade>> m_cladeChildren;
 	/** X-position of the clade **/
 	float[] m_cladePosition;
@@ -1021,6 +1024,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladeHeightSet = new ArrayList<List<Double>>();
 		m_cladeChildren = new ArrayList<List<ChildClade>>();
 		Map<String, Integer> mapCladeToIndex = new HashMap<String, Integer>();
+		
+		m_cladePairs = new ArrayList<Map<Integer, Double>>();
 
 		// add leafs as clades
 		for (int i = 0; i < m_nNrOfLabels; i++) {
@@ -1133,8 +1138,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		// find tree topology with highest product of clade support of all its clades
 		int iMaxCladeProbTopology = 0;
 		int iMaxMinCladeProbTopology = 0;
+		int iMaxCCDProbTopology = 0;
 		double fMaxCladeProb = cladeProb(m_cTrees[0], true);
 		double fMaxMinCladeProb = cladeProb(m_cTrees[0], false);
+		double fMaxCCDProb = CCDProb(m_cTrees[0], index);
 		for (int i = 1; i < m_cTrees.length; i++) {
 			double fCladeProb = cladeProb(m_cTrees[i], true);
 			if (fCladeProb > fMaxCladeProb) {
@@ -1146,14 +1153,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 				iMaxMinCladeProbTopology = i;
 				fMaxMinCladeProb = fMinCladeProb;
 			}
+			double fCCDProb = CCDProb(m_cTrees[i], index);
+			if (fCCDProb > fMaxCCDProb) {
+				iMaxCCDProbTopology = i;
+				fMaxCCDProb = fCCDProb;
+			}
 		}
 		
-		m_summaryTree = new Node[4];
+		m_summaryTree = new Node[5];
 		m_summaryTree[0] = m_cTrees[iMaxCladeProbTopology].copy();
 		cleanUpSummaryTree(m_summaryTree[0]);
 
 		m_summaryTree[1] = m_cTrees[iMaxMinCladeProbTopology].copy();
 		cleanUpSummaryTree(m_summaryTree[1]);
+
+		m_summaryTree[4] = m_cTrees[iMaxCCDProbTopology].copy();
+		cleanUpSummaryTree(m_summaryTree[4]);
 
 		// construct max. clade weight tree
 		List<Node> nodes = new ArrayList<Node>();
@@ -1171,7 +1186,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_summaryTree[2].sort();
 		resetCladeNr(m_summaryTree[2], reverseindex);
 		m_summaryTree[3] = m_summaryTree[2].copy();
-		cleanUpSummaryTree(m_summaryTree[2]);
+		cleanUpSummaryTree(m_summaryTree[2]);		
+		
 		
 		//cleanUpSummaryTree(m_summaryTree[3]);
 		setHeightByClade(m_summaryTree[3]);
@@ -1353,6 +1369,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
+	private double CCDProb(Node node, Integer [] index) {
+		if (node.isLeaf()) {
+			return 1.0;
+		} else {
+			int iClade = node.m_iClade;
+			iClade = index[iClade];
+			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
+			iCladeLeft = index[iCladeLeft];
+			
+			double fCladeProb = m_cladePairs.get(iClade).get(iCladeLeft) / m_cladeWeight.get(node.m_iClade);
+			fCladeProb *= CCDProb(node.m_left, index);
+			fCladeProb *= CCDProb(node.m_right, index);
+			return fCladeProb;
+		}
+		
+	}			
+
+
 	private void setCladeNr(Node node, Node node2) {
 		if (node2 == null) {
 			throw new RuntimeException("node2 cannot be null");
@@ -1378,6 +1412,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int[] cladeRight = calcCladeForNode(node.m_right, mapCladeToIndex, fWeight, fHeight
 					+ node.m_right.m_fLength);
 			int[] clade = mergeClades(cladeLeft, cladeRight);
+			
+						
 			// merge clades, keep in sorted order
 //			int[] clade = new int[cladeLeft.length + cladeRight.length];
 //			int iLeft = 0;
@@ -1432,6 +1468,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_cladeChildren.get(iClade).add(child);
 			}
 
+			Integer [] cladePair = new Integer[2];
+			cladePair[0] = iClade;
+			cladePair[1] = iCladeLeft;
+			while (iClade >= m_cladePairs.size()) {
+				m_cladePairs.add(new HashMap<Integer,Double>());
+			}
+			if (!m_cladePairs.get(iClade).containsKey(iCladeLeft)) {
+				m_cladePairs.get(iClade).put(iCladeLeft, fWeight);
+			} else {
+				m_cladePairs.get(iClade).put(iCladeLeft, m_cladePairs.get(iClade).get(iCladeLeft) + fWeight);
+			}
+			
+			
 			return clade;
 		}
 

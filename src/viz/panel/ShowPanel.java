@@ -101,7 +101,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		
-		comboBox = new JComboBox(new String[]{"1","2","3","4"});
+		comboBox = new JComboBox(new String[]{"1","2","3","4","5"});
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox comboBox = ((JComboBox)e.getSource());
