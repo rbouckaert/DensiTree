@@ -1169,7 +1169,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		
-		m_summaryTree = new Node[5];
+		m_summaryTree = new Node[6];
 		m_summaryTree[0] = m_cTrees[iMaxCladeProbTopology].copy();
 		cleanUpSummaryTree(m_summaryTree[0]);
 
@@ -1191,11 +1191,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			node.m_iClade = i;
 			nodes.add(node);
 		}
-		m_summaryTree[2] = constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes);
+		m_summaryTree[2] = constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, false);
 		m_summaryTree[2].sort();
 		resetCladeNr(m_summaryTree[2], reverseindex);
 		m_summaryTree[3] = m_summaryTree[2].copy();
 		cleanUpSummaryTree(m_summaryTree[2]);		
+
+		m_summaryTree[5] = constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, true);
+		m_summaryTree[5].sort();
+		resetCladeNr(m_summaryTree[5], reverseindex);
+		cleanUpSummaryTree(m_summaryTree[5]);		
+		setHeightByClade(m_summaryTree[5]);
 		
 		
 		//cleanUpSummaryTree(m_summaryTree[3]);
@@ -1220,8 +1226,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcCladePairs(node.m_left, fWeight);
 			calcCladePairs(node.m_right, fWeight);
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			int iClade = node.m_iClade;
-			Integer i = iClade << 16 + iCladeLeft;
+			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
+			Integer i = iCladeRight << 16 + iCladeLeft;
 			if (!m_cladePairs.containsKey(i)) {
 				m_cladePairs.put(i, fWeight);
 			} else {
@@ -1254,7 +1260,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		offsetHeight(summaryTree, m_fHeight - fHeight);
 	}
 
-	private Node constructMaxCladeTree(List<int[]> cladeIDs, Map<String, Integer> mapCladeToIndex, List<Node> nodes) {
+	private Node constructMaxCladeTree(List<int[]> cladeIDs, Map<String, Integer> mapCladeToIndex, 
+			List<Node> nodes, boolean useCCD) {
 		int k = nodes.size();
 		while (cladeIDs.size() > 1) {
 			double maxWeight = -1;
@@ -1268,7 +1275,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 					String sClade = Arrays.toString(clade);
 					if (mapCladeToIndex.containsKey(sClade)) {
 						int iClade = mapCladeToIndex.get(sClade);
-						double weight = m_cladeWeight.get(iClade);
+						double weight = 0;
+						if (useCCD) {
+							String sCladeLeft = Arrays.toString(cladeLeft);
+							String sCladeRight = Arrays.toString(cladeRight);
+							int iClade1 = mapCladeToIndex.get(sCladeLeft);
+							int iClade2 = mapCladeToIndex.get(sCladeRight);
+							int iCladeLeft = Math.min(iClade1, iClade2);
+							int iCladeRight = Math.max(iClade1, iClade2);
+							Integer hash = iCladeRight << 16 + iCladeLeft;
+							weight = m_cladePairs.get(hash);
+						} else {
+							weight = m_cladeWeight.get(iClade);
+						}
 						if (weight > maxWeight) {
 							maxWeight = weight;
 							maxLeft = i;
@@ -1397,19 +1416,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (node.isLeaf()) {
 			return 1.0;
 		} else {
-			int iClade = node.m_iClade;
+//			int iClade = node.m_iClade;
 //			iClade = index[iClade];
 //			int iCladeLeft = Math.min(index[node.m_left.m_iClade], index[node.m_right.m_iClade]);
 //			iCladeLeft = index[iCladeLeft];
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
+			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
 
-			Integer i = iClade << 16 + iCladeLeft;
+			Integer i = iCladeRight << 16 + iCladeLeft;
 			Double f = m_cladePairs.get(i);
 			if (f == null) {
 				f = m_cladePairs.get(i);
 			}
 			
-			double fCladeProb = f / m_cladeWeight.get(node.m_iClade);
+			double fCladeProb = f;// / m_cladeWeight.get(node.m_iClade);
 			fCladeProb *= CCDProb(node.m_left);//, index);
 			fCladeProb *= CCDProb(node.m_right);//, index);
 			return fCladeProb;
