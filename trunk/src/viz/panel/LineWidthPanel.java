@@ -3,6 +3,7 @@ package viz.panel;
 
 
 
+
 import javax.swing.JPanel;
 
 import java.awt.Dimension;
@@ -78,6 +79,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 							m_dt.m_lineWidthTag = selected; 
 							m_dt.m_lineWidthMode = LineWidthMode.BY_METADATA_TAG;
 						}
+						m_dt.resetStyle();
 //						txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
 //						chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 //								|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
