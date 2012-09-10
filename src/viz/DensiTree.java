@@ -310,6 +310,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),([0-9\\.Ee-]+)";
 	//final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),";
 	final static String DEFAULT_PATTERN = ".*location=\"([^\"]*).*";
+	// final static String DEFAULT_PATTERN = .*dmv=\{(.*),(.*)\}.*
 	// final static String DEFAULT_PATTERN = "s=([0-9\\.Ee-]+)";
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";
 	/** string containing reg exp for position matching **/
@@ -418,9 +419,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_iPatternForTop > m_iPatternForBottom) {
 			//sPattern += "[^0-9]+";
 			for (int i = m_iPatternForBottom + 1; i < m_iPatternForTop; i++) {
-				sPattern += "[0-9\\.Ee-]+[^0-9]+";
+				sPattern += "[^0-9]+[0-9\\.Ee-]+";
 			}
-			sPattern += "([0-9\\.Ee-]+)";
+			sPattern += "[^0-9]+([0-9\\.Ee-]+)";
 		}
 		return Pattern.compile(sPattern);
 	}
@@ -2673,50 +2674,54 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	float getGamma(Node node , int nGroup) {
-		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
-			String sMetaData = node.getMetaData();
-			try {
-				Matcher matcher = m_pattern.matcher(sMetaData);
-				matcher.find();
-				int nGroups = matcher.groupCount();
-				if (nGroup > nGroups) {
-					nGroup = 1;
-					m_bGroupOverflow = true;
+		try {
+			if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
+				String sMetaData = node.getMetaData();
+				try {
+					Matcher matcher = m_pattern.matcher(sMetaData);
+					matcher.find();
+					int nGroups = matcher.groupCount();
+					if (nGroup > nGroups) {
+						nGroup = 1;
+						m_bGroupOverflow = true;
+					}
+					String sMatch = matcher.group(nGroup);
+			        float f = Float.parseFloat(sMatch);
+			        return f;
+				} catch (Exception e) {
 				}
-				String sMatch = matcher.group(nGroup);
-		        float f = Float.parseFloat(sMatch);
-		        return f;
-			} catch (Exception e) {
-			}
-		} else if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
-			int index = 0;
-			if (nGroup == 1) {
-				index = m_iPatternForBottom - 1;
-			} else {
-				index = m_iPatternForTop;
-				if (index < 0) {
+			} else if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+				int index = 0;
+				if (nGroup == 1) {
 					index = m_iPatternForBottom - 1;
+				} else {
+					index = m_iPatternForTop - 1;
+					if (index < 0) {
+						index = m_iPatternForBottom - 1;
+					}
 				}
-			}
-			if (index < 0) {
-				index = 0;
-			}
-			return (float) (node.getMetaDataList().get(index)/node.g_maxListValue.get(index));
-		} else {
-			Map<String,Object> map = node.getMetaDataSet();
-			if (map != null) {
-				Object o = map.get(m_lineWidthTag);
-				if (o != null) {
-					try {
-						double frac = (((Double) o) - Node.g_minValue.get(m_lineWidthTag)) /
-								(Node.g_maxValue.get(m_lineWidthTag) - Node.g_minValue.get(m_lineWidthTag));
-						return (float) frac;
-					} catch (Exception e) {
-						int h = 3;
-						h++;
+				if (index < 0) {
+					index = 0;
+				}
+				return (float) (node.getMetaDataList().get(index)/node.g_maxListValue.get(index));
+			} else {
+				Map<String,Object> map = node.getMetaDataSet();
+				if (map != null) {
+					Object o = map.get(m_lineWidthTag);
+					if (o != null) {
+						try {
+							double frac = (((Double) o) - Node.g_minValue.get(m_lineWidthTag)) /
+									(Node.g_maxValue.get(m_lineWidthTag) - Node.g_minValue.get(m_lineWidthTag));
+							return (float) frac;
+						} catch (Exception e) {
+							int h = 3;
+							h++;
+						}
 					}
 				}
 			}
+		} catch (Exception e) {
+			// ignore
 		}
 		return 1f;
 	}
@@ -3364,7 +3369,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
  
 	
+	int m_nStyle = 0;
+	public void resetStyle() {
+		setStyle(m_nStyle);
+	}
+	
 	void setStyle(int nStyle) {
+		m_nStyle = nStyle;
 		BranchDrawer bd = null;
 		switch (nStyle) {
 		case 0:
