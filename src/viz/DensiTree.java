@@ -88,7 +88,7 @@ import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.1.3 release candidate";
+	final static String VERSION = "2.1.4 release candidate";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
