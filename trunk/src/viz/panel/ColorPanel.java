@@ -287,6 +287,16 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		}
 		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
 		comboBox.setModel(model);
+		
+		if (m_dt.m_lineColorMode == LineColorMode.DEFAULT) {
+			comboBox.setSelectedItem(LineColorMode.DEFAULT.toString());
+		} else if (m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN) {
+			comboBox.setSelectedItem(LineColorMode.BY_METADATA_PATTERN.toString());
+		} else if (m_dt.m_lineColorMode == LineColorMode.COLOR_BY_CLADE) {
+			comboBox.setSelectedItem(LineColorMode.COLOR_BY_CLADE.toString());
+		} else {
+			comboBox.setSelectedItem(m_dt.m_lineColorTag);
+		}
 	}
 
 }
