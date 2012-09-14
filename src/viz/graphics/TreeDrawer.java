@@ -123,7 +123,7 @@ public class TreeDrawer {
 						} else {
 							if (i % 4 == 0) { 							
 								float fTopWidth2 = fTopLineWidth[i+2] * LINE_WIDTH_SCALE;
-								if (nY[i+1] < nY[i+2]) {
+								if (nY[i+1] <= nY[i+2]) {
 									m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth+fTopWidth2)/2.0f), fTopWidth, fWidth);
 								} else {
 									m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth-fTopWidth2)/2.0f), fTopWidth, fWidth);										
@@ -131,7 +131,7 @@ public class TreeDrawer {
 							} else {
 								// i % 4 == 2
 								float fTopWidth2 = fTopLineWidth[i-2] * LINE_WIDTH_SCALE;
-								if (nY[i-1] < nY[i]) {
+								if (nY[i-1] <= nY[i]) {
 									m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth-fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, fTopWidth);
 								} else {
 									m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth+fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, fTopWidth);

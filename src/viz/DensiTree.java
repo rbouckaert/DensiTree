@@ -360,7 +360,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** indicator that only one group is in the pattern, so top of branch widths
 	 * should be calculated from the bottom of branch information.
 	 */
-	boolean m_bGroupOverflow;	
+	boolean m_bTopWidthDiffersFromBottomWidth;	
 	
 	/** thread for processing meta data **/
 	Thread thread = null;
@@ -2235,7 +2235,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fRLineWidth = new float[1][];
 		m_fRTopLineWidth = new float[1][];
 		checkSelection();
-		m_bGroupOverflow = false;
+		m_bTopWidthDiffersFromBottomWidth = false;
 		int nNodes = getNrOfNodes(m_trees[0]);
 
 		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
@@ -2651,7 +2651,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fWidth[iPos] = fWidth[iPos-1];
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
 				iPos++;
-				if (m_bGroupOverflow && m_bCorrectTopOfBranch) {
+				if (!m_bTopWidthDiffersFromBottomWidth && m_bCorrectTopOfBranch) {
 					float fCurrentWidth = getGamma(node, 1);
 					float fSumWidth = fWidth[iPos-2] + fWidth[iPos-4];
 					fWidthTop[iPos-2] = fCurrentWidth * fWidth[iPos-2]/fSumWidth;
@@ -2683,7 +2683,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					int nGroups = matcher.groupCount();
 					if (nGroup > nGroups) {
 						nGroup = 1;
-						m_bGroupOverflow = true;
+					} else {
+						m_bTopWidthDiffersFromBottomWidth = true;
 					}
 					String sMatch = matcher.group(nGroup);
 			        float f = Float.parseFloat(sMatch);
@@ -2698,6 +2699,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					index = m_iPatternForTop - 1;
 					if (index < 0) {
 						index = m_iPatternForBottom - 1;
+					} else {
+						m_bTopWidthDiffersFromBottomWidth = true;						
 					}
 				}
 				if (index < 0) {
