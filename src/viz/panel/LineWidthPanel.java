@@ -279,5 +279,14 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		}
 		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
 		comboBox.setModel(model);
+		if (m_dt.m_lineWidthMode == LineWidthMode.DEFAULT) {
+			comboBox.setSelectedItem(LineWidthMode.DEFAULT.toString());
+		} else if (m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
+			comboBox.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
+		} else if (m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+			comboBox.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
+		} else {
+			comboBox.setSelectedItem(m_dt.m_lineWidthTag);
+		}
 	}
 }
