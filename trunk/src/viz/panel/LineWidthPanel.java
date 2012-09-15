@@ -19,7 +19,6 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -31,42 +30,54 @@ import viz.DensiTree.MetaDataType;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSpinner;
-import javax.swing.border.TitledBorder;
 import java.util.ArrayList;
 
 import javax.swing.JComboBox;
+import javax.swing.JSeparator;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter.DEFAULT;
 
 public class LineWidthPanel extends JPanel implements ChangeListener {
 	private static final long serialVersionUID = 1L;
+	private JTextField textField;
 	private JTextField textField_1;
 	private JTextField textField_3;
+	JSpinner spinner;
+	JSpinner spinner_1;
 	SpinnerNumberModel topOfBranchModel;
 	SpinnerNumberModel bottomOfBranchModel;
-	JComboBox comboBox;
-	JPanel panel;
+	JComboBox comboBoxBottom;
+	JComboBox comboBoxTop= new JComboBox();
+
+	final static String SAME_AS_BOTTOM = "Same as bottom";
+	final static String MAKE_FIT_BOTTOM = "Make fit to bottom";
 	
 	DensiTree m_dt;
+	private JSeparator separator;
+	private JSeparator separator_1;
+	JCheckBox chckbxZeroBased;
 	
 	public LineWidthPanel(DensiTree dt) {
 		m_dt = dt;
 		m_dt.addChangeListener(this);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWeights = new double[]{1.0, 0.0, 0.0};
+		gridBagLayout.columnWidths = new int[]{0, 0};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		gridBagLayout.columnWeights = new double[]{1.0, 0.0};
 		setLayout(gridBagLayout);
 		
-		comboBox = new JComboBox();
+		comboBoxBottom = new JComboBox();
 		stateChanged(null);
-		comboBox.setPreferredSize(new Dimension(130,20));
-		comboBox.setMaximumSize(new Dimension(130,200));
-		comboBox.setSelectedItem(m_dt.m_lineWidthMode);
-		
-		comboBox.addActionListener(new ActionListener() {
+		comboBoxBottom.setPreferredSize(new Dimension(130,20));
+		comboBoxBottom.setMaximumSize(new Dimension(130,200));
+		comboBoxBottom.setSelectedItem(m_dt.m_lineWidthMode);
+
+		comboBoxBottom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					
 					@Override
 					public void run() {
-						String selected = comboBox.getSelectedItem().toString();
+						String selected = comboBoxBottom.getSelectedItem().toString();
 						LineWidthMode oldMode = m_dt.m_lineWidthMode; 
 						String oldTag = m_dt.m_lineWidthTag;
 						if (selected.equals(LineWidthMode.DEFAULT.toString())) {
@@ -87,28 +98,28 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 							m_dt.calcLineWidths(true);
 							m_dt.makeDirty();
 						}
-						textField_1.setEnabled(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
-						panel.setVisible(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER);
+						updateEnabled();
 						repaint();
 					}
+
 				});
 			}
 		});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.gridwidth = 2;
-		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
+		gbc_comboBox.insets = new Insets(0, 0, 5, 0);
 		//gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbc_comboBox.gridx = 0;
-		gbc_comboBox.gridy = 0;
-		add(comboBox, gbc_comboBox);
+		gbc_comboBox.gridy = 2;
+		add(comboBoxBottom, gbc_comboBox);
 		
 		
 		textField_1 = new JTextField(m_dt.m_sLineWidthPattern);
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
-		gbc_textField_1.insets = new Insets(0, 0, 5, 0);
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField_1.insets = new Insets(0, 0, 5, 0);
 		gbc_textField_1.gridx = 0;
-		gbc_textField_1.gridy = 1;
+		gbc_textField_1.gridy = 3;
 		gbc_textField_1.gridwidth= 2;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);
@@ -120,36 +131,6 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 					m_dt.m_sLineWidthPattern = textField_1.getText();
 					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 						m_dt.calcLineWidths(true);
-						m_dt.makeDirty();
-					}
-				} catch (Exception ex) {}
-			}
-		});
-		textField_1.setEnabled(false);
-		
-		GridBagConstraints gbc_lblMetaDataScale = new GridBagConstraints();
-		gbc_lblMetaDataScale.anchor = GridBagConstraints.EAST;
-		gbc_lblMetaDataScale.insets = new Insets(0, 0, 5, 5);
-		gbc_lblMetaDataScale.gridx = 0;
-		gbc_lblMetaDataScale.gridy = 2;
-		JLabel lblMetaDataScale =  new JLabel("Scale");
-		add(lblMetaDataScale, gbc_lblMetaDataScale);
-		GridBagConstraints gbc_textField_3 = new GridBagConstraints();
-		gbc_textField_3.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_3.gridwidth = 1;
-		gbc_textField_3.insets = new Insets(0, 0, 5, 5);
-		gbc_textField_3.gridx = 1;
-		gbc_textField_3.gridy = 2;
-		textField_3 = new JTextField(m_dt.m_treeDrawer.LINE_WIDTH_SCALE + "");
-		add(textField_3, gbc_textField_3);
-		textField_3.setColumns(3);
-		textField_3.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					m_dt.m_treeDrawer.LINE_WIDTH_SCALE = Float.parseFloat(textField_3.getText());
-					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
@@ -190,103 +171,254 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 			}
 		});
 		
-//				JLabel lblMetaDataPattern = new JLabel("pattern");
-//				GridBagConstraints gbc_lblMetaDataPattern = new GridBagConstraints();
-//				gbc_lblMetaDataPattern.anchor = GridBagConstraints.EAST;
-//				gbc_lblMetaDataPattern.insets = new Insets(0, 0, 5, 5);
-//				gbc_lblMetaDataPattern.gridx = 0;
-//				gbc_lblMetaDataPattern.gridy = 4;
-//				add(lblMetaDataPattern, gbc_lblMetaDataPattern);
+		JLabel lblNumberOfItem_1 = new JLabel("top");
+		GridBagConstraints gbc_lblNumberOfItem_1 = new GridBagConstraints();
+		gbc_lblNumberOfItem_1.anchor = GridBagConstraints.EAST;
+		gbc_lblNumberOfItem_1.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNumberOfItem_1.gridx = 0;
+		gbc_lblNumberOfItem_1.gridy = 4;
+		add(lblNumberOfItem_1, gbc_lblNumberOfItem_1);
+		spinner = new JSpinner(bottomOfBranchModel);
+		GridBagConstraints gbc_spinner = new GridBagConstraints();
+		gbc_spinner.insets = new Insets(0, 0, 5, 0);
+		gbc_spinner.gridx = 1;
+		gbc_spinner.gridy = 4;
+		add(spinner, gbc_spinner);
+		spinner.setMaximumSize(new Dimension(1,20));
+		
+		separator_1 = new JSeparator();
+		GridBagConstraints gbc_separator_1 = new GridBagConstraints();
+		gbc_separator_1.insets = new Insets(0, 0, 5, 5);
+		gbc_separator_1.gridx = 0;
+		gbc_separator_1.gridy = 5;
+		add(separator_1, gbc_separator_1);
 
+		GridBagConstraints gbc_comboBoxTop = new GridBagConstraints();
+		gbc_comboBoxTop.gridwidth = 2;
+		gbc_comboBoxTop.insets = new Insets(0, 0, 5, 0);
+		gbc_comboBoxTop.gridx = 0;
+		gbc_comboBoxTop.gridy = 6;
+		add(comboBoxTop, gbc_comboBoxTop);
 		
+				comboBoxTop.setPreferredSize(new Dimension(130,20));
+				comboBoxTop.setMaximumSize(new Dimension(130,200));
+				comboBoxTop.setSelectedItem(m_dt.m_lineWidthMode);
+				comboBoxTop.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+							SwingUtilities.invokeLater(new Runnable() {
+								
+								@Override
+								public void run() {
+									String selected = comboBoxTop.getSelectedItem().toString();
+
+									LineWidthMode oldMode = m_dt.m_lineWidthModeTop; 
+									String oldTag = m_dt.m_lineWidthTagTop;
+									boolean oldCorrectTopOfBranch = m_dt.m_bCorrectTopOfBranch;
+									if (selected.equals(SAME_AS_BOTTOM)) {
+										m_dt.m_lineWidthModeTop = LineWidthMode.DEFAULT;
+									} else if (selected.equals(MAKE_FIT_BOTTOM)) {
+										m_dt.m_lineWidthModeTop = LineWidthMode.DEFAULT;
+										m_dt.m_bCorrectTopOfBranch = true;
+									} else if (selected.equals(LineWidthMode.BY_METADATA_PATTERN.toString())) {
+										m_dt.m_lineWidthModeTop = LineWidthMode.BY_METADATA_PATTERN;
+									} else if (selected.equals(LineWidthMode.BY_METADATA_NUMBER.toString())) {
+										m_dt.m_lineWidthModeTop = LineWidthMode.BY_METADATA_NUMBER;
+									} else {
+										m_dt.m_lineWidthTagTop = selected; 
+										m_dt.m_lineWidthModeTop = LineWidthMode.BY_METADATA_TAG;
+									}
+									m_dt.m_bCorrectTopOfBranch = selected.equals(MAKE_FIT_BOTTOM);
+									m_dt.resetStyle();
+//							txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
+//							chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
+//									|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
+									if (m_dt.m_lineWidthModeTop != oldMode || m_dt.m_lineWidthTagTop != oldTag
+											|| oldCorrectTopOfBranch != m_dt.m_bCorrectTopOfBranch) {
+										m_dt.calcLineWidths(true);
+										m_dt.makeDirty();
+									}
+									updateEnabled();
+									repaint();
+
+								}
+						});
+					}
+				});
 		
+		textField = new JTextField(m_dt.m_sLineWidthPatternTop);
+		GridBagConstraints gbc_textField = new GridBagConstraints();
+		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField.gridwidth = 2;
+		gbc_textField.insets = new Insets(0, 0, 5, 0);
+		gbc_textField.gridx = 0;
+		gbc_textField.gridy = 7;
+		add(textField, gbc_textField);
+		textField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					m_dt.m_sLineWidthPatternTop = textField.getText();
+					m_dt.calcLineWidths(true);
+					m_dt.makeDirty();
+				} catch (Exception ex) {}
+			}
+		});
+		textField.setColumns(10);
 		
-		JCheckBox chckbxCorrectTopOf = new JCheckBox("Top correction");
-		chckbxCorrectTopOf.addActionListener(new ActionListener() {
+		JLabel lblNumberOfItem = new JLabel("bottom");
+		GridBagConstraints gbc_lblNumberOfItem = new GridBagConstraints();
+		gbc_lblNumberOfItem.anchor = GridBagConstraints.EAST;
+		gbc_lblNumberOfItem.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNumberOfItem.gridx = 0;
+		gbc_lblNumberOfItem.gridy = 8;
+		add(lblNumberOfItem, gbc_lblNumberOfItem);
+		spinner_1 = new JSpinner(topOfBranchModel);
+		GridBagConstraints gbc_spinner_1 = new GridBagConstraints();
+		gbc_spinner_1.insets = new Insets(0, 0, 5, 0);
+		gbc_spinner_1.gridx = 1;
+		gbc_spinner_1.gridy = 8;
+		add(spinner_1, gbc_spinner_1);
+		spinner_1.setToolTipText("when 0, top will be egual to bottom");
+		spinner_1.setMaximumSize(new Dimension(1,20));
+		
+		chckbxZeroBased = new JCheckBox("Zero based");
+		chckbxZeroBased.setSelected(m_dt.m_bWidthsAreZeroBased);
+		chckbxZeroBased.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
-				m_dt.m_bCorrectTopOfBranch = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.m_bCorrectTopOfBranch) {// && m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+				m_dt.m_bWidthsAreZeroBased = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_bWidthsAreZeroBased) {
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
 			}
 		});
 		
+		separator = new JSeparator();
+		GridBagConstraints gbc_separator = new GridBagConstraints();
+		gbc_separator.insets = new Insets(0, 0, 5, 5);
+		gbc_separator.gridx = 0;
+		gbc_separator.gridy = 9;
+		add(separator, gbc_separator);
+		GridBagConstraints gbc_chckbxZeroBased = new GridBagConstraints();
+		gbc_chckbxZeroBased.insets = new Insets(0, 0, 5, 0);
+		gbc_chckbxZeroBased.gridwidth = 2;
+		gbc_chckbxZeroBased.anchor = GridBagConstraints.WEST;
+		gbc_chckbxZeroBased.gridx = 0;
+		gbc_chckbxZeroBased.gridy = 10;
+		add(chckbxZeroBased, gbc_chckbxZeroBased);
 		
+		GridBagConstraints gbc_lblMetaDataScale = new GridBagConstraints();
+		gbc_lblMetaDataScale.anchor = GridBagConstraints.EAST;
+		gbc_lblMetaDataScale.insets = new Insets(0, 0, 0, 5);
+		gbc_lblMetaDataScale.gridx = 0;
+		gbc_lblMetaDataScale.gridy = 11;
+		JLabel lblMetaDataScale = new JLabel("Scale");
+		add(lblMetaDataScale, gbc_lblMetaDataScale);
+		GridBagConstraints gbc_textField_3 = new GridBagConstraints();
+		gbc_textField_3.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField_3.gridwidth = 1;
+		gbc_textField_3.gridx = 1;
+		gbc_textField_3.gridy = 11;
+		textField_3 = new JTextField(m_dt.m_treeDrawer.LINE_WIDTH_SCALE + "");
+		add(textField_3, gbc_textField_3);
+		textField_3.setColumns(3);
+		textField_3.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					m_dt.m_treeDrawer.LINE_WIDTH_SCALE = Float.parseFloat(textField_3.getText());
+					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+						m_dt.makeDirty();
+					}
+				} catch (Exception ex) {}
+			}
+		});
+		updateEnabled();
+
+//      layout debugging
+//		for (Component c : getComponents()) {
+//			if (c instanceof JComponent) {
+//				((JComponent)c).setBorder(BorderFactory.createLineBorder(Color.black));
+//			}
+//		}
 		
-		panel = new JPanel();
-		panel.setVisible(false);
-		panel.setBorder(new TitledBorder(null, "Number", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		GridBagConstraints gbc_panel = new GridBagConstraints();
-		gbc_panel.gridwidth = 2;
-		gbc_panel.insets = new Insets(0, 0, 5, 5);
-		gbc_panel.fill = GridBagConstraints.BOTH;
-		gbc_panel.gridx = 0;
-		gbc_panel.gridy = 3;
-		add(panel, gbc_panel);
-		panel.setLayout(new GridBagLayout());
-		
-		JLabel lblNumberOfItem_1 = new JLabel("top");
-		GridBagConstraints gbc_label = new GridBagConstraints();
-		gbc_label.anchor = GridBagConstraints.WEST;
-		gbc_label.gridx = 0;
-		gbc_label.gridy = 1;
-		panel.add(lblNumberOfItem_1, gbc_label);
-		JSpinner spinner = new JSpinner(bottomOfBranchModel);
-		
-				GridBagConstraints gbc_spinner = new GridBagConstraints();
-				gbc_spinner.gridx = 1;
-				gbc_spinner.gridy = 1;
-				panel.add(spinner, gbc_spinner);
-				spinner.setMaximumSize(new Dimension(1,20));
-				
-				JLabel lblNumberOfItem = new JLabel("bottom");
-				GridBagConstraints gbc_label2 = new GridBagConstraints();
-				gbc_label2.anchor = GridBagConstraints.WEST;
-				gbc_label2.gridx = 0;
-				gbc_label2.gridy = 2;
-				panel.add(lblNumberOfItem, gbc_label2);
-				JSpinner spinner_1 = new JSpinner(topOfBranchModel);
-				GridBagConstraints gbc_spinner2 = new GridBagConstraints();
-				gbc_spinner2.gridx = 1;
-				gbc_spinner2.gridy = 2;
-				panel.add(spinner_1, gbc_spinner2);
-				spinner_1.setToolTipText("when 0, top will be egual to bottom");
-				spinner_1.setMaximumSize(new Dimension(1,20));
-		
-		chckbxCorrectTopOf.setHorizontalAlignment(SwingConstants.RIGHT);
-		GridBagConstraints gbc_chckbxCorrectTopOf = new GridBagConstraints();
-		gbc_chckbxCorrectTopOf.anchor = GridBagConstraints.WEST;
-		gbc_chckbxCorrectTopOf.gridwidth = 3;
-		gbc_chckbxCorrectTopOf.gridx = 0;
-		gbc_chckbxCorrectTopOf.gridy = 7;
-		add(chckbxCorrectTopOf, gbc_chckbxCorrectTopOf);
 	}
+			
+	private void updateEnabled() {
+		if (textField_1 == null) {
+			return;
+		}
+		textField_3.setEnabled(m_dt.m_lineWidthMode != LineWidthMode.DEFAULT);
+		chckbxZeroBased.setEnabled(m_dt.m_lineWidthMode != LineWidthMode.DEFAULT);
+		
+		textField_1.setEnabled(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
+		spinner.setEnabled(m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER);
+
+		textField.setEnabled(false);
+		spinner_1.setEnabled(false);
+		if (m_dt.m_lineWidthMode == LineWidthMode.DEFAULT) {
+			comboBoxTop.setEnabled(false);
+		} else {
+			comboBoxTop.setEnabled(true);
+			if (m_dt.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+				textField.setEnabled(true);
+			}
+			if (m_dt.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
+				spinner_1.setEnabled(true);
+			}
+		}
+	}
+			
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		List<String> selection = new ArrayList<String>();
+		List<String> selectionTop = new ArrayList<String>();
 		selection.add(LineWidthMode.DEFAULT.toString());
+		selectionTop.add(SAME_AS_BOTTOM);
+		selectionTop.add(MAKE_FIT_BOTTOM);
 		if (m_dt.m_bMetaDataReady) {
 			selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
+			selectionTop.add(LineWidthMode.BY_METADATA_PATTERN.toString());
 			selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
+			selectionTop.add(LineWidthMode.BY_METADATA_NUMBER.toString());			
 			for (int i = 0; i < m_dt.m_metaDataTags.size(); i++) {
 				if (m_dt.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
 					selection.add(m_dt.m_metaDataTags.get(i));				
+					selectionTop.add(m_dt.m_metaDataTags.get(i));			
 				}
 			}
 		}
 		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
-		comboBox.setModel(model);
+		comboBoxBottom.setModel(model);
+		
+		model = new DefaultComboBoxModel(selectionTop.toArray(new String[0]));
+		comboBoxTop.setModel(model);
+		
 		if (m_dt.m_lineWidthMode == LineWidthMode.DEFAULT) {
-			comboBox.setSelectedItem(LineWidthMode.DEFAULT.toString());
+			comboBoxBottom.setSelectedItem(LineWidthMode.DEFAULT.toString());
 		} else if (m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
-			comboBox.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
+			comboBoxBottom.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
 		} else if (m_dt.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
-			comboBox.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
+			comboBoxBottom.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
 		} else {
-			comboBox.setSelectedItem(m_dt.m_lineWidthTag);
+			comboBoxBottom.setSelectedItem(m_dt.m_lineWidthTag);
 		}
+		if (m_dt.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+			if (m_dt.m_bCorrectTopOfBranch) {
+				comboBoxTop.setSelectedItem(MAKE_FIT_BOTTOM);
+			} else {
+				comboBoxTop.setSelectedItem(SAME_AS_BOTTOM);				
+			}
+		} else if (m_dt.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+			comboBoxTop.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
+		} else if (m_dt.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
+			comboBoxTop.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
+		} else {
+			comboBoxTop.setSelectedItem(m_dt.m_lineWidthTagTop);
+		}
+
+		updateEnabled();
 	}
 }
