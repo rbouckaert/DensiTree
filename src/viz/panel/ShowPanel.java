@@ -19,7 +19,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	
 	DensiTree m_dt;
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
-	JComboBox comboBox;
+	JComboBox comboBox = new JComboBox();
 	JCheckBox checkBoxShowRotoCanal;
 	
 	public ShowPanel(DensiTree dt) {
