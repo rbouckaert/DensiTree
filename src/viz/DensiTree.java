@@ -215,6 +215,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
 	
+	/** flag to allow leafs to be draw and dragged around.
+	 * As a side effect, internal clades will not be positioned correctly,
+	 * so this flag can only be set with the -allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions flag **/
+	boolean m_bLeafCladeSelection = false;
 	/** flag to indicate not to draw anything due to being busy initialising **/
 	boolean m_bInitializing;
 
@@ -563,6 +567,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_bUseLogScale = true;
 						m_fExponent = Double.parseDouble(args[i+1]);
 						i += 2;
+					} else if (args[i].equals("-allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions")) {
+						m_bLeafCladeSelection = true;
 					}
 					if (i == iOld) {
 						throw new Exception("Wrong argument");
@@ -2907,6 +2913,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void positionLeafs(Node node) {
 		if (node.isLeaf()) {
 			node.m_fPosX = m_nOrder[node.m_iLabel] + 0.5f;
+			if (m_cladePosition != null) {
+				//node.m_fPosX += m_cladePosition[node.m_iLabel];
+			}
 			// node.m_fPosX = _posX[m_nOrder[node.m_iLabel]] + 0.5f;
 		} else {
 			positionLeafs(node.m_left);
