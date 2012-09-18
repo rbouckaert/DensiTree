@@ -133,7 +133,7 @@ public class Node {
 //			buf.append(m_sMetaData);
 //			buf.append(']');
 //		}
-//		buf.append(":" + m_fLength);
+		buf.append(":" + m_fLength);
 		return buf.toString();
 	}
 

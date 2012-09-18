@@ -1120,6 +1120,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 					score += (height.get(iTop + 1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
 					score += cumscore[max] - cumscore[iTop + 1];
 					return score;
+				} else 	if (iTop == max) {
+					float score = (height.get(0) - bottom) * count;
+					score += (top - bottom) * count -
+							cumscore[iTop] - cumscore[0] -
+							(top - height.get(iTop)) * overlapcount[iTop];
+					score += (height.get(iTop + 1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
+					score += cumscore[max] - cumscore[iTop + 1];
+					return score;
 				} else { // iTop >= max, branch overlaps complete interval
 					float score = (top - bottom) * count - cumscore[max];
 					return score;
@@ -1402,7 +1410,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				float maxHeight = heights[node.getParent().m_iLabel];
 				float leftHeight = heights[node.m_left.m_iLabel];
 				float rightHeight = heights[node.m_right.m_iLabel];
-				float minHeight = Math.max(leftHeight, rightHeight);
+				float minHeight = Math.min(leftHeight, rightHeight);
 				
 				float bestHeight = (maxHeight - minHeight)/RANGE + minHeight;
 				float bestScore = info.score(maxHeight, bestHeight) + 
@@ -1410,7 +1418,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						infoRight.score(bestHeight, rightHeight);
 						
 				for (int j = 2; j < RANGE; j++) {
-					float height = (maxHeight - minHeight)/RANGE + minHeight;
+					float height = j*(maxHeight - minHeight)/RANGE + minHeight;
 					float score = info.score(maxHeight, height) + 
 							infoLeft.score(height, leftHeight) +
 							infoRight.score(height, rightHeight);
@@ -1421,9 +1429,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 				
 				heights[k] = bestHeight;
-				node.m_fLength = maxHeight - bestHeight;
-				node.m_left.m_fLength = bestHeight - leftHeight;
-				node.m_right.m_fLength = bestHeight - rightHeight;
+				node.m_fLength = bestHeight - maxHeight;
+				node.m_left.m_fLength = leftHeight - bestHeight;
+				node.m_right.m_fLength = rightHeight - bestHeight;
 			}
 		}
 	}
