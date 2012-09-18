@@ -996,11 +996,139 @@ public class DensiTree extends JPanel implements ComponentListener {
 	List<Double> m_cladeHeight;
 	List<Double> m_cladeHeight95HPDup;
 	List<Double> m_cladeHeight95HPDdown;
-	List<List<Double>> m_cladeHeightSet;
+	List<List<Double>> m_cladeHeightSetBottom;
+	List<List<Double>> m_cladeHeightSetTop;
 	/** UI component for manipulating clade selection **/
 	JList m_cladelist;
 	DefaultListModel m_cladelistmodel = new DefaultListModel();
+	
+	Comparator<Float> floatComparator = new Comparator<Float>() {
+		@Override
+		public int compare(Float o1, Float o2) {
+			return Float.compare(Math.abs(o1), Math.abs(o2));
+		}
+	}; 
+	class CladeBranchInfo {
+		int count = 0;
+		int [] overlapcount;
+		float [] cumscore;
+		List<Float> height= new ArrayList<Float>();
 
+		void initialise(List<Double> cladeHeightSetBottom, List<Double> cladeHeightSetTop) {
+			for (int i = 0; i < cladeHeightSetBottom.size(); i++) {
+				insertBranch((float)(double)cladeHeightSetBottom.get(i), (float)(double)cladeHeightSetTop.get(i));
+			}
+			overlapcount = new int[height.size()];
+			cumscore = new float[height.size()];
+			overlapcount[0] = 1;
+			cumscore[0] = 0;
+			for (int i = 1; i < overlapcount.length; i++) {
+				if (height.get(i) > 0) {
+					cumscore[i] = cumscore[i-1] + (height.get(i) - height.get(i-1)) * overlapcount[i-1];
+					overlapcount[i] = overlapcount[i-1] + 1;
+				} else {
+					height.set(i, -height.get(i));
+					cumscore[i] = cumscore[i-1] + (height.get(i) - height.get(i-1)) * overlapcount[i-1];
+					overlapcount[i] = overlapcount[i-1] - 1;
+				}
+			}
+		}
+		
+		private void insertBranch(float bottom, float top) {
+			if (top <= bottom) {
+				// ignore zero length branches, since their 
+				// contribution is constant and does not change 
+				// when the summary tree changes.
+				return;
+			}
+			
+			int iBottom = Collections.binarySearch(height, bottom);
+			if (iBottom < 0) {
+				iBottom = -1-iBottom;
+			}
+			height.add(iBottom, bottom);
+			int iTop = Collections.binarySearch(height, top, floatComparator);
+			if (iTop < 0) {
+				iTop = -1-iTop;
+			}
+			if (iTop <= iBottom) {
+				iTop = iBottom+1;
+			}
+			
+			height.add(iTop, -top);
+			count++;
+		}
+		
+		float score(float bottom, float top) {
+			float score = score2(bottom, top);
+			if (score < 0) {
+				int h = 3;
+				h++;
+				score = score2(bottom, top);
+			}
+			return score;
+		}
+		float score2(float bottom, float top) {
+			if (height.size() == 0) {
+				return 0;
+			}
+			
+			int iBottom = Collections.binarySearch(height, bottom);
+			if (iBottom < 0) {
+				iBottom = -1-iBottom;
+			}
+			int iTop = Collections.binarySearch(height, top, floatComparator);
+			if (iTop < 0) {
+				iTop = -1-iTop;
+			}
+			
+			int max = height.size()-1;
+			if (iBottom > 0) {
+				if (iBottom >= max) {
+					// branch outside region
+					float score = cumscore[max] + (top-bottom) * count; 
+					return score;
+				}
+				float score = cumscore[iBottom-1];
+				score += (bottom - height.get(iBottom-1)) * (overlapcount[iBottom] - overlapcount[iBottom-1]);  
+				if (iTop < max) {
+					score += (top - bottom) * count;
+					score -= (height.get(iBottom) - bottom) * overlapcount[iBottom];
+					score -= cumscore[iTop] - cumscore[iBottom];
+					score -= (top - height.get(iTop)) * overlapcount[iTop];
+					score += (height.get(iTop+1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
+					score += cumscore[max] - cumscore[iTop + 1];
+					return score;
+				} else { // iTop >= max
+					score += (height.get(max) - bottom) * count -
+							(height.get(iBottom) - bottom) * overlapcount[iBottom] -
+							cumscore[max] - cumscore[iBottom];
+					score += (top - height.get(max)) * count;
+					return score;
+				}
+			} else { // iBottom == 0
+				if (iTop == 0) {
+					// branch outside region
+					float score = cumscore[max] + (top-bottom) * count;					
+					return score;
+				}
+				if (iTop < max) {
+					float score = (height.get(0) - bottom) * count;
+					score += (top - bottom) * count -
+							cumscore[iTop] - cumscore[0] -
+							(top - height.get(iTop)) * overlapcount[iTop];
+					score += (height.get(iTop + 1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
+					score += cumscore[max] - cumscore[iTop + 1];
+					return score;
+				} else { // iTop >= max, branch overlaps complete interval
+					float score = (top - bottom) * count - cumscore[max];
+					return score;
+				}
+			}
+		}
+	}
+	Map<Integer, CladeBranchInfo> m_cladeBranchInfo;
+	
 	/** represent clade as arrays of leaf indices **/
 	Map<Integer, Double> m_cladePairs;
 	
@@ -1033,9 +1161,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladeHeight95HPDup = new ArrayList<Double>();
 		m_cladeHeight95HPDdown = new ArrayList<Double>();
 		
-		m_cladeHeightSet = new ArrayList<List<Double>>();
+		m_cladeHeightSetBottom = new ArrayList<List<Double>>();
+		m_cladeHeightSetTop = new ArrayList<List<Double>>();
 		m_cladeChildren = new ArrayList<List<ChildClade>>();
 		Map<String, Integer> mapCladeToIndex = new HashMap<String, Integer>();
+
 		
 		// add leafs as clades
 		for (int i = 0; i < m_nNrOfLabels; i++) {
@@ -1046,7 +1176,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_cladeHeight.add(0.0);
 			m_cladeHeight95HPDup.add(0.0);
 			m_cladeHeight95HPDdown.add(0.0);
-			m_cladeHeightSet.add(new ArrayList<Double>());
+			m_cladeHeightSetBottom.add(new ArrayList<Double>());
+			m_cladeHeightSetTop.add(new ArrayList<Double>());
 			m_cladeChildren.add(new ArrayList<ChildClade>());
 			mapCladeToIndex.put(Arrays.toString(clade), mapCladeToIndex.size());
 		}
@@ -1066,15 +1197,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		for (int i = 0; i < m_cladeHeight.size(); i++) {
-			List<Double> heights = m_cladeHeightSet.get(i);
+			List<Double> heights = new ArrayList<Double>();
+			heights.addAll(m_cladeHeightSetBottom.get(i));
 			Collections.sort(heights);
 			int upIndex = heights.size() * 190 / 200;
 			int downIndex = heights.size() * 5 / 200;
 			m_cladeHeight95HPDup.set(i, heights.get(upIndex));
 			m_cladeHeight95HPDdown.set(i, heights.get(downIndex));
 		}
-		// save memory
-		m_cladeHeightSet = null;
 		
 		double fHeight0 = m_fHeight;
 		for (int i = 0; i < m_cladeHeight.size(); i++) {
@@ -1106,6 +1236,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		List<Double> cladeHeight = new ArrayList<Double>();
 		List<Double> cladeHeight95HPDup = new ArrayList<Double>();
 		List<Double> cladeHeight95HPDdown = new ArrayList<Double>();
+		List<List<Double>> cladeHeightSetBottom = new ArrayList<List<Double>>();
+		List<List<Double>> cladeHeightSetTop = new ArrayList<List<Double>>();
 		List<List<ChildClade>> cladeChildren = new ArrayList<List<ChildClade>>();
 		for (int i = 0; i < m_cladePosition.length; i++) {
 			clades.add(m_clades.get(index[i]));
@@ -1114,6 +1246,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			cladeHeight95HPDdown.add(m_cladeHeight95HPDdown.get(index[i]));
 			cladeHeight95HPDup.add(m_cladeHeight95HPDup.get(index[i]));
 			cladeChildren.add(m_cladeChildren.get(index[i]));
+			cladeHeightSetBottom.add(m_cladeHeightSetBottom.get(index[i]));
+			cladeHeightSetTop.add(m_cladeHeightSetTop.get(index[i]));
+			
 		}
 		m_clades = clades;
 		m_cladeWeight = cladeWeight;
@@ -1121,6 +1256,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladeHeight95HPDdown = cladeHeight95HPDdown;
 		m_cladeHeight95HPDup = cladeHeight95HPDup;
 		m_cladeChildren = cladeChildren;
+		m_cladeHeightSetBottom = cladeHeightSetBottom;
+		m_cladeHeightSetTop = cladeHeightSetTop;
 
 
 		Integer [] reverseindex = new Integer[m_cladePosition.length];
@@ -1231,8 +1368,100 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < list.size(); i++) {
 			m_cladelistmodel.add(i, list.get(i));
 		}
+
+		m_cladeBranchInfo = new HashMap<Integer, CladeBranchInfo>();
+		m_summaryTree[5] = m_cTrees[iMaxCladeProbTopology].copy();
+		optimiseScore(m_summaryTree[5]);
+		fHeight = positionHeight(m_summaryTree[5], 0);
+		offsetHeight(m_summaryTree[5], m_fHeight - fHeight);
+		
+		
+		// save memory
+		m_cladeHeightSetBottom = null;
+		m_cladeHeightSetTop = null;
 	}
 
+	private void optimiseScore(Node tree) {
+		final int MAX_ATTEMPTS = 100;
+		final float RANGE = 10;
+		score(tree, tree.m_fPosY);
+		float [] heights = new float[m_sLabels.size() * 2 - 1];
+		Node [] nodes = new Node[m_sLabels.size() * 2 - 1];
+		collectNodes(tree, nodes, heights, tree.m_fPosY);
+		for (int i = 0; i < MAX_ATTEMPTS; i++) {
+			// optimise internal nodes
+			for (int k = m_sLabels.size(); k < nodes.length - 1; k++) {
+				Node node = nodes[k];
+				int iClade = node.m_iClade;
+				CladeBranchInfo info = m_cladeBranchInfo.get(iClade);
+				int iCladeLeft = node.m_left.m_iClade;
+				CladeBranchInfo infoLeft = m_cladeBranchInfo.get(iCladeLeft);
+				int iCladeRight = node.m_right.m_iClade;
+				CladeBranchInfo infoRight = m_cladeBranchInfo.get(iCladeRight);
+				
+				float maxHeight = heights[node.getParent().m_iLabel];
+				float leftHeight = heights[node.m_left.m_iLabel];
+				float rightHeight = heights[node.m_right.m_iLabel];
+				float minHeight = Math.max(leftHeight, rightHeight);
+				
+				float bestHeight = (maxHeight - minHeight)/RANGE + minHeight;
+				float bestScore = info.score(maxHeight, bestHeight) + 
+						infoLeft.score(bestHeight, leftHeight) +
+						infoRight.score(bestHeight, rightHeight);
+						
+				for (int j = 2; j < RANGE; j++) {
+					float height = (maxHeight - minHeight)/RANGE + minHeight;
+					float score = info.score(maxHeight, height) + 
+							infoLeft.score(height, leftHeight) +
+							infoRight.score(height, rightHeight);
+					if (score < bestScore) {
+						bestScore = score;
+						bestHeight = height;
+					}
+				}
+				
+				heights[k] = bestHeight;
+				node.m_fLength = maxHeight - bestHeight;
+				node.m_left.m_fLength = bestHeight - leftHeight;
+				node.m_right.m_fLength = bestHeight - rightHeight;
+			}
+		}
+	}
+	
+	private void collectNodes(Node node, Node[] nodes, float [] heights, float height) {
+		nodes[node.m_iLabel] = node;
+		heights[node.m_iLabel] = height;
+		if (!node.isLeaf()) {
+			collectNodes(node.m_left, nodes, heights, height + node.m_left.m_fLength);
+			collectNodes(node.m_right, nodes, heights, height + node.m_right.m_fLength);
+		}
+	}
+	
+	private double score(Node node, float height) {
+		int iClade = node.m_iClade;
+		CladeBranchInfo info;
+		if (!m_cladeBranchInfo.containsKey(node.m_iClade)) {
+			if (node.isRoot()) {
+				info = new CladeBranchInfo();
+			} else {
+				info = new CladeBranchInfo();
+				info.initialise(m_cladeHeightSetBottom.get(iClade), m_cladeHeightSetTop.get(iClade));
+			}
+			m_cladeBranchInfo.put(iClade, info);
+		} else {
+			info = m_cladeBranchInfo.get(iClade);
+		}
+		
+		double score = 0;
+		if (node.isLeaf()) {
+			score = info.score(height, height + node.m_fLength); 
+		} else {
+			score += score(node.m_left, height + node.m_left.m_fLength);
+			score += score(node.m_right, height + node.m_right.m_fLength);
+			score += info.score(height, height + node.m_fLength);
+		}
+		return score;
+	}
 	private void calcCladePairs(Node node, double fWeight) {
 		if (!node.isLeaf()) {
 			calcCladePairs(node.m_left, fWeight);
@@ -1502,7 +1731,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_cladeHeight.add(0.0);
 				m_cladeHeight95HPDup.add(0.0);
 				m_cladeHeight95HPDdown.add(0.0);
-				m_cladeHeightSet.add(new ArrayList<Double>());
+				m_cladeHeightSetBottom.add(new ArrayList<Double>());
+				m_cladeHeightSetTop.add(new ArrayList<Double>());
 				m_cladeChildren.add(new ArrayList<ChildClade>());
 			}
 			int iClade = mapCladeToIndex.get(sClade);
@@ -1544,7 +1774,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int[] clade = new int[1];
 			clade[0] = node.getNr();
 			node.m_iClade = node.getNr();
-			m_cladeHeightSet.get(node.m_iClade).add(fHeight);
+			m_cladeHeightSetBottom.get(node.m_iClade).add(fHeight);
+			m_cladeHeightSetTop.get(node.m_iClade).add(fHeight + node.m_fLength);
+			if (node.m_fLength < 0) {
+				int h = 3;
+				h++;
+			}
 			return clade;
 		} else {
 			int[] cladeLeft = calcCladeForNode2(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
@@ -1575,7 +1810,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 //				m_cladeHeightSet.add(new ArrayList<Double>());
 //			}
 			int iClade = mapCladeToIndex.get(sClade);
-			m_cladeHeightSet.get(iClade).add(fHeight);
+			m_cladeHeightSetBottom.get(iClade).add(fHeight);
+			m_cladeHeightSetTop.get(iClade).add(fHeight + node.m_fLength);
+			if (node.m_fLength <= 0 && !node.isRoot()) {
+				int h = 3;
+				h++;
+			}
 			node.m_iClade = iClade;
 
 			// update child clades
