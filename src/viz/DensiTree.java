@@ -569,6 +569,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions")) {
 						m_bLeafCladeSelection = true;
+						i += 1;
 					}
 					if (i == iOld) {
 						throw new Exception("Wrong argument");
@@ -1016,14 +1017,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		void initialise(List<Double> cladeHeightSetBottom, List<Double> cladeHeightSetTop) {
 			for (int i = 0; i < cladeHeightSetBottom.size(); i++) {
-				insertBranch((float)(double)cladeHeightSetBottom.get(i), (float)(double)cladeHeightSetTop.get(i));
+				insertBranch((float)(double)cladeHeightSetTop.get(i), (float)(double)cladeHeightSetBottom.get(i));
 			}
 			overlapcount = new int[height.size()];
 			cumscore = new float[height.size()];
 			overlapcount[0] = 1;
 			cumscore[0] = 0;
 			for (int i = 1; i < overlapcount.length; i++) {
-				if (height.get(i) > 0) {
+				if (height.get(i) >= 0) {
 					cumscore[i] = cumscore[i-1] + (height.get(i) - height.get(i-1)) * overlapcount[i-1];
 					overlapcount[i] = overlapcount[i-1] + 1;
 				} else {
@@ -1046,7 +1047,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (iBottom < 0) {
 				iBottom = -1-iBottom;
 			}
-			height.add(iBottom, bottom);
+			height.add(iBottom, Math.abs(bottom));
 			int iTop = Collections.binarySearch(height, top, floatComparator);
 			if (iTop < 0) {
 				iTop = -1-iTop;
@@ -1084,25 +1085,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 			
 			int max = height.size()-1;
 			if (iBottom > 0) {
-				if (iBottom >= max) {
+				if (iBottom > max) {
 					// branch outside region
 					float score = cumscore[max] + (top-bottom) * count; 
 					return score;
 				}
 				float score = cumscore[iBottom-1];
-				score += (bottom - height.get(iBottom-1)) * (overlapcount[iBottom] - overlapcount[iBottom-1]);  
-				if (iTop < max) {
+				score += (bottom - height.get(iBottom-1)) * overlapcount[iBottom-1];  
+				if (iTop <= max) {
 					score += (top - bottom) * count;
-					score -= (height.get(iBottom) - bottom) * overlapcount[iBottom];
-					score -= cumscore[iTop] - cumscore[iBottom];
-					score -= (top - height.get(iTop)) * overlapcount[iTop];
-					score += (height.get(iTop+1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
-					score += cumscore[max] - cumscore[iTop + 1];
+					score -= (height.get(iBottom) - bottom) * overlapcount[iBottom-1];
+					score -= cumscore[iTop-1] - cumscore[iBottom];
+					score -= (top - height.get(iTop-1)) * overlapcount[iTop-1];
+					score += (height.get(iTop) - top) * overlapcount[iTop-1];
+					score += cumscore[max] - cumscore[iTop];
 					return score;
 				} else { // iTop >= max
-					score += (height.get(max) - bottom) * count -
-							(height.get(iBottom) - bottom) * overlapcount[iBottom] -
-							cumscore[max] - cumscore[iBottom];
+					score += (height.get(max) - bottom) * count;
+					score -= (height.get(iBottom) - bottom) * overlapcount[iBottom];
+					score -= cumscore[max] - cumscore[iBottom];
 					score += (top - height.get(max)) * count;
 					return score;
 				}
@@ -1112,21 +1113,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 					float score = cumscore[max] + (top-bottom) * count;					
 					return score;
 				}
-				if (iTop < max) {
+				if (iTop <= max) {
 					float score = (height.get(0) - bottom) * count;
-					score += (top - bottom) * count -
-							cumscore[iTop] - cumscore[0] -
-							(top - height.get(iTop)) * overlapcount[iTop];
-					score += (height.get(iTop + 1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
-					score += cumscore[max] - cumscore[iTop + 1];
-					return score;
-				} else 	if (iTop == max) {
-					float score = (height.get(0) - bottom) * count;
-					score += (top - bottom) * count -
-							cumscore[iTop] - cumscore[0] -
-							(top - height.get(iTop)) * overlapcount[iTop];
-					score += (height.get(iTop + 1) - top) * (overlapcount[iTop] - overlapcount[iTop - 1]);
-					score += cumscore[max] - cumscore[iTop + 1];
+					score += (top - height.get(0)) * count;
+					score -= cumscore[iTop-1] - cumscore[0];
+					score -= (top - height.get(iTop-1)) * overlapcount[iTop-1];
+					score += (height.get(iTop) - top) * overlapcount[iTop-1];
+					score += cumscore[max] - cumscore[iTop];
 					return score;
 				} else { // iTop >= max, branch overlaps complete interval
 					float score = (top - bottom) * count - cumscore[max];
@@ -1390,7 +1383,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	private void optimiseScore(Node tree) {
-		final int MAX_ATTEMPTS = 100;
+		final int MAX_ATTEMPTS = 10;
 		final float RANGE = 10;
 		score(tree, tree.m_fPosY);
 		float [] heights = new float[m_sLabels.size() * 2 - 1];
@@ -1413,18 +1406,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 				float minHeight = Math.min(leftHeight, rightHeight);
 				
 				float bestHeight = (maxHeight - minHeight)/RANGE + minHeight;
+
+				float topScore = info.score(maxHeight, bestHeight); 
+				float leftScore = infoLeft.score(bestHeight, leftHeight);
+				float rightScore = infoRight.score(bestHeight, rightHeight);
+
 				float bestScore = info.score(maxHeight, bestHeight) + 
 						infoLeft.score(bestHeight, leftHeight) +
 						infoRight.score(bestHeight, rightHeight);
 						
 				for (int j = 2; j < RANGE; j++) {
 					float height = j*(maxHeight - minHeight)/RANGE + minHeight;
+					float topScore2 = info.score(maxHeight, height); 
+					float leftScore2 = infoLeft.score(height, leftHeight);
+					float rightScore2 = infoRight.score(height, rightHeight);
 					float score = info.score(maxHeight, height) + 
 							infoLeft.score(height, leftHeight) +
 							infoRight.score(height, rightHeight);
 					if (score < bestScore) {
 						bestScore = score;
 						bestHeight = height;
+//						topScore = topScore2;
+//						leftScore = leftScore2;
+//						rightScore = rightScore2;
 					}
 				}
 				
@@ -1783,7 +1787,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			clade[0] = node.getNr();
 			node.m_iClade = node.getNr();
 			m_cladeHeightSetBottom.get(node.m_iClade).add(fHeight);
-			m_cladeHeightSetTop.get(node.m_iClade).add(fHeight + node.m_fLength);
+			m_cladeHeightSetTop.get(node.m_iClade).add(fHeight - node.m_fLength);
 			if (node.m_fLength < 0) {
 				int h = 3;
 				h++;
@@ -1819,7 +1823,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 //			}
 			int iClade = mapCladeToIndex.get(sClade);
 			m_cladeHeightSetBottom.get(iClade).add(fHeight);
-			m_cladeHeightSetTop.get(iClade).add(fHeight + node.m_fLength);
+			m_cladeHeightSetTop.get(iClade).add(fHeight - node.m_fLength);
 			if (node.m_fLength <= 0 && !node.isRoot()) {
 				int h = 3;
 				h++;
