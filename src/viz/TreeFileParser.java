@@ -65,6 +65,10 @@ public class TreeFileParser {
 	
 	public TreeFileParser(Vector<String> sLabels, Vector<Float> fLongitude, Vector<Float> fLatitude, int nBurnIn) {
 		m_sLabels = sLabels;
+		if (m_sLabels != null) {
+			m_bIsLabelledNewick = true;
+			m_nNrOfLabels = m_sLabels.size();
+		}
 		m_fLongitude = fLongitude;
 		m_fLatitude = fLatitude;
 		m_nBurnIn = nBurnIn;
