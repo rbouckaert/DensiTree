@@ -98,6 +98,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	/** flag for testing summary tree optimisation **/
 	String m_sOptFile = null;
+	/** number of tree in tree set to use as root canal tree **/
+	int m_iOptTree = -1;
+	Node m_optTree = null;
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	String m_sOptTree = null;
 
@@ -579,7 +582,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_sOptFile = args[i+1];
 						i += 2;
 					} else if (args[i].equals("-rootcanaltree")) {
-						m_sOptTree = args[i+1];
+						try {
+							m_iOptTree = (int) Integer.parseInt(args[i+1]);
+						} catch (NumberFormatException e) {
+							m_sOptTree = args[i+1];
+						}
 						i += 2;
 					}
 					if (i == iOld) {
@@ -691,6 +698,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// parseFile(sFile);
 			TreeFileParser parser = new TreeFileParser(this);
 			m_trees = parser.parseFile(sFile);
+			if (m_iOptTree >= 0) {
+				m_optTree = m_trees[m_iOptTree - m_nBurnIn];
+			}
 
 			a_loadkml.setEnabled(true);
 			// m_nOffset = parser.m_nOffset;
@@ -1065,18 +1075,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 				return 0;
 			}
 			float length = top - bottom;
+			// contribution due to trees not containing this clade
+			float score = length * (m_trees.length - count);
 			int i = Collections.binarySearch(height, length);
 			if (i >= 0) {
-				return cumscore[i];
+				score += cumscore[i]; 
+				return score;
 			}
 			i = -1-i;
 			if (i >= count) { 
 				// length is larger than largest branch length
-				float score = cumscore[count - 1];
+				score += cumscore[count - 1];
 				score += (length - height.get(count - 1)) * count;
 				return score;
 			}
-			float score = cumscore[i];
+			score += cumscore[i];
 			if (i == 0) {
 				score += (height.get(0) - length) * count;
 				return score;
@@ -1464,10 +1477,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		
+		if (m_optTree != null) {
+			m_summaryTree[0] = m_optTree.copy();
+		}
 		optimiseScore(m_summaryTree[0]);
 		fHeight = positionHeight(m_summaryTree[0], 0);
 		offsetHeight(m_summaryTree[0], m_fHeight - fHeight);
-		
+
+		m_rootcanaltree = m_summaryTree[0];
 		
 		// save memory
 		m_cladeHeightSetBottom = null;
@@ -1479,15 +1496,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		final int MAX_ATTEMPTS = 500;
 		final float RANGE = 100;
 
-		// initialise CladeBranchInfo data structures
-		score(tree, tree.m_fPosY);
-		
+		// initialise CladeBranchInfo data structures		
 		float [] heights = new float[m_sLabels.size() * 2 - 1];
 		Node [] nodes = new Node[m_sLabels.size() * 2 - 1];
 		collectNodes(tree, nodes, heights, tree.m_fPosY);
+		double startscore = score(nodes, heights);
 		
 		// do pre-optimisation; position each node optimally, without considering parents
-		for (int k = m_sLabels.size(); k < nodes.length - 1; k++) {
+		for (int k = m_sLabels.size(); k < nodes.length; k++) {
 			Node node = nodes[k];
 			CladeBranchInfo infoLeft = m_cladeBranchInfo.get(node.m_left.m_iClade);
 			CladeBranchInfo infoRight = m_cladeBranchInfo.get(node.m_right.m_iClade);
@@ -1513,7 +1529,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			
 			heights[k] = bestHeight;
-			node.m_fLength = bestHeight - heights[node.getParent().m_iLabel];
+			if (!node.isRoot()) {
+				node.m_fLength = bestHeight - heights[node.getParent().m_iLabel];
+			}
 			node.m_left.m_fLength = leftHeight - bestHeight;
 			node.m_right.m_fLength = rightHeight - bestHeight;
 			
@@ -1528,7 +1546,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < MAX_ATTEMPTS && bProgress; i++) {
 			bProgress = false;
 			// optimise internal nodes
-			for (int k = m_sLabels.size(); k < nodes.length - 1; k++) {
+			for (int k = m_sLabels.size(); k < nodes.length; k++) {
 				Node node = nodes[k];
 				int iClade = node.m_iClade;
 				CladeBranchInfo info = m_cladeBranchInfo.get(iClade);
@@ -1537,10 +1555,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 				int iCladeRight = node.m_right.m_iClade;
 				CladeBranchInfo infoRight = m_cladeBranchInfo.get(iCladeRight);
 				
-				float maxHeight = heights[node.getParent().m_iLabel];
+
 				float leftHeight = heights[node.m_left.m_iLabel];
 				float rightHeight = heights[node.m_right.m_iLabel];
 				float minHeight = Math.min(leftHeight, rightHeight);
+				float maxHeight;
+				if (node.isRoot()) {
+					maxHeight = Math.min(leftHeight - infoLeft.getMaxLength(), rightHeight - infoRight.getMaxLength());
+				} else {
+					maxHeight = heights[node.getParent().m_iLabel];
+				}
 				
 				float bestHeight = heights[node.m_iLabel];
 
@@ -1571,7 +1595,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 				}
 				
-				heights[k] = bestHeight;
+				if (!node.isRoot()) {
+					heights[k] = bestHeight;
+				}
 				node.m_fLength = bestHeight - maxHeight;
 				node.m_left.m_fLength = leftHeight - bestHeight;
 				node.m_right.m_fLength = rightHeight - bestHeight;
@@ -1579,7 +1605,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			System.err.print(".");
 		}
 		long end = System.currentTimeMillis();
-		System.err.println((end-start)/1000.0 + " seconds optimising " + (start2-start)/1000.0 + " seconds initialising");
+		System.err.println("\n\n\n" + (end-start)/1000.0 + " seconds optimising " + (start2-start)/1000.0 + " seconds initialising");
+		double endscore = score(nodes, heights);
+		System.err.println("Start score: " + startscore + " End score: " + endscore + "\n\n\n");
 		if (m_sOptFile != null) {
 			try {
 				PrintStream out = new PrintStream(m_sOptFile);
@@ -1601,31 +1629,46 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 	
-	private double score(Node node, float height) {
-		int iClade = node.m_iClade;
-		CladeBranchInfo info;
-		if (!m_cladeBranchInfo.containsKey(node.m_iClade)) {
-			if (node.isRoot()) {
-				info = new CladeBranchInfo();
+	private double score(Node [] nodes, float [] heights) {
+		double cladeScore = 0;
+		Set<Integer> clades = new HashSet<Integer>();
+		// count contributions of clades in root canal tree
+		// and initialise CladeBranchInfo structures
+		for (Node node: nodes) {
+			int iClade = node.m_iClade;
+			clades.add(iClade);
+			if (!node.isRoot()) {
+				int iNode = node.getNr();
+				CladeBranchInfo info = null;
+				if (!m_cladeBranchInfo.containsKey(node.m_iClade)) {
+					info = new CladeBranchInfo();
+					info.initialise(m_cladeHeightSetBottom.get(iClade), m_cladeHeightSetTop.get(iClade));
+					m_cladeBranchInfo.put(iClade, info);
+				} else {
+					info = m_cladeBranchInfo.get(iClade);
+				}
+				cladeScore += info.score(heights[iNode], heights[iNode] + node.m_fLength);
 			} else {
-				info = new CladeBranchInfo();
-				info.initialise(m_cladeHeightSetBottom.get(iClade), m_cladeHeightSetTop.get(iClade));
+				m_cladeBranchInfo.put(iClade, new CladeBranchInfo());
 			}
-			m_cladeBranchInfo.put(iClade, info);
-		} else {
-			info = m_cladeBranchInfo.get(iClade);
 		}
 		
-		double score = 0;
-		if (node.isLeaf()) {
-			score = info.score(height, height + node.m_fLength); 
-		} else {
-			score += score(node.m_left, height + node.m_left.m_fLength);
-			score += score(node.m_right, height + node.m_right.m_fLength);
-			score += info.score(height, height + node.m_fLength);
+		// count contributions of all clades not in root canal tree 
+		double nonCladeScore = 0;
+		for (int i = 0; i < m_cladeHeightSetBottom.size(); i++) {
+			if (!clades.contains(i)) {
+				List<Double> bottom = m_cladeHeightSetBottom.get(i);
+				List<Double> top = m_cladeHeightSetTop.get(i);
+				double sum = 0;
+				for (int j = 0; j < bottom.size(); j++) {
+					sum += bottom.get(j) - top.get(j);
+				}
+				nonCladeScore += sum;
+			}
 		}
-		return score;
+		return cladeScore + nonCladeScore;
 	}
+	
 	private void calcCladePairs(Node node, double fWeight) {
 		if (!node.isLeaf()) {
 			calcCladePairs(node.m_left, fWeight);
