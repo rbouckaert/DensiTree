@@ -63,6 +63,7 @@
     	<fileset dir="${src}/viz/icons/"/>
 	</resources>
     </copy>
+    <copy todir="${build}/viz/graphics" file="${src}/viz/graphics/JFontChooserMessages.properties"/>
   </target>
 
   <target name="dist" depends="compile"
