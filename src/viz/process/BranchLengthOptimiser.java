@@ -1,17 +1,18 @@
 package viz.process;
 
+
 import java.io.PrintStream;
 import java.util.Arrays;
 
-import org.apache.commons.math.FunctionEvaluationException;
-import org.apache.commons.math.optimization.DifferentiableMultivariateRealOptimizer;
-import org.apache.commons.math.optimization.GoalType;
-import org.apache.commons.math.optimization.MultivariateRealOptimizer;
-import org.apache.commons.math.optimization.OptimizationException;
-import org.apache.commons.math.optimization.RealPointValuePair;
-import org.apache.commons.math.optimization.VectorialPointValuePair;
-import org.apache.commons.math.optimization.direct.PowellOptimizer;
-import org.apache.commons.math.optimization.general.LevenbergMarquardtOptimizer;
+//import org.apache.commons.math.FunctionEvaluationException;
+//import org.apache.commons.math.optimization.DifferentiableMultivariateRealOptimizer;
+//import org.apache.commons.math.optimization.GoalType;
+//import org.apache.commons.math.optimization.MultivariateRealOptimizer;
+//import org.apache.commons.math.optimization.OptimizationException;
+//import org.apache.commons.math.optimization.RealPointValuePair;
+//import org.apache.commons.math.optimization.VectorialPointValuePair;
+//import org.apache.commons.math.optimization.direct.PowellOptimizer;
+//import org.apache.commons.math.optimization.general.LevenbergMarquardtOptimizer;
 
 
 import viz.DensiTree;
@@ -22,7 +23,7 @@ public class BranchLengthOptimiser {
 	BranchScorer scorer;
 
 	final int MAX_ATTEMPTS = 500;
-	final float RANGE = 25;
+	final float RANGE = 100;
 
 	public BranchLengthOptimiser(DensiTree dt) {
 		m_dt = dt;
@@ -119,25 +120,29 @@ public class BranchLengthOptimiser {
 				
 				float bestHeight = heights[node.m_iLabel];				
 				
-				float bestScore = info.score(maxHeight, bestHeight) + 
-						infoLeft.score(bestHeight, leftHeight) +
-						infoRight.score(bestHeight, rightHeight);
+				heights[k] = bestHeight; 
+				double bestScore = scorer.score(heights);
+//				float bestScore = info.score(maxHeight, bestHeight) + 
+//						infoLeft.score(bestHeight, leftHeight) +
+//						infoRight.score(bestHeight, rightHeight);
 						
-				for (int j = 2; j < RANGE; j++) {
+				for (int j = 1; j < RANGE; j++) {
 					float height = j*(maxHeight - minHeight)/RANGE + minHeight;
-					float score = info.score(maxHeight, height) + 
-							infoLeft.score(height, leftHeight) +
-							infoRight.score(height, rightHeight);
+					heights[k] = height;
+					double score = scorer.score(heights);
+					
+//					float score = info.score(maxHeight, height) + 
+//							infoLeft.score(height, leftHeight) +
+//							infoRight.score(height, rightHeight);
 					if (score < bestScore) {
 						bProgress = true;
 						bestScore = score;
 						bestHeight = height;
+//						bestScore2 = score2;
 					}
 				}
 				
-				if (!node.isRoot()) {
-					heights[k] = bestHeight;
-				}
+				heights[k] = bestHeight;
 				node.m_fLength = bestHeight - maxHeight;
 				node.m_left.m_fLength = leftHeight - bestHeight;
 				node.m_right.m_fLength = rightHeight - bestHeight;
@@ -195,5 +200,4 @@ public class BranchLengthOptimiser {
 
 } // class BranchLengthOptimiser 
 
-//0.404 seconds optimising 0.048 seconds initialising
-//Start score: 4561.242260334784 End score: 2288.1633495071474
+//38.52506983048988
