@@ -58,7 +58,7 @@ public class CladeBranchInfo {
 			return score;
 		}
 		oldLength = length;
-		if (length < 0) {
+		if (length < -1e-8) {
 			return Float.POSITIVE_INFINITY;
 		}
 		// contribution due to trees not containing this clade

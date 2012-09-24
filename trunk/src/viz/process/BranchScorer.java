@@ -45,9 +45,11 @@ public class BranchScorer implements DifferentiableMultivariateRealFunction {
 				} else {
 					info = m_cladeBranchInfo.get(iClade);
 				}
-				cladeScore += info.score(heights[iNode], heights[iNode] + node.m_fLength);
+				cladeScore += info.score(heights[node.getParent().getNr()], heights[iNode]);
 			} else {
-				m_cladeBranchInfo.put(iClade, new CladeBranchInfo());
+				if (!m_cladeBranchInfo.containsKey(iClade)) {
+					m_cladeBranchInfo.put(iClade, new CladeBranchInfo());
+				}
 			}
 		}
 		
