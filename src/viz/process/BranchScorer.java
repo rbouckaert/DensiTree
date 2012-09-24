@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.math.FunctionEvaluationException;
-import org.apache.commons.math.analysis.DifferentiableMultivariateRealFunction;
-import org.apache.commons.math.analysis.MultivariateRealFunction;
-import org.apache.commons.math.analysis.MultivariateVectorialFunction;
+//import org.apache.commons.math.FunctionEvaluationException;
+//import org.apache.commons.math.analysis.DifferentiableMultivariateRealFunction;
+//import org.apache.commons.math.analysis.MultivariateRealFunction;
+//import org.apache.commons.math.analysis.MultivariateVectorialFunction;
 
 import viz.DensiTree;
 import viz.Node;
 
-public class BranchScorer implements DifferentiableMultivariateRealFunction {
+public class BranchScorer {// implements DifferentiableMultivariateRealFunction {
 
 	Map<Integer, CladeBranchInfo> m_cladeBranchInfo;
 	DensiTree m_dt;
@@ -73,41 +73,41 @@ public class BranchScorer implements DifferentiableMultivariateRealFunction {
 
 	float [] heights;
 	
-	@Override
-	public double value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
-		if (heights == null) {
-			heights = new float[point.length];
-		}
-		for (int i = 0; i < point.length; i++) {
-			heights[i] = (float) point[i];
-		}
-		return score(heights);
-	}
-
-	@Override
-	public MultivariateRealFunction partialDerivative(int k) {
-		MultivariateRealFunction f = new MultivariateRealFunction() {
-			
-			@Override
-			public double value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
-				double dScore = 0;
-				for (int i = 0; i < nodes.length; i++) {
-					Node node = nodes[i];
-					int iClade = node.m_iClade;
-					CladeBranchInfo info = m_cladeBranchInfo.get(iClade);
-					dScore += info.dScore(0f, (float) point[i]);
-				}
-				return dScore;
-			}
-		};
-			
-		return f;
-	}
-
-	@Override
-	public MultivariateVectorialFunction gradient() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public double value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
+//		if (heights == null) {
+//			heights = new float[point.length];
+//		}
+//		for (int i = 0; i < point.length; i++) {
+//			heights[i] = (float) point[i];
+//		}
+//		return score(heights);
+//	}
+//
+//	@Override
+//	public MultivariateRealFunction partialDerivative(int k) {
+//		MultivariateRealFunction f = new MultivariateRealFunction() {
+//			
+//			@Override
+//			public double value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
+//				double dScore = 0;
+//				for (int i = 0; i < nodes.length; i++) {
+//					Node node = nodes[i];
+//					int iClade = node.m_iClade;
+//					CladeBranchInfo info = m_cladeBranchInfo.get(iClade);
+//					dScore += info.dScore(0f, (float) point[i]);
+//				}
+//				return dScore;
+//			}
+//		};
+//			
+//		return f;
+//	}
+//
+//	@Override
+//	public MultivariateVectorialFunction gradient() {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }
