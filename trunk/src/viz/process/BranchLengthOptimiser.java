@@ -22,8 +22,8 @@ public class BranchLengthOptimiser {
 	DensiTree m_dt;
 	BranchScorer scorer;
 
-	final int MAX_ATTEMPTS = 500;
-	final float RANGE = 100;
+	final static int MAX_ATTEMPTS = 500;
+	final static float RANGE = 100;
 
 	public BranchLengthOptimiser(DensiTree dt) {
 		m_dt = dt;
@@ -76,7 +76,11 @@ public class BranchLengthOptimiser {
 //			e1.printStackTrace();
 //		}
 		
-		optimiseTree(heights, nodes);
+		optimiseTree(heights, nodes, scorer);
+		
+		for (int i = 0; i < nodes.length - 1; i++) {
+			nodes[i].m_fLength = heights[i] - heights[nodes[i].getParent().getNr()];
+		}
 
 		long end = System.currentTimeMillis();
 		System.err.println("\n\n\n" + (end-start)/1000.0 + " seconds optimising " + (start2-start)/1000.0 + " seconds initialising");
@@ -93,59 +97,46 @@ public class BranchLengthOptimiser {
 		}
 	}
 	
-	private void optimiseTree(float[] heights, Node[] nodes) {
+	void optimiseTree(float[] heights, Node[] nodes, BranchScorer scorer) {
 		boolean bProgress = true;
 		for (int i = 0; i < MAX_ATTEMPTS && bProgress; i++) {
 			bProgress = false;
-			// optimise internal nodes
-			for (int k = m_dt.m_sLabels.size(); k < nodes.length; k++) {
+			// optimise internal nodes by finding the best Uniform operation on a grid
+			// for each node individually
+			for (int k = nodes.length/2+1; k < nodes.length; k++) {
 				Node node = nodes[k];
-				int iClade = node.m_iClade;
-				CladeBranchInfo info = scorer.m_cladeBranchInfo.get(iClade);
 				int iCladeLeft = node.m_left.m_iClade;
-				CladeBranchInfo infoLeft = scorer.m_cladeBranchInfo.get(iCladeLeft);
 				int iCladeRight = node.m_right.m_iClade;
-				CladeBranchInfo infoRight = scorer.m_cladeBranchInfo.get(iCladeRight);
-				
 
 				float leftHeight = heights[node.m_left.m_iLabel];
 				float rightHeight = heights[node.m_right.m_iLabel];
 				float minHeight = Math.min(leftHeight, rightHeight);
 				float maxHeight;
 				if (node.isRoot()) {
+					CladeBranchInfo infoLeft = scorer.m_cladeBranchInfo.get(iCladeLeft);
+					CladeBranchInfo infoRight = scorer.m_cladeBranchInfo.get(iCladeRight);
 					maxHeight = Math.min(leftHeight - infoLeft.getMaxLength(), rightHeight - infoRight.getMaxLength());
 				} else {
-					maxHeight = heights[node.getParent().m_iLabel];
+					maxHeight = heights[node.getParent().getNr()];
 				}
 				
-				float bestHeight = heights[node.m_iLabel];				
+				float bestHeight = heights[node.getNr()];				
 				
 				heights[k] = bestHeight; 
 				double bestScore = scorer.score(heights);
-//				float bestScore = info.score(maxHeight, bestHeight) + 
-//						infoLeft.score(bestHeight, leftHeight) +
-//						infoRight.score(bestHeight, rightHeight);
 						
 				for (int j = 1; j < RANGE; j++) {
 					float height = j*(maxHeight - minHeight)/RANGE + minHeight;
 					heights[k] = height;
 					double score = scorer.score(heights);
-					
-//					float score = info.score(maxHeight, height) + 
-//							infoLeft.score(height, leftHeight) +
-//							infoRight.score(height, rightHeight);
 					if (score < bestScore) {
 						bProgress = true;
 						bestScore = score;
 						bestHeight = height;
-//						bestScore2 = score2;
 					}
 				}
 				
 				heights[k] = bestHeight;
-				node.m_fLength = bestHeight - maxHeight;
-				node.m_left.m_fLength = leftHeight - bestHeight;
-				node.m_right.m_fLength = rightHeight - bestHeight;
 			}
 			System.err.print(".");
 		}
