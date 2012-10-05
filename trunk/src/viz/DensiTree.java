@@ -105,6 +105,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public Node m_optTree = null;
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
+	/** whether to optimise branch lengths on root canal tree or not **/
+	boolean m_bOptimiseRootCanalTree = true;
 
 	final static int B = 1;
 	JFrame frame;
@@ -589,6 +591,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 						} catch (NumberFormatException e) {
 							m_sOptTree = args[i+1];
 						}
+						i += 2;
+					} else if (args[i].equals("-rawrootcanaltree")) {
+						m_sOptTree = args[i+1];
+						m_bOptimiseRootCanalTree = false;
 						i += 2;
 					}
 					if (i == iOld) {
@@ -1295,8 +1301,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_optTree != null) {
 			m_summaryTree[0] = m_optTree.copy();
 		}
-		BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
-		optimiser.optimiseScore(m_summaryTree[0]);
+		if (m_bOptimiseRootCanalTree) {
+			BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
+			optimiser.optimiseScore(m_summaryTree[0]);
+		}
 		fHeight = positionHeight(m_summaryTree[0], 0);
 		offsetHeight(m_summaryTree[0], m_fHeight - fHeight);
 
