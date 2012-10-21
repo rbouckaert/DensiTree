@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import javax.swing.JTextField;
+import javax.swing.JSeparator;
 
 public class ImportRootCanalDialog extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -29,13 +30,14 @@ public class ImportRootCanalDialog extends JPanel {
 	JRadioButton b1 = new JRadioButton("Newick tree:");
 	JRadioButton b2 = new JRadioButton("Use summary_tree");
 	private JTextField txtNewick;
+	private final JSeparator separator = new JSeparator();
 
 	public ImportRootCanalDialog(DensiTree dt) {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
 		
@@ -57,12 +59,20 @@ public class ImportRootCanalDialog extends JPanel {
 		add(txtNewick, gbc_txtNewick);
 		txtNewick.setColumns(10);
 		
+		GridBagConstraints gbc_separator = new GridBagConstraints();
+		gbc_separator.fill = GridBagConstraints.HORIZONTAL;
+		gbc_separator.gridwidth = 2;
+		gbc_separator.insets = new Insets(0, 0, 5, 5);
+		gbc_separator.gridx = 0;
+		gbc_separator.gridy = 1;
+		add(separator, gbc_separator);
+		
 		
 		GridBagConstraints gbc_rdbtnNewRadioButton_1 = new GridBagConstraints();
 		gbc_rdbtnNewRadioButton_1.anchor = GridBagConstraints.WEST;
 		gbc_rdbtnNewRadioButton_1.insets = new Insets(0, 0, 0, 5);
 		gbc_rdbtnNewRadioButton_1.gridx = 0;
-		gbc_rdbtnNewRadioButton_1.gridy = 1;
+		gbc_rdbtnNewRadioButton_1.gridy = 2;
 		add(b2, gbc_rdbtnNewRadioButton_1);
 		
 		m_dt = dt;
