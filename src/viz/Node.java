@@ -534,7 +534,7 @@ public class Node {
 	/**
 	 * sorts nodes in children according to lowest numbered label in subtree
 	 **/
-	int sort() {
+	public int sort() {
 		if (m_left != null) {
 			int iChild1 = m_left.sort();
 			if (m_right != null) {
@@ -556,7 +556,7 @@ public class Node {
 	 * but internal nodes are left to zero. After labeling internal
 	 * nodes, m_iLabel uniquely identifies a node in a tree.  
 	 */
-	int labelInternalNodes(int iLabel) {
+	public int labelInternalNodes(int iLabel) {
 		if (isLeaf()) {
 			return iLabel;
 		} else {

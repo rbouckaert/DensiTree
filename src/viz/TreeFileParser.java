@@ -480,7 +480,7 @@ public class TreeFileParser {
 		 return UNKNOWN;
 	 }
 
-	 Node parseNewick(String sStr) throws Exception {
+	 public Node parseNewick(String sStr) throws Exception {
 		 try {
 		if (sStr == null || sStr.length() == 0) {
 			return null;
