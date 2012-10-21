@@ -1,5 +1,7 @@
 package viz.panel;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
 import javax.swing.event.ChangeEvent;
@@ -12,7 +14,11 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JComboBox;
+import javax.swing.JButton;
 
 public class ShowPanel extends JPanel implements ChangeListener {
 	private static final long serialVersionUID = 1L;
@@ -21,6 +27,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
 	JComboBox comboBox = new JComboBox();
 	JCheckBox checkBoxShowRotoCanal;
+	JButton btnImport;
 	
 	public ShowPanel(DensiTree dt) {
 		m_dt = dt;
@@ -47,7 +54,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		});
 		GridBagConstraints gbc_checkBox_1 = new GridBagConstraints();
 		gbc_checkBox_1.gridwidth = 2;
-		gbc_checkBox_1.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox_1.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox_1.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_1.gridx = 0;
 		gbc_checkBox_1.gridy = 0;
@@ -65,6 +72,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		GridBagConstraints gbc_checkBox = new GridBagConstraints();
+		gbc_checkBox.gridwidth = 2;
 		gbc_checkBox.insets = new Insets(0, 0, 5, 5);
 		gbc_checkBox.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox.gridx = 0;
@@ -83,6 +91,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		GridBagConstraints gbc_checkBox_2 = new GridBagConstraints();
+		gbc_checkBox_2.gridwidth = 2;
 		gbc_checkBox_2.insets = new Insets(0, 0, 5, 5);
 		gbc_checkBox_2.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_2.gridx = 0;
@@ -101,29 +110,56 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		
-		comboBox = new JComboBox(new String[]{"1","2","3","4","5","6"});
+		btnImport = new JButton("import");
+		btnImport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ImportRootCanalDialog dlg = new ImportRootCanalDialog(m_dt);
+				if (dlg.showDialog(null)) {
+					DefaultComboBoxModel model = (DefaultComboBoxModel) comboBox.getModel();
+					model.addElement((comboBox.getItemCount() + 1) + "");
+					// setting last added item, this should trigger an ActionEvent handled below
+					comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
+					m_dt.calcPositions();
+					m_dt.calcLines();
+					m_dt.makeDirty();
+				}
+			}
+		});
+		
+		
+		List<String> labels = new ArrayList<String>();
+		for (int i = 0; i < m_dt.m_summaryTree.size(); i++) {
+			labels.add("" + (i+1));
+		}		
+		comboBox = new JComboBox(labels.toArray());
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox comboBox = ((JComboBox)e.getSource());
 				int i = comboBox.getSelectedIndex();
 				if (m_dt.m_summaryTree != null) {
-					m_dt.m_rootcanaltree = m_dt.m_summaryTree[i];
+					m_dt.m_rootcanaltree = m_dt.m_summaryTree.get(i);
 					m_dt.calcLines();
 					m_dt.makeDirty();
 				}
 			}
 		});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
-		gbc_comboBox.insets = new Insets(0, 0, 5, 0);
+		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
 		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
-		gbc_comboBox.gridx = 1;
-		gbc_comboBox.gridy = 2;
+		gbc_comboBox.gridx = 0;
+		gbc_comboBox.gridy = 3;
 		add(comboBox, gbc_comboBox);
+		GridBagConstraints gbc_btnImport = new GridBagConstraints();
+		gbc_btnImport.insets = new Insets(0, 0, 5, 0);
+		gbc_btnImport.gridx = 1;
+		gbc_btnImport.gridy = 3;
+		add(btnImport, gbc_btnImport);
 		GridBagConstraints gbc_checkBox_3 = new GridBagConstraints();
+		gbc_checkBox_3.gridwidth = 2;
 		gbc_checkBox_3.insets = new Insets(0, 0, 5, 5);
 		gbc_checkBox_3.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_3.gridx = 0;
-		gbc_checkBox_3.gridy = 3;
+		gbc_checkBox_3.gridy = 4;
 		add(checkBox_3, gbc_checkBox_3);
 		
 		chckbxShowEditTree.addActionListener(new ActionListener() {
@@ -136,10 +172,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		GridBagConstraints gbc_chckbxShowEditTree = new GridBagConstraints();
+		gbc_chckbxShowEditTree.gridwidth = 2;
 		gbc_chckbxShowEditTree.anchor = GridBagConstraints.WEST;
 		gbc_chckbxShowEditTree.insets = new Insets(0, 0, 0, 5);
 		gbc_chckbxShowEditTree.gridx = 0;
-		gbc_chckbxShowEditTree.gridy = 4;
+		gbc_chckbxShowEditTree.gridy = 5;
 		add(chckbxShowEditTree, gbc_chckbxShowEditTree);
 		
 		stateChanged(null);
@@ -148,15 +185,23 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		chckbxShowEditTree.setEnabled(m_dt.m_Xmode == 0);
-		if (m_dt.m_summaryTree != null) {
-	        for (int i = 0; i < m_dt.m_summaryTree.length; i++) {
-	            if (m_dt.m_rootcanaltree == m_dt.m_summaryTree[i]) {
+		if (m_dt.m_summaryTree != null && m_dt.m_summaryTree.size() > 0) {
+	        for (int i = 0; i < m_dt.m_summaryTree.size() && i < comboBox.getItemCount(); i++) {
+	            if (m_dt.m_rootcanaltree == m_dt.m_summaryTree.get(i)) {
 	                    comboBox.setSelectedIndex(i);
 	            }
+	        }
+	        if (comboBox.getItemCount() != m_dt.m_summaryTree.size()) {
+	        	DefaultComboBoxModel model = (DefaultComboBoxModel) comboBox.getModel();
+				model.removeAllElements();
+				for (int i = 0; i < m_dt.m_summaryTree.size(); i++) {
+					model.addElement("" + (i+1));
+				}
 	        }
 		}
 		comboBox.setEnabled(m_dt.m_rootcanaltree != null);
 		checkBoxShowRotoCanal.setEnabled(m_dt.m_rootcanaltree != null);
+		btnImport.setEnabled(m_dt.m_rootcanaltree != null);
 		System.err.println("rootcanaltree = " + (m_dt.m_rootcanaltree != null));
 	}
 }
