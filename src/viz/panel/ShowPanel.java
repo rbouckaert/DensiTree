@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JButton;
+import javax.swing.JSeparator;
 
 public class ShowPanel extends JPanel implements ChangeListener {
 	private static final long serialVersionUID = 1L;
@@ -73,7 +74,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		});
 		GridBagConstraints gbc_checkBox = new GridBagConstraints();
 		gbc_checkBox.gridwidth = 2;
-		gbc_checkBox.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox.gridx = 0;
 		gbc_checkBox.gridy = 1;
@@ -90,12 +91,21 @@ public class ShowPanel extends JPanel implements ChangeListener {
 				}
 			}
 		});
+		
+		JSeparator separator = new JSeparator();
+		GridBagConstraints gbc_separator = new GridBagConstraints();
+		gbc_separator.fill = GridBagConstraints.HORIZONTAL;
+		gbc_separator.gridwidth = 2;
+		gbc_separator.insets = new Insets(0, 0, 5, 0);
+		gbc_separator.gridx = 0;
+		gbc_separator.gridy = 2;
+		add(separator, gbc_separator);
 		GridBagConstraints gbc_checkBox_2 = new GridBagConstraints();
 		gbc_checkBox_2.gridwidth = 2;
-		gbc_checkBox_2.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox_2.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox_2.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_2.gridx = 0;
-		gbc_checkBox_2.gridy = 2;
+		gbc_checkBox_2.gridy = 3;
 		add(checkBoxShowRotoCanal, gbc_checkBox_2);
 
 		JCheckBox checkBox_3 = new JCheckBox("Root At Top");
@@ -147,19 +157,28 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
 		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
 		gbc_comboBox.gridx = 0;
-		gbc_comboBox.gridy = 3;
+		gbc_comboBox.gridy = 4;
 		add(comboBox, gbc_comboBox);
 		GridBagConstraints gbc_btnImport = new GridBagConstraints();
 		gbc_btnImport.insets = new Insets(0, 0, 5, 0);
 		gbc_btnImport.gridx = 1;
-		gbc_btnImport.gridy = 3;
+		gbc_btnImport.gridy = 4;
 		add(btnImport, gbc_btnImport);
+		
+		JSeparator separator_1 = new JSeparator();
+		GridBagConstraints gbc_separator_1 = new GridBagConstraints();
+		gbc_separator_1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_separator_1.gridwidth = 2;
+		gbc_separator_1.insets = new Insets(0, 0, 5, 5);
+		gbc_separator_1.gridx = 0;
+		gbc_separator_1.gridy = 5;
+		add(separator_1, gbc_separator_1);
 		GridBagConstraints gbc_checkBox_3 = new GridBagConstraints();
 		gbc_checkBox_3.gridwidth = 2;
-		gbc_checkBox_3.insets = new Insets(0, 0, 5, 5);
+		gbc_checkBox_3.insets = new Insets(0, 0, 5, 0);
 		gbc_checkBox_3.anchor = GridBagConstraints.NORTHWEST;
 		gbc_checkBox_3.gridx = 0;
-		gbc_checkBox_3.gridy = 4;
+		gbc_checkBox_3.gridy = 6;
 		add(checkBox_3, gbc_checkBox_3);
 		
 		chckbxShowEditTree.addActionListener(new ActionListener() {
@@ -174,9 +193,8 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		GridBagConstraints gbc_chckbxShowEditTree = new GridBagConstraints();
 		gbc_chckbxShowEditTree.gridwidth = 2;
 		gbc_chckbxShowEditTree.anchor = GridBagConstraints.WEST;
-		gbc_chckbxShowEditTree.insets = new Insets(0, 0, 0, 5);
 		gbc_chckbxShowEditTree.gridx = 0;
-		gbc_chckbxShowEditTree.gridy = 5;
+		gbc_chckbxShowEditTree.gridy = 7;
 		add(chckbxShowEditTree, gbc_chckbxShowEditTree);
 		
 		stateChanged(null);
