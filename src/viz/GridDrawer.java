@@ -28,6 +28,8 @@ public class GridDrawer {
 	void drawHeightInfoSVG(StringBuffer buf) {
 		if (m_nGridMode != GridMode.NONE && m_dt.m_fHeight > 0) {
 			DecimalFormat formatter = new DecimalFormat("##.##");
+			float fTreeHeight = m_dt.m_fHeight * m_dt.m_fUserScale;
+
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				int nW = m_dt.getWidth();
 				if (m_nGridMode == GridMode.SHORT) {
@@ -37,16 +39,16 @@ public class GridDrawer {
 						+ m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' "
 						+ "stroke-width='" + 1 + "' " + " d='");
 				if (m_bAutoGrid) {
-					float fHeight = (float) adjust(m_dt.m_fHeight);
+					float fHeight = (float) adjust(fTreeHeight);
 					for (int i = 0; i <= m_nTicks; i++) {
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight/m_dt.m_fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
 					}
 					
 					buf.append("'/>\n");
 
 					for (int i = 0; i <= m_nTicks; i++) {
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight/m_dt.m_fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						String sStr = (m_bReverseGrid ?   
 								formatter.format(m_fGridOffset + fHeight - fHeight * (i) / m_nTicks) :
 								formatter.format(m_fGridOffset + fHeight * (i) / m_nTicks)
@@ -64,21 +66,21 @@ public class GridDrawer {
 					}
 				} else {
 					float fHeight = m_fGridOrigin;
-					while (fHeight < m_dt.m_fHeight) {
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+					while (fHeight < fTreeHeight) {
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight/m_dt.m_fUserScale - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						buf.append("M" + 0 + " " + y + "L" + nW + " " + y);
 						fHeight += Math.abs(m_fGridTicks);
 					}
 					buf.append("'/>\n");
 					
 					fHeight = m_fGridOrigin;
-					while (fHeight < m_dt.m_fHeight) {
+					while (fHeight < fTreeHeight) {
 
 						String sStr = (m_bReverseGrid ?  
-								formatter.format(m_fGridOffset + m_dt.m_fHeight - fHeight) :
+								formatter.format(m_fGridOffset + fTreeHeight - fHeight) :
 								formatter.format(m_fGridOffset + fHeight)
 								);
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight/m_dt.m_fUserScale - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						buf.append("<text x='"
 								+ m_gridfont.getSize()
 								+ "' y='"
@@ -182,27 +184,29 @@ public class GridDrawer {
 					nW = 10;
 				}
 				g.setColor(m_dt.m_color[DensiTree.HEIGHTCOLOR]);
+				
+				float fTreeHeight = m_dt.m_fHeight * m_dt.m_fUserScale;
 
 				if (m_bAutoGrid) {
-					float fHeight = (float) adjust(m_dt.m_fHeight);
+					float fHeight = (float) adjust(fTreeHeight);
 					
 					for (int i = 0; i <= m_nTicks; i++) {
 						String sStr = (m_bReverseGrid ?   
 								formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
 								formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
 								);
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight / m_dt.m_fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						g.drawString(sStr, 0, y - 2);
 						g.drawLine(0, y, nW, y);
 					}
 				} else {
 					float fHeight = m_fGridOrigin;
-					while (fHeight < m_dt.m_fHeight) {
+					while (fHeight < m_dt.m_fHeight * m_dt.m_fUserScale) {
 						String sStr = (m_bReverseGrid ?  
-								formatter.format(m_fGridOffset + m_dt.m_fHeight - fHeight) :
+								formatter.format(m_fGridOffset + fTreeHeight - fHeight) :
 								formatter.format(m_fGridOffset + fHeight)
 								);
-						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight / m_dt.m_fUserScale- m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						g.drawString(sStr, 0, y - 2);
 						g.drawLine(0, y, nW, y);
 						fHeight += Math.abs(m_fGridTicks);
@@ -216,26 +220,28 @@ public class GridDrawer {
 				g.setColor(m_dt.m_color[DensiTree.HEIGHTCOLOR]);
 				
 				
+				float fTreeHeight = m_dt.m_fHeight * m_dt.m_fUserScale;
 				if (m_bAutoGrid) {
-					float fHeight = (float) adjust(m_dt.m_fHeight);
+
+					float fHeight = (float) adjust(fTreeHeight);
 					
 					for (int i = 0; i <= m_nTicks; i++) {
 						String sStr = (m_bReverseGrid ?   
 								formatter.format(m_fGridOffset + fHeight - fHeight * i / m_nTicks) :
 								formatter.format(m_fGridOffset + fHeight * i / m_nTicks)
 								);
-						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / m_dt.m_fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						g.drawString(sStr, x+2, m_gridfont.getSize());
 						g.drawLine(x, 0, x, nH);
 					}
 				} else {
 					float fHeight = m_fGridOrigin;
-					while (fHeight < m_dt.m_fHeight) {
+					while (fHeight < fTreeHeight) {
 						String sStr = (m_bReverseGrid ?   
-								formatter.format(m_fGridOffset + m_dt.m_fHeight - fHeight) :
+								formatter.format(m_fGridOffset + fTreeHeight - fHeight) :
 								formatter.format(m_fGridOffset + fHeight)
 								);
-						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
+						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / m_dt.m_fUserScale - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
 						g.drawString(sStr, x+2, m_gridfont.getSize());
 						g.drawLine(x, 0, x, nH);
 						fHeight += Math.abs(m_fGridTicks);
