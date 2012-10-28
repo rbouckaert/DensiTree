@@ -41,6 +41,7 @@ package viz;
 
 
 
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -87,10 +88,10 @@ import viz.panel.LabelPanel;
 import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 import viz.process.BranchLengthOptimiser;
-import viz.process.CladeBranchInfo;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.1.5 release candidate";
+	//final static String VERSION = "2.1.5 release candidate";
+	final static String VERSION = "2.1.6";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -106,7 +107,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
 	/** whether to optimise branch lengths on root canal tree or not **/
-	boolean m_bOptimiseRootCanalTree = true;
+	boolean m_bOptimiseRootCanalTree = false;
 
 	final static int B = 1;
 	JFrame frame;
@@ -220,6 +221,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	float m_fScaleGY = 10;
 	/** global scale for zooming **/
 	float m_fScale = 1.0f;
+	/** user scale, for scaling grid and clade heights **/
+	public float m_fUserScale = 1.0f;
+
 	/** determines which part of the tree-set is shown wrt maximum tree height **/
 	float m_fTreeOffset = 0;
 	float m_fTreeScale = 1;
@@ -946,7 +950,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			clear();
 			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
 					+ "Try starting DensiTree with more memory\n\n(for example "
-					+ "use:\njava -Xmx3g DensiTree.jar\nfrom " + "the command line) where DensiTree is in the path");
+					+ "use:\njava -Xmx3g DensiTree.jar\nfrom " + "the command line) where DensiTree is in the path\n"
+					+ "or subsample your tree set to create a smaller tree file.");
 			setDefaultCursor();
 			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			throw e;
@@ -1235,50 +1240,45 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_summaryTree.add(m_cTrees[iMaxCladeProbTopology].copy());
 		cleanUpSummaryTree(m_summaryTree.get(0));
 
-		m_summaryTree.add(m_cTrees[iMaxMinCladeProbTopology].copy());
-		cleanUpSummaryTree(m_summaryTree.get(1));
-
-		m_summaryTree.add(m_cTrees[iMaxCCDProbTopology].copy());
-		cleanUpSummaryTree(m_summaryTree.get(2));
-
-		// construct max. clade weight tree
-		List<Node> nodes = new ArrayList<Node>();
-		List<int[]> cladeIDs = new ArrayList<int[]>();
-		for (int i = 0; i < m_sLabels.size(); i++) {
-			int [] cladeID = new int[1];
-			cladeID[0] = i;
-			cladeIDs.add(cladeID);
-			Node node = new Node();
-			node.m_iLabel = i;
-			node.m_iClade = i;
-			nodes.add(node);
+		if (m_bOptimiseRootCanalTree) {
+			BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
+			optimiser.optimiseScore(m_summaryTree.get(0));
 		}
-		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, false));
-		m_summaryTree.get(3).sort();
-		resetCladeNr(m_summaryTree.get(3), reverseindex);
-		m_summaryTree.add(m_summaryTree.get(3).copy());
-		cleanUpSummaryTree(m_summaryTree.get(4));		
-
-		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, true));
-		m_summaryTree.get(5).sort();
-		resetCladeNr(m_summaryTree.get(5), reverseindex);
-		cleanUpSummaryTree(m_summaryTree.get(5));		
-		setHeightByClade(m_summaryTree.get(5));
+		float fHeight = positionHeight(m_summaryTree.get(0), 0);
+		offsetHeight(m_summaryTree.get(0), m_fHeight - fHeight);
 		
-		
-		//cleanUpSummaryTree(m_summaryTree[3]);
-//		setHeightByClade(m_summaryTree[3]);
-//		removeNegBranches(m_summaryTree[3]);
-//		m_summaryTree[3].m_fLength = (float) (m_fHeight - m_cladeHeight.get(m_summaryTree[3].m_iClade));
-//		float fHeight = positionHeight(m_summaryTree[3], 0);
-//		offsetHeight(m_summaryTree[3], m_fHeight - fHeight);
-				
+//		m_summaryTree.add(m_cTrees[iMaxMinCladeProbTopology].copy());
+//		cleanUpSummaryTree(m_summaryTree.get(1));
+//
+//		m_summaryTree.add(m_cTrees[iMaxCCDProbTopology].copy());
+//		cleanUpSummaryTree(m_summaryTree.get(2));
+//
+//		// construct max. clade weight tree
+//		List<Node> nodes = new ArrayList<Node>();
+//		List<int[]> cladeIDs = new ArrayList<int[]>();
+//		for (int i = 0; i < m_sLabels.size(); i++) {
+//			int [] cladeID = new int[1];
+//			cladeID[0] = i;
+//			cladeIDs.add(cladeID);
+//			Node node = new Node();
+//			node.m_iLabel = i;
+//			node.m_iClade = i;
+//			nodes.add(node);
+//		}
+//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, false));
+//		m_summaryTree.get(3).sort();
+//		resetCladeNr(m_summaryTree.get(3), reverseindex);
+//		m_summaryTree.add(m_summaryTree.get(3).copy());
+//		cleanUpSummaryTree(m_summaryTree.get(4));		
+//
+//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, true));
+//		m_summaryTree.get(5).sort();
+//		resetCladeNr(m_summaryTree.get(5), reverseindex);
+//		cleanUpSummaryTree(m_summaryTree.get(5));		
+//		setHeightByClade(m_summaryTree.get(5));
+						
 		// add clades to GUI component
-		m_cladelistmodel.clear();
-		List<String> list = cladesToString();
-		for (int i = 0; i < list.size(); i++) {
-			m_cladelistmodel.add(i, list.get(i));
-		}
+		updateCladeModel();
 
 //		m_summaryTree[5] = m_cTrees[iMaxCladeProbTopology].copy();
 		
@@ -1302,12 +1302,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_optTree != null) {
 			m_summaryTree.add(m_optTree.copy());
 		}
-		if (m_bOptimiseRootCanalTree) {
-			BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
-			optimiser.optimiseScore(m_summaryTree.get(0));
-		}
-		float fHeight = positionHeight(m_summaryTree.get(0), 0);
-		offsetHeight(m_summaryTree.get(0), m_fHeight - fHeight);
 
 		m_rootcanaltree = m_summaryTree.get(0);
 		
@@ -1316,6 +1310,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_cladeHeightSetTop = null;
 	}
 
+	
+	public void updateCladeModel() {
+		m_cladelistmodel.clear();
+		List<String> list = cladesToString();
+		for (int i = 0; i < list.size(); i++) {
+			m_cladelistmodel.add(i, list.get(i));
+		}
+	}
 	
 	private void calcCladePairs(Node node, double fWeight) {
 		if (!node.isLeaf()) {
@@ -1478,8 +1480,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			String sStr = "";
 			//if (m_clades.get(i).length > 1) {
 				sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
-				sStr += format.format(m_cladeHeight95HPDdown.get(i)) + " ";
-				sStr += format.format(m_cladeHeight95HPDup.get(i)) + " ";
+				sStr += format.format((m_fHeight - m_cladeHeight95HPDup.get(i)) * m_fUserScale) + " ";
+				sStr += format.format((m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_fUserScale) + " ";
 				sStr += "[";
 				int j = 0;
 				for (j = 0; j < m_clades.get(i).length - 1; j++) {
@@ -2692,7 +2694,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (o != null) {
 				double frac = (((Double) o) - Node.g_minValue.get(m_lineColorTag)) /
 						(Node.g_maxValue.get(m_lineColorTag) - Node.g_minValue.get(m_lineColorTag));
-				color = (int)(frac * 255.0) << 16;
+				color = Color.HSBtoRGB((float) frac, 0.5f, 0.8f); 
 			}
 		}
 		return color;
@@ -3381,9 +3383,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			return Float.NaN;
 		}
 		if (m_treeDrawer.m_bRootAtTop) {
-			return  m_fHeight - ((nY/ m_fScaleY) + m_fTreeOffset);
+			return  (m_fHeight - ((nY/ m_fScaleY) + m_fTreeOffset)) * m_fUserScale;
 		} else {
-			return  m_fHeight - ((nX/ m_fScaleX) + m_fTreeOffset);
+			return  (m_fHeight - ((nX/ m_fScaleX) + m_fTreeOffset)) * m_fUserScale;
 		}
 	}
 

@@ -27,6 +27,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.JSeparator;
 
 public class GridPanel extends JPanel {
 	/**
@@ -40,6 +41,7 @@ public class GridPanel extends JPanel {
 	private JTextField m_ticksTextField;
 	private JTextField m_originTextField;
 	SpinnerNumberModel significantDigitsModel;
+	private JTextField txtScale;
 	/**
 	 * Create the panel.
 	 */
@@ -49,9 +51,10 @@ public class GridPanel extends JPanel {
 		m_dt = dt;
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 10, 0, 20, 0, 0 };
-		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		gridBagLayout.columnWeights = new double[] { 1.0, 1.0, 1.0, 0.0, 0.0 };
 		setLayout(gridBagLayout);
+		
 
 		JPanel panel = new JPanel();
 		panel.setBorder(new LineBorder(Color.gray));
@@ -59,7 +62,7 @@ public class GridPanel extends JPanel {
 		gbc_panel.weightx = 0.95;
 		gbc_panel.gridwidth = 3;
 		gbc_panel.gridheight = 3;
-		gbc_panel.insets = new Insets(0, 0, 5, 0);
+		gbc_panel.insets = new Insets(0, 0, 5, 5);
 		gbc_panel.fill = GridBagConstraints.BOTH;
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 1;
@@ -101,7 +104,7 @@ public class GridPanel extends JPanel {
 		JLabel lblDigits = new JLabel("Digits");
 		GridBagConstraints gbc_lblDigits = new GridBagConstraints();
 		gbc_lblDigits.anchor = GridBagConstraints.SOUTHWEST;
-		gbc_lblDigits.insets = new Insets(0, 0, 5, 0);
+		gbc_lblDigits.insets = new Insets(0, 0, 5, 5);
 		gbc_lblDigits.gridx = 0;
 		gbc_lblDigits.gridy = 4;
 		add(lblDigits, gbc_lblDigits);
@@ -117,14 +120,14 @@ public class GridPanel extends JPanel {
 		GridBagConstraints gbc_spinner = new GridBagConstraints();
 		gbc_spinner.anchor = GridBagConstraints.WEST;
 		gbc_spinner.gridwidth = 2;
-		gbc_spinner.insets = new Insets(0, 0, 5, 0);
+		gbc_spinner.insets = new Insets(0, 0, 5, 5);
 		gbc_spinner.gridx = 1;
 		gbc_spinner.gridy = 4;
 		add(spinner, gbc_spinner);
 
 		JCheckBox reverseGrid = new JCheckBox("Reverse");
 		GridBagConstraints c5 = new GridBagConstraints();
-		c5.insets = new Insets(0, 0, 5, 0);
+		c5.insets = new Insets(0, 0, 5, 5);
 		c5.gridx = 0;
 		c5.gridy = 5;
 		c5.weightx = 0.5;
@@ -143,6 +146,7 @@ public class GridPanel extends JPanel {
 
 		JButton btnGridFont = new RoundedButton("Font");
 		GridBagConstraints c7 = new GridBagConstraints();
+		c7.insets = new Insets(0, 0, 5, 5);
 		c7.gridwidth = 2;
 		c7.gridx = 0;
 		c7.gridy = 6;
@@ -169,6 +173,7 @@ public class GridPanel extends JPanel {
 
 		JButton btnGridColor = new RoundedButton("Color");
 		GridBagConstraints c6 = new GridBagConstraints();
+		c6.insets = new Insets(0, 0, 5, 5);
 		c6.gridwidth = 2;
 		c6.gridx = 2;
 		c6.gridy = 6;
@@ -190,7 +195,7 @@ public class GridPanel extends JPanel {
 
 		JLabel lblOffset = new JLabel("Offset");
 		GridBagConstraints c4 = new GridBagConstraints();
-		c4.insets = new Insets(0, 0, 5, 0);
+		c4.insets = new Insets(0, 0, 5, 5);
 		c4.gridx = 0;
 		c4.gridy = 7;
 		c4.weightx = 0.5;
@@ -203,7 +208,7 @@ public class GridPanel extends JPanel {
 		GridBagConstraints c8 = new GridBagConstraints();
 		c8.gridwidth = 2;
 		c8.fill = GridBagConstraints.HORIZONTAL;
-		c8.insets = new Insets(0, 0, 5, 0);
+		c8.insets = new Insets(0, 0, 5, 5);
 		c8.gridx = 1;
 		c8.gridy = 7;
 		add(m_offsetTextField, c8);
@@ -226,7 +231,7 @@ public class GridPanel extends JPanel {
 		GridBagConstraints gbc_chckbxAutomatic = new GridBagConstraints();
 		gbc_chckbxAutomatic.gridwidth = 3;
 		gbc_chckbxAutomatic.anchor = GridBagConstraints.WEST;
-		gbc_chckbxAutomatic.insets = new Insets(0, 0, 5, 0);
+		gbc_chckbxAutomatic.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxAutomatic.gridx = 0;
 		gbc_chckbxAutomatic.gridy = 8;
 		add(chckbxAutomatic, gbc_chckbxAutomatic);
@@ -234,7 +239,7 @@ public class GridPanel extends JPanel {
 		JLabel lblTicks = new JLabel("Ticks");
 		GridBagConstraints gbc_lblTicks = new GridBagConstraints();
 		gbc_lblTicks.anchor = GridBagConstraints.WEST;
-		gbc_lblTicks.insets = new Insets(0, 0, 5, 0);
+		gbc_lblTicks.insets = new Insets(0, 0, 5, 5);
 		gbc_lblTicks.gridx = 0;
 		gbc_lblTicks.gridy = 9;
 		add(lblTicks, gbc_lblTicks);
@@ -251,19 +256,19 @@ public class GridPanel extends JPanel {
 				}
 			}
 		});
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.gridwidth = 2;
-		gbc_textField.insets = new Insets(0, 0, 5, 0);
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 9;
-		add(m_ticksTextField, gbc_textField);
+		GridBagConstraints gbc_txtScale = new GridBagConstraints();
+		gbc_txtScale.gridwidth = 2;
+		gbc_txtScale.insets = new Insets(0, 0, 5, 5);
+		gbc_txtScale.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtScale.gridx = 1;
+		gbc_txtScale.gridy = 9;
+		add(m_ticksTextField, gbc_txtScale);
 		m_ticksTextField.setColumns(4);
 
 		JLabel lblOrigin = new JLabel("Origin");
 		GridBagConstraints gbc_lblOrigin = new GridBagConstraints();
 		gbc_lblOrigin.anchor = GridBagConstraints.WEST;
-		gbc_lblOrigin.insets = new Insets(0, 0, 0, 5);
+		gbc_lblOrigin.insets = new Insets(0, 0, 5, 5);
 		gbc_lblOrigin.gridx = 0;
 		gbc_lblOrigin.gridy = 10;
 		add(lblOrigin, gbc_lblOrigin);
@@ -282,7 +287,7 @@ public class GridPanel extends JPanel {
 		});
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.gridwidth = 2;
-		gbc_textField_1.insets = new Insets(0, 0, 0, 5);
+		gbc_textField_1.insets = new Insets(0, 0, 5, 5);
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 1;
 		gbc_textField_1.gridy = 10;
@@ -317,6 +322,46 @@ public class GridPanel extends JPanel {
 		});
 		m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
 		m_originTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+		
+		JSeparator separator = new JSeparator();
+		GridBagConstraints gbc_separator = new GridBagConstraints();
+		gbc_separator.fill = GridBagConstraints.HORIZONTAL;
+		gbc_separator.gridwidth = 3;
+		gbc_separator.insets = new Insets(0, 0, 5, 5);
+		gbc_separator.gridx = 0;
+		gbc_separator.gridy = 11;
+		add(separator, gbc_separator);
+
+	
+		JLabel lblS = new JLabel("Scale");
+		GridBagConstraints gbc_lblS = new GridBagConstraints();
+		gbc_lblS.anchor = GridBagConstraints.WEST;
+		gbc_lblS.insets = new Insets(0, 0, 0, 5);
+		gbc_lblS.gridx = 0;
+		gbc_lblS.gridy = 12;
+		add(lblS, gbc_lblS);
+		
+		txtScale = new JTextField();
+		txtScale.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					m_dt.m_fUserScale = Float.parseFloat(txtScale.getText());
+					m_dt.updateCladeModel();
+					m_dt.makeDirty();
+					m_dt.repaint();
+				} catch (Exception ex) {
+				}
+			}
+		});
+		txtScale.setText(m_dt.m_fUserScale + "");
+		GridBagConstraints gbc_txtScale2 = new GridBagConstraints();
+		gbc_txtScale2.gridwidth = 2;
+		gbc_txtScale2.insets = new Insets(0, 0, 0, 5);
+		gbc_txtScale2.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtScale2.gridx = 1;
+		gbc_txtScale2.gridy = 12;
+		add(txtScale, gbc_txtScale2);
+		txtScale.setColumns(4);
 	}
 
 }

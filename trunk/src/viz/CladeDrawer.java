@@ -75,7 +75,7 @@ public class CladeDrawer {
 						g.drawLine(x, y- 3, x, y+6);
 					}
 					if (m_bTextMean && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)), x, y - 1);
+						g.drawString(formatter.format((m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1);
 					}
 					if (m_bTextSupport && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
 						g.drawString(supportFormatter.format(100*m_dt.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
@@ -87,7 +87,7 @@ public class CladeDrawer {
 						g.drawLine(x -3, y, x + 3, y);
 					}
 					if (m_bTextMean && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format(m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)), x, y - 1);
+						g.drawString(formatter.format((m_dt.m_gridDrawer.m_fGridOffset + m_dt.m_fHeight - m_dt.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1);
 					}
 					if (m_bTextSupport && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
 						g.drawString(supportFormatter.format(100*m_dt.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
@@ -113,7 +113,7 @@ public class CladeDrawer {
 				w = - x + (int) ((m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
 				h = 3;
 				if (m_bText95HPD && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-					g.drawString(formatter.format(m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_cladeHeight95HPDdown.get(i)), x, y- 1);
+					g.drawString(formatter.format((m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1);
 				}
 			} else {
 				//x = (int) (m_dt.m_cladePosition[i] * fScaleX);
@@ -121,7 +121,7 @@ public class CladeDrawer {
 				w = 3;
 				h = - y + (int) ((m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
 				if (m_bText95HPD && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
-					g.drawString(formatter.format(m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_cladeHeight95HPDdown.get(i)), x, y- 1);
+					g.drawString(formatter.format((m_dt.m_cladeHeight95HPDup.get(i) - m_dt.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1);
 				}
 			}
 			if (m_bDraw95HPD && (!m_bSelectedOnly || m_dt.m_cladeSelection.contains(i))) {
