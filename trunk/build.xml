@@ -98,7 +98,6 @@
 		<exclude name="**/geo*/**/*"/>
 		<exclude name="**/viz/DensiTreeS*"/>
 		<exclude name="**/viz/DensiTreeG*"/>
-	    <exclude name="**/viz/maconly/*"/>
         <manifest>
             <attribute name="Main-Class" value="viz.DensiTree"/>
         </manifest>
@@ -217,7 +216,8 @@
   <target name="osxlib" depends="compile"
         description="generate the OSX Adapter library containing Mac-only stuff" >
 
-    <!-- Put everything in ${build} into the DensiTree.jar file -->
+	<!-- first compile maconly/src/viz/maconly/OSXAdepter.java to build directory -->
+	<!-- TODO: add ant task for this -->
     <jar jarfile="lib/osx.jar" basedir="${build}">
     	<!--exclude name="**/weka/gui/**/*"/-->
 	    <exclude name="**/C/**/*"/>
