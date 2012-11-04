@@ -28,7 +28,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
 	JComboBox comboBox = new JComboBox();
 	JCheckBox checkBoxShowRotoCanal;
-	JButton btnImport;
+	RoundedButton btnImport;
 	
 	public ShowPanel(DensiTree dt) {
 		m_dt = dt;
@@ -120,7 +120,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			}
 		});
 		
-		btnImport = new JButton("import");
+		btnImport = new RoundedButton("import");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ImportRootCanalDialog dlg = new ImportRootCanalDialog(m_dt);
