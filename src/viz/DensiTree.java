@@ -36,9 +36,6 @@ package viz;
 // the magic sentence to look for when releasing:
 //RRB: not for public release
 
-//TODO: truncate % of root
-// log scale
-
 
 
 
@@ -62,6 +59,7 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -3667,7 +3665,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 				putValue(Action.ACCELERATOR_KEY, keyStroke);
 			}
 			putValue(Action.MNEMONIC_KEY, (int) sName.charAt(0));
-			setIcon(sIcon);
+			if (!viz.util.Util.isMac()) {
+				setIcon(sIcon);
+			}
 		} // c'tor
 
 		void setIcon(String sIcon) {
@@ -3828,7 +3828,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // class SettingAction
 
 	/** actions triggered by GUI events */
-	Action a_quit = new MyAction("Exit", "Exit Program", "exit", "") {
+	public Action a_quit = new MyAction("Exit", "Exit Program", "exit", "") {
 		private static final long serialVersionUID = -10;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4026,7 +4026,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	};
 
-	Action a_load = new MyAction("Load", "Load Graph", "open", "ctrl O") {
+	Action a_load = new MyAction("Load", "Load tree set", "open", "ctrl O") {
 		private static final long serialVersionUID = -2038911085935515L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4062,26 +4062,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int rval = fc.showOpenDialog(m_Panel);
 
 			if (rval == JFileChooser.APPROVE_OPTION) {
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				try {
-					init(sFileName);
-					calcLines();
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-							JOptionPane.PLAIN_MESSAGE);
-					return;
-				}
-				m_jStatusBar.setText("Loaded " + sFileName);
-				fitToScreen();
+				doOpen(fc.getSelectedFile().toString());
 				// makeDirty();
 			}
 		}
 	}; // class ActionLoad
 
+	public void doOpen(String sFileName) {
+		if (sFileName.lastIndexOf('/') > 0) {
+			m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+		}
+		try {
+			init(sFileName);
+			calcLines();
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
+					JOptionPane.PLAIN_MESSAGE);
+			return;
+		}
+		m_jStatusBar.setText("Loaded " + sFileName);
+		fitToScreen();
+	}
+	
 	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", "") {
 		private static final long serialVersionUID = -1L;
 
@@ -4302,7 +4305,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionHelp
 
-	Action a_about = new MyAction("About", "Help about", "about", "") {
+	public Action a_about = new MyAction("About", "Help about", "about", "") {
 		private static final long serialVersionUID = -20389110859353L;
 		public void actionPerformed(ActionEvent ae) {
 			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
@@ -5014,8 +5017,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		fileMenu.add(a_print);
 		// fileMenu.add(a_export);
 		fileMenu.add(a_exportVector);
-		fileMenu.addSeparator();
-		fileMenu.add(a_quit);
+		if (!viz.util.Util.isMac()) {
+			fileMenu.addSeparator();
+			fileMenu.add(a_quit);
+		}
 
 		// ----------------------------------------------------------------------
 		// Edit menu */
@@ -5177,67 +5182,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 		helpMenu.add(a_about);
 	} // makeMenuBar
 	
-    public static void loadUIManager() {
-        boolean lafLoaded = false;
-
-        if (isMac()) {
-            System.setProperty("apple.awt.graphics.UseQuartz", "true");
-            System.setProperty("apple.awt.antialiasing", "true");
-            System.setProperty("apple.awt.rendering", "VALUE_RENDER_QUALITY");
-
-            System.setProperty("apple.laf.useScreenMenuBar", "true");
-            System.setProperty("apple.awt.draggableWindowBackground", "true");
-            System.setProperty("apple.awt.showGrowBox", "true");
-
-            try {
-
-                try {
-                    // We need to do this using dynamic class loading to avoid other platforms
-                    // having to link to this class. If the Quaqua library is not on the classpath
-                    // it simply won't be used.
-                    Class<?> qm = Class.forName("ch.randelshofer.quaqua.QuaquaManager");
-                    Method method = qm.getMethod("setExcludedUIs", Set.class);
-
-                    Set<String> excludes = new HashSet<String>();
-                    excludes.add("Button");
-                    excludes.add("ToolBar");
-                    method.invoke(null, excludes);
-
-                } catch (Throwable e) {
-                }
-
-                //set the Quaqua Look and Feel in the UIManager
-                UIManager.setLookAndFeel(
-                        "ch.randelshofer.quaqua.QuaquaLookAndFeel"
-                );
-                lafLoaded = true;
-
-            } catch (Exception e) {
-
-            }
-
-            UIManager.put("SystemFont", new Font("Lucida Grande", Font.PLAIN, 13));
-            UIManager.put("SmallSystemFont", new Font("Lucida Grande", Font.PLAIN, 11));
-        }
-
-        try {
-
-            if (!lafLoaded) {
-                UIManager.setLookAndFeel("javax.swing.plaf.metal");
-                //UIManager.getSystemLookAndFeelClassName());
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    public static boolean isMac() {
-        return System.getProperty("os.name").toLowerCase().startsWith("mac");
-    }
 
 	public static DensiTree startNew(String [] args) {
+		viz.util.Util.loadUIManager();
+
 		DensiTree a = new DensiTree(args);
 		
-		loadUIManager();
+		if (viz.util.Util.isMac()) {
+			viz.maconly.OSXAdapter.registerMacOSXApplication(a);
+		}
 		
 		JFrame f;
 		f = new JFrame(FRAME_TITLE);
