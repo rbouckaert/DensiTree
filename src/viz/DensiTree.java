@@ -49,6 +49,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
@@ -5191,7 +5192,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 		DensiTree a = new DensiTree(args);
 		
 		if (viz.util.Util.isMac()) {
-			viz.maconly.OSXAdapter.registerMacOSXApplication(a);
+			try {
+				// call viz.maconly.OSXAdapter.registerMacOSXApplication(a);
+				// through reflection
+				Class<?> osx = Class.forName("viz.maconly.OSXAdapter");
+	            Method method = osx.getMethod("registerMacOSXApplication", DensiTree.class);
+	            method.invoke(null, a);
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 		
 		JFrame f;
