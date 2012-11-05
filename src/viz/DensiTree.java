@@ -39,6 +39,7 @@ package viz;
 
 
 
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -48,7 +49,6 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
-import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
@@ -59,7 +59,6 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -107,7 +106,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** whether to optimise branch lengths on root canal tree or not **/
 	boolean m_bOptimiseRootCanalTree = false;
 
-	final static int B = 1;
+	static int B = 1;
 	JFrame frame;
 	public void setWaitCursor() {
 		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
@@ -4884,6 +4883,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		};
 		
+		if (viz.util.Util.isMac()) {
+			B = 10;
+		}
 		JPanel panel = new JPanel();
 		panel.setBorder(new EmptyBorder(3, B, 5, B));
 		panel.setLayout(new GridLayout(0, 2));

@@ -56,6 +56,10 @@ public class Util {
         try {
 
             if (!lafLoaded) {
+        		UIManager.setLookAndFeel("javax.swing.plaf.metal");
+        		if (true) return;
+
+            	
             	if (isMac()) {
             		UIManager.setLookAndFeel("javax.swing.plaf.metal");
             	} else {
@@ -75,6 +79,8 @@ public class Util {
             }
         } catch (Exception e) {
         }
+
+    
     }
 
     public static boolean isMac() {

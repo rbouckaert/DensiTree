@@ -90,6 +90,7 @@
     <jar jarfile="${dist}/lib/DensiTree.jar" basedir="${build}">
 		<zipgroupfileset dir="lib" includes="itextpdf-5.2.1.jar" />
 		<zipgroupfileset dir="lib" includes="itext-xtra-5.2.1.jar" />
+		<zipgroupfileset dir="lib" includes="osx.jar" />
 		<!--exclude name="**/weka/gui/**/*"/-->
 		<exclude name="**/C/**/*"/>
 		<exclude name="**/weka/**/*"/>
