@@ -966,9 +966,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		addAction(new DoAction());
-		Frame[] frames = Frame.getFrames();
-		if (frames.length > 0) {
-			frames[0].setTitle(FRAME_TITLE + " " + sFile);
+		if (frame != null) {
+			frame.setTitle(FRAME_TITLE + " " + sFile);
 		}
 		System.err.println("Done");
 		
