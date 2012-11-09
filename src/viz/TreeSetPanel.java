@@ -297,15 +297,19 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 		Thread.sleep(100);
 		int[] nAlpha = new int[256];
-		for (int i = 0; i < m_image.getWidth() - m_dt.m_nLabelWidth; i++) {
-			for (int j = 0; j < m_image.getHeight(); j++) {
-				int x = m_image.getRGB(i, j);
-				int y = ((x & 0xFF) + ((x & 0xFF00) >> 8) + ((x & 0xFF0000) >> 16)) / 3;
-				// System.out.print(Integer.toHexString(x)+" " +
-				// Integer.toHexString(y) + " ");
-				nAlpha[y]++;
+		try {
+			for (int i = 0; i < m_image.getWidth() - m_dt.m_nLabelWidth; i++) {
+				for (int j = 0; j < m_image.getHeight(); j++) {
+					int x = m_image.getRGB(i, j);
+					int y = ((x & 0xFF) + ((x & 0xFF00) >> 8) + ((x & 0xFF0000) >> 16)) / 3;
+					// System.out.print(Integer.toHexString(x)+" " +
+					// Integer.toHexString(y) + " ");
+					nAlpha[y]++;
+				}
+				// System.out.println();
 			}
-			// System.out.println();
+		} catch (Exception e) {
+			return 0.0;
 		}
 		double fQ = 0;
 		for (int i = 1; i < 255; i++) {
@@ -472,7 +476,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				}
 				m_dt.m_gridDrawer.paintHeightInfo(g2);
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
-				m_image.SyncIntToRGBImage();
+				if (m_image == null) {
+					return;
+				} else {
+					m_image.SyncIntToRGBImage();
+				}
 
 				int nDrawThreads = Math.min(m_nDrawThreads, m_dt.m_trees.length);
 				for (int i = 0; i < nDrawThreads; i++) {

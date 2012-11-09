@@ -2,7 +2,6 @@ package viz.panel;
 
 import javax.swing.JPanel;
 
-import java.awt.Cursor;
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
 import java.awt.GridBagConstraints;
@@ -50,11 +49,11 @@ public class BurninPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_nBurnIn = Integer.parseInt(textField.getText());
-					//setCursor(new Cursor(Cursor.WAIT_CURSOR));
 					m_dt.init(m_dt.m_sFileName);
 					m_dt.calcLines();
 					m_dt.fitToScreen();
-					//setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+					// make sure the textfield is up to date
+					textField.setText(m_dt.m_nBurnIn + "");
 				} catch (Exception e2) {}
 			}
 		});
