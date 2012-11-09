@@ -708,6 +708,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// parseFile(sFile);
 			TreeFileParser parser = new TreeFileParser(this);
 			m_trees = parser.parseFile(sFile);
+			m_nBurnIn = parser.m_nBurnIn;
 			if (m_iOptTree >= 0) {
 				m_optTree = m_trees[m_iOptTree - m_nBurnIn];
 			}

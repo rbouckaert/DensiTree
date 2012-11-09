@@ -227,7 +227,16 @@ public class TreeFileParser {
 					}
 				}
 			}
+			fin.close();
+			if (nBurnIn > 0) {
+				System.err.println("WARNING: Burn-in too large, resetting burn-in to zero");
+				m_sLabels.clear();
+				m_nBurnIn = 0;
+				return parseFile(sFile);
+			}
 		}
+		
+		
 		System.err.println();
 		System.err.println("Geo: " +m_fMinLong + "x" + m_fMinLat + " " + m_fMaxLong + "x" + m_fMaxLat);
 		return trees.toArray(new Node[1]);
