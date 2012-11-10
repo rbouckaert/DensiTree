@@ -194,14 +194,14 @@ public class TreeFileParser {
 			
 			// read trees
 			int nBurnIn = m_nBurnIn;
-			int k = 0;
+			//int k = 0;
 			while (fin.ready()) {
 				sStr = fin.readLine();
 				sStr = sStr.trim();
 				if (sStr.length() > 5) {
 					String sTree = sStr.substring(0,5);
 					if (sTree.toLowerCase().startsWith("tree ")) {
-						k++;
+						//k++;
 						if (nBurnIn <= 0) {
 							int i = sStr.indexOf('(');
 							if (i > 0) {
@@ -596,7 +596,7 @@ public class TreeFileParser {
 				if (stack.lastElement().getMetaData() == null) {
 					stack.lastElement().setMetaData(sStr.substring(m_iTokenStart+1, m_iTokenEnd-1));
 				} else {
-					stack.lastElement().setMetaData(stack.lastElement().getMetaData() + (" " +sStr.substring(m_iTokenStart+1, m_iTokenEnd-1)));
+					stack.lastElement().setMetaData(stack.lastElement().getMetaData() + ("," +sStr.substring(m_iTokenStart+1, m_iTokenEnd-1)));
 				}
 				break;
 			case SEMI_COLON:
