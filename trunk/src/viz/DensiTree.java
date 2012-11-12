@@ -89,7 +89,7 @@ import viz.process.BranchLengthOptimiser;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	//final static String VERSION = "2.1.5 release candidate";
-	final static String VERSION = "2.1.6";
+	final static String VERSION = "2.1.7";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -3650,7 +3650,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        super(sName);
 			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 			    if ((acceleratorKey & KeyEvent.ALT_DOWN_MASK) > 0) {
-				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - KeyEvent.ALT_DOWN_MASK, 0);
+				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - KeyEvent.ALT_DOWN_MASK, KeyEvent.ALT_DOWN_MASK);
 			    }
 		        // setToolTipText(sToolTipText);
 		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
@@ -4484,7 +4484,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomOutTree
 
-	MyAction a_animateStart = new MyAction(" Start", "Start Animation", "start", KeyEvent.VK_D) {
+	MyAction a_animateStart = new MyAction("Start", "Start Animation", "start", KeyEvent.VK_D|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4755,7 +4755,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowseFirst
 
-	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", KeyEvent.VK_P) {
+	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", KeyEvent.VK_P|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4769,7 +4769,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowsePrev
 
-	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", KeyEvent.VK_N) {
+	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", KeyEvent.VK_N|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -5090,30 +5090,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 		JMenu shuffleMenu = new JMenu("Shuffle");
 		shuffleMenu
 				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
-		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S,
+		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
 		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
-				"Use root canal tree, then optimise", "", KeyEvent.VK_O, NodeOrderer.OPTIMISE));
-		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1,
+				"Use root canal tree, then optimise", "", KeyEvent.VK_O|KeyEvent.ALT_DOWN_MASK, NodeOrderer.OPTIMISE));
+		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_FIRST));
-		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2,
+		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.SINGLE));
-		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3,
+		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.COMPLETE));
-		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4,
+		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.AVERAGE));
-		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5, NodeOrderer.MEAN));
+		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5|KeyEvent.ALT_DOWN_MASK, NodeOrderer.MEAN));
 		shuffleMenu.add(new ShuffleAction("Adjusted complete link", "Adjusted complete link hierarchical clusterer",
-				"", KeyEvent.VK_6, NodeOrderer.ADJCOMLPETE));
+				"", KeyEvent.VK_6|KeyEvent.ALT_DOWN_MASK, NodeOrderer.ADJCOMLPETE));
 		// RRB: not for public release
 		shuffleMenu.addSeparator();
 		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", -1, NodeOrderer.MANUAL));
 		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", -1, NodeOrderer.GEOINFO));
-		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7,
+		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_ALL));
-		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8,
+		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_SUM));
-		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9,
+		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9|KeyEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_AVERAGE));
 
 		editMenu.addSeparator();
