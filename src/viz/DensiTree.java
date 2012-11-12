@@ -86,6 +86,7 @@ import viz.panel.LabelPanel;
 import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
 import viz.process.BranchLengthOptimiser;
+import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	//final static String VERSION = "2.1.5 release candidate";
@@ -5063,6 +5064,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		editMenu.add(a_movedown);
 
 		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", m_bViewEditTree);
+		m_viewEditTree.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewEditTree.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				boolean bPrev = m_bViewEditTree;
@@ -5075,6 +5077,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		editMenu.add(m_viewEditTree);
 
 		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewClades);
+		m_viewClades.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewClades.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				boolean bPrev = m_bViewClades;
@@ -5088,6 +5091,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		editMenu.add(m_viewClades);
 
 		JMenu shuffleMenu = new JMenu("Shuffle");
+		shuffleMenu.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		shuffleMenu
 				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
 		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|KeyEvent.ALT_DOWN_MASK,
@@ -5205,7 +5209,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_menuBar.add(helpMenu);
 		helpMenu.add(a_help);
 		helpMenu.add(a_viewClades);
-		helpMenu.add(a_about);
+		if (!Util.isMac()) {
+			helpMenu.add(a_about);
+		}
 	} // makeMenuBar
 	
 
