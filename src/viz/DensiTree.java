@@ -40,6 +40,8 @@ package viz;
 
 
 
+import jam.framework.DocumentFrame;
+
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -50,6 +52,7 @@ import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
@@ -5218,15 +5221,50 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public static DensiTree startNew(String [] args) {
 		viz.util.Util.loadUIManager();
 
-		DensiTree a = new DensiTree(args);
+		final DensiTree a = new DensiTree(args);
 		
 		if (viz.util.Util.isMac()) {
 			try {
 				// call viz.maconly.OSXAdapter.registerMacOSXApplication(a);
 				// through reflection
-				Class<?> osx = Class.forName("viz.maconly.OSXAdapter");
-	            Method method = osx.getMethod("registerMacOSXApplication", DensiTree.class);
-	            method.invoke(null, a);
+			//	Class<?> osx = Class.forName("viz.maconly.OSXAdapter");
+	        //    Method method = osx.getMethod("registerMacOSXApplication", DensiTree.class);
+	        //    method.invoke(null, a);
+	            URL url = ClassLoader.getSystemResource("viz/icons/" + "DensiTree.png");
+	            Icon icon = new ImageIcon(url);
+				jam.framework.Application application = new jam.framework.Application(null, "DensiTree", "about" , icon) {
+					
+					@Override
+					public void initialize() {
+					}
+					
+					@Override
+					protected JFrame getDefaultFrame() {
+						return null;
+					}
+					
+					@Override
+					public void doQuit() {
+						a.a_quit.actionPerformed(null);
+					}
+					
+					@Override
+					public void doAbout() {
+						a.a_about.actionPerformed(null);
+					}
+										
+					@Override
+					public DocumentFrame doOpenFile(File file) {
+						return null;
+					}
+					
+					@Override
+					public DocumentFrame doNew() {
+						return null;
+					}
+				};
+				jam.mac.Utils.macOSXRegistration(application);
+
 			} catch (Exception e) {
 				// ignore
 			}
