@@ -102,7 +102,6 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		JLabel btnText = new JLabel("text");
 		GridBagConstraints gbc_btnText = new GridBagConstraints();
-		gbc_btnText.anchor = GridBagConstraints.EAST;
 		gbc_btnText.insets = new Insets(0, 0, 5, 0);
 		gbc_btnText.gridx = 2;
 		gbc_btnText.gridy = 2;

@@ -3646,29 +3646,33 @@ public class DensiTree extends JPanel implements ComponentListener {
 		/** for serialization */
 		private static final long serialVersionUID = -2038911111935517L;
 
-		public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
-			super(sName);
-			// setToolTipText(sToolTipText);
-			putValue(Action.SHORT_DESCRIPTION, sToolTipText);
-			putValue(Action.LONG_DESCRIPTION, sToolTipText);
-			if (sAcceleratorKey.length() > 0) {
-				if (sAcceleratorKey.length() == 1) {
-					sAcceleratorKey = "alt " + sAcceleratorKey;
-				}
-				KeyStroke keyStroke = KeyStroke.getKeyStroke(sAcceleratorKey);
-				if (sAcceleratorKey.contains("+")) {
-					keyStroke = KeyStroke.getKeyStroke('+');
-				}
-				if (sAcceleratorKey.contains("-")) {
-					keyStroke = KeyStroke.getKeyStroke('-');
-				}
-				putValue(Action.ACCELERATOR_KEY, keyStroke);
-			}
-			putValue(Action.MNEMONIC_KEY, (int) sName.charAt(0));
-			if (!viz.util.Util.isMac()) {
-				setIcon(sIcon);
-			}
-		} // c'tor
+		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
+		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		    } // c'tor
+
+		    public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
+		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(sAcceleratorKey));
+		    } // c'tor
+
+		    public MyAction(String sName, String sToolTipText, String sIcon, KeyStroke acceleratorKeystroke) {
+		        super(sName);
+		        // setToolTipText(sToolTipText);
+		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
+		        putValue(Action.LONG_DESCRIPTION, sToolTipText);
+		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
+		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
+		        }
+		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
+		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
+		        if (!viz.util.Util.isMac()) {
+			        if (tempURL != null) {
+			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
+			        } else {
+			            putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
+			        }
+		        }
+		    } // c'tor
+		
 
 		void setIcon(String sIcon) {
 			java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
