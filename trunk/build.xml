@@ -9,7 +9,7 @@
   <property name="dist"  location="dist"/>
   <property name="report" value="build/junitreport" />
 
-	<property name="version" value="2.01" />
+	<property name="version" value="2.1.7" />
 
 	<property name="release_dir" value="release" />
 	<property name="Windows_dir" value="${release_dir}/Windows" />
@@ -59,7 +59,7 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
-    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath"/>
+    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false"/>
     <copy todir="${build}/viz/icons">
 	<resources>
     	<fileset dir="${src}/viz/icons/"/>
@@ -260,10 +260,10 @@
 		<launch4j configFile="${tools_dir}/DensiTree_launch4j.xml"
 		          jar="${dist}/lib/DensiTree.jar"
 		          outfile="${Windows_package_dir}/DensiTree.exe"
-		          fileVersion="2.0.1.0"
-		          txtFileVersion="2.0.1.0"
-		          productVersion="2.0.1.0"
-		          txtProductVersion="2.0.1.0" />
+		          fileVersion="${version}.0"
+		          txtFileVersion="${version}.0"
+		          productVersion="${version}.0"
+		          txtProductVersion="${version}.0" />
 
 		<copy file="${common_dir}/doc/DensiTreeManual.pdf" todir="${Windows_package_dir}" />
 		<copy file="${common_dir}/LICENSE.txt" todir="${Windows_package_dir}" />
@@ -308,7 +308,7 @@
 		            jvmversion="1.6+"
 		            vmoptions="-Xmx3g"
 		            arguments=""
-		            version="2.0"
+		            version="${version}"
 		            infostring="DensiTree, http://compevol.auckland.ac.nz/software/DensiTree/"
 		            bundleid="viz.DensiTree">
 			<jarfileset dir="${Mac_package_dir}">
