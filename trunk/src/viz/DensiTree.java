@@ -4428,7 +4428,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewToolbar
 
-	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_PLUS) {
+	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_EQUALS) {
 		private static final long serialVersionUID = -2038911085935515L;
 
 		public void actionPerformed(ActionEvent ae) {
