@@ -26,14 +26,14 @@
 
 	<path id="classpath">
         <pathelement path="build"/>
-		<fileset dir="lib" includes="osx.jar"/>
+		<fileset dir="lib" includes="jam.jar"/>
 		<fileset dir="lib" includes="itextpdf-5.2.1.jar"/>
 		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
 	</path>
 
 	<path id="compileclasspath">
         <pathelement path="build"/>
-		<fileset dir="lib" includes="osx.jar"/>
+		<fileset dir="lib" includes="jams.jar"/>
 		<fileset dir="lib" includes="itextpdf-5.2.1.jar"/>
 		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
 		<fileset dir="lib" includes="debug-1.0.jar"/>
@@ -90,7 +90,7 @@
     <jar jarfile="${dist}/lib/DensiTree.jar" basedir="${build}">
 		<zipgroupfileset dir="lib" includes="itextpdf-5.2.1.jar" />
 		<zipgroupfileset dir="lib" includes="itext-xtra-5.2.1.jar" />
-		<zipgroupfileset dir="lib" includes="osx.jar" />
+		<zipgroupfileset dir="lib" includes="jam.jar" />
 		<!--exclude name="**/weka/gui/**/*"/-->
 		<exclude name="**/C/**/*"/>
 		<exclude name="**/weka/**/*"/>
