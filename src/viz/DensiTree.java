@@ -3660,7 +3660,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        }
 		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
 		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
-		        if (!viz.util.Util.isMac()) {
+		        if (true || !viz.util.Util.isMac()) {
 			        if (tempURL != null) {
 			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
 			        } else {
