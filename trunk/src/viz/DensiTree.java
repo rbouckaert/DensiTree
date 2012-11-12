@@ -3647,12 +3647,31 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -2038911111935517L;
 
 		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
-		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		        super(sName);
+			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+			    if ((acceleratorKey & KeyEvent.ALT_DOWN_MASK) > 0) {
+				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - KeyEvent.ALT_DOWN_MASK, 0);
+			    }
+		        // setToolTipText(sToolTipText);
+		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
+		        putValue(Action.LONG_DESCRIPTION, sToolTipText);
+		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
+		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
+		        }
+		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
+		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
+		        if (!viz.util.Util.isMac()) {
+			        if (tempURL != null) {
+			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
+			        } else {
+			            putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
+			        }
+		        }
 		    } // c'tor
 
-		    public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
-		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(sAcceleratorKey));
-		    } // c'tor
+//		    public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
+//		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(sAcceleratorKey));
+//		    } // c'tor
 
 		    public MyAction(String sName, String sToolTipText, String sIcon, KeyStroke acceleratorKeystroke) {
 		        super(sName);
@@ -3695,8 +3714,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = 1L;
 		int m_iColor;
 
-		public ColorAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey, int iColor) {
-			super(sName, sToolTipText, sIcon, sAcceleratorKey);
+		public ColorAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey, int iColor) {
+			super(sName, sToolTipText, sIcon, nAcceleratorKey);
 			m_iColor = iColor;
 		}
 
@@ -3714,8 +3733,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = 1L;
 		int m_nMode;
 
-		public ShuffleAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey, int nMode) {
-			super(sName, sToolTipText, sIcon, sAcceleratorKey);
+		public ShuffleAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey, int nMode) {
+			super(sName, sToolTipText, sIcon, nAcceleratorKey);
 			m_nMode = nMode;
 		}
 
@@ -3733,8 +3752,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = 1L;
 		String m_sName;
 
-		public SettingAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
-			super(sName, sToolTipText, sIcon, sAcceleratorKey);
+		public SettingAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey) {
+			super(sName, sToolTipText, sIcon, nAcceleratorKey);
 			m_sName = sName;
 		}
 
@@ -3832,7 +3851,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // class SettingAction
 
 	/** actions triggered by GUI events */
-	public Action a_quit = new MyAction("Exit", "Exit Program", "exit", "") {
+	public Action a_quit = new MyAction("Exit", "Exit Program", "exit", -1) {
 		private static final long serialVersionUID = -10;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -3840,7 +3859,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionQuit
 
-	Action a_paste = new MyAction("Paste", "Paste tree(s) from clipboard", "paste", "") {
+	Action a_paste = new MyAction("Paste", "Paste tree(s) from clipboard", "paste", KeyEvent.VK_V) {
 		private static final long serialVersionUID = -10;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -3876,7 +3895,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		abstract public String getExtention();
 	}
 
-	Action a_exportVector = new MyAction("Export", "Export", "export", "") {
+	Action a_exportVector = new MyAction("Export", "Export", "export", -1) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4003,7 +4022,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionExport
 
-	Action a_print = new MyAction("Print", "Print Graph", "print", "ctrl P") {
+	Action a_print = new MyAction("Print", "Print Graph", "print", KeyEvent.VK_P) {
 		private static final long serialVersionUID = -20389001859354L;
 
 		// boolean m_bIsPrinting = false;
@@ -4022,7 +4041,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionPrint
 
-	Action a_new = new MyAction("New", "New instance of DensiTree", "new", "ctrl N") {
+	Action a_new = new MyAction("New", "New instance of DensiTree", "new", KeyEvent.VK_N) {
 		private static final long serialVersionUID = 1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4030,7 +4049,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	};
 
-	Action a_load = new MyAction("Load", "Load tree set", "open", "ctrl O") {
+	Action a_load = new MyAction("Load", "Load tree set", "open", KeyEvent.VK_O) {
 		private static final long serialVersionUID = -2038911085935515L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4089,7 +4108,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		fitToScreen();
 	}
 	
-	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", "") {
+	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", -1) {
 		private static final long serialVersionUID = -1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4128,7 +4147,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionLoadKML
 
-	Action a_saveas = new MyAction("Save as", "Save as", "save", "ctrl S") {
+	Action a_saveas = new MyAction("Save as", "Save as", "save", KeyEvent.VK_S) {
 		private static final long serialVersionUID = 1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4201,7 +4220,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionSaveAs
 
-	Action a_loadimage = new MyAction("Background image ", "Load background image", "bgimage", "") {
+	Action a_loadimage = new MyAction("Background image ", "Load background image", "bgimage", -1) {
 		private static final long serialVersionUID = 1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4266,7 +4285,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	} // loadBGImage
 
-	Action a_viewClades = new MyAction("View clades", "List clades and their densities", "viewclades", "") {
+	Action a_viewClades = new MyAction("View clades", "List clades and their densities", "viewclades", -1) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4289,7 +4308,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // ActionViewClades
 
-	Action a_help = new MyAction("Help", "DensiTree - Tree Set Visualization Help", "help", "") {
+	Action a_help = new MyAction("Help", "DensiTree - Tree Set Visualization Help", "help", -1) {
 		private static final long serialVersionUID = -20389110859354L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4309,7 +4328,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionHelp
 
-	public Action a_about = new MyAction("About", "Help about", "about", "") {
+	public Action a_about = new MyAction("About", "Help about", "about", -1) {
 		private static final long serialVersionUID = -20389110859353L;
 		public void actionPerformed(ActionEvent ae) {
 			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
@@ -4322,7 +4341,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionAbout
 
-	Action a_labelwidth = new MyAction("Label width", "Label width when root at left", "labelwidth", "") {
+	Action a_labelwidth = new MyAction("Label width", "Label width when root at left", "labelwidth", -1) {
 		private static final long serialVersionUID = -2L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4337,7 +4356,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionLabelWidth
 
-	Action a_burnin = new MyAction("Burn in", "Burn in", "burnin", "") {
+	Action a_burnin = new MyAction("Burn in", "Burn in", "burnin", -1) {
 		private static final long serialVersionUID = -2L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4354,7 +4373,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionBurnin
 
-	Action a_geolinewidth = new MyAction("Geo line width", "Geographical line width", "geolinewidth", "") {
+	Action a_geolinewidth = new MyAction("Geo line width", "Geographical line width", "geolinewidth", -1) {
 		private static final long serialVersionUID = -2L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4370,7 +4389,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionGeoWidth
 
-	Action a_viewstatusbar = new MyAction("View statusbar", "View statusbar", "statusbar", "") {
+	Action a_viewstatusbar = new MyAction("View statusbar", "View statusbar", "statusbar", -1) {
 		private static final long serialVersionUID = -20389330812354L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4378,7 +4397,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewStatusbar
 
-	Action a_viewtoolbar = new MyAction("View toolbar", "View toolbar", "toolbar", "") {
+	Action a_viewtoolbar = new MyAction("View toolbar", "View toolbar", "toolbar", -1) {
 		private static final long serialVersionUID = -20389110812354L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4386,7 +4405,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewToolbar
 
-	Action a_viewtoolbar2 = new MyAction("View Sidebar", "View Sidebar", "sidebar", "") {
+	Action a_viewtoolbar2 = new MyAction("View Sidebar", "View Sidebar", "sidebar", -1) {
 		private static final long serialVersionUID = -20389110812354L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4394,7 +4413,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewToolbar
 
-	Action a_viewcladetoolbar = new MyAction("View clade toolbar", "View clade toolbar", "cladetoolbar", "") {
+	Action a_viewcladetoolbar = new MyAction("View clade toolbar", "View clade toolbar", "cladetoolbar", -1) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4409,7 +4428,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewToolbar
 
-	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", "+") {
+	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_PLUS) {
 		private static final long serialVersionUID = -2038911085935515L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4420,7 +4439,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomIn
 
-	Action a_zoomout = new MyAction("Zoom out", "Zoom out", "zoomout", "-") {
+	Action a_zoomout = new MyAction("Zoom out", "Zoom out", "zoomout", KeyEvent.VK_MINUS) {
 		private static final long serialVersionUID = -203891108593551L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4434,7 +4453,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomOut
 
-	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", "X") {
+	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", KeyEvent.VK_X) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4448,7 +4467,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomInTree
 
-	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", "ctrl X") {
+	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", KeyEvent.VK_X | KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4465,7 +4484,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionZoomOutTree
 
-	MyAction a_animateStart = new MyAction(" Start", "Start Animation", "start", "ctrl D") {
+	MyAction a_animateStart = new MyAction(" Start", "Start Animation", "start", KeyEvent.VK_D) {
 		private static final long serialVersionUID = -1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4483,7 +4502,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionAnimateStart
 
-	Action a_drawtreeset = new MyAction("Draw Tree Set", "Draw Tree Set", "redraw", "R") {
+	Action a_drawtreeset = new MyAction("Draw Tree Set", "Draw Tree Set", "redraw", KeyEvent.VK_R) {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4507,7 +4526,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionDrawTreeSet
 
-	Action a_selectAll = new MyAction("Select All", "Select All", "selectall", "ctrl A") {
+	Action a_selectAll = new MyAction("Select All", "Select All", "selectall", KeyEvent.VK_A) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4519,7 +4538,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			repaint();
 		} // actionPerformed
 	};// class ActionSelectAll
-	Action a_unselectAll = new MyAction("Unselect All", "Unselect All", "unselectall", "ctrl U") {
+	Action a_unselectAll = new MyAction("Unselect All", "Unselect All", "unselectall", KeyEvent.VK_U) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4529,7 +4548,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			repaint();
 		} // actionPerformed
 	};// class ActionUnSelectAll
-	Action a_del = new MyAction("Delete", "Delete selected", "del", "Del") {
+	Action a_del = new MyAction("Delete", "Delete selected", "del", -1) { //KeyEvent.VK_DELETE) {
 		private static final long serialVersionUID = 1L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4674,7 +4693,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_iUndo++;
 	} // addAction
 
-	Action a_undo = new MyAction("Undo", "Undo", "udno", "ctrl Z") {
+	Action a_undo = new MyAction("Undo", "Undo", "udno", KeyEvent.VK_Z) {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4685,7 +4704,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		} // actionPerformed
 	}; // class ActionUndo
-	Action a_redo = new MyAction("Redo", "Redo", "reno", "ctrl Y") {
+	Action a_redo = new MyAction("Redo", "Redo", "reno", KeyEvent.VK_Y) {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4697,7 +4716,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionRedo
 
-	Action a_moveup = new MyAction("Move labels up", "Move selected labels up", "moveup", "ctrl M") {
+	Action a_moveup = new MyAction("Move labels up", "Move selected labels up", "moveup", KeyEvent.VK_M) {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4711,7 +4730,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionMoveUp
 
-	Action a_movedown = new MyAction("Move labels down", "Move selected labels down", "movedown", "M") {
+	Action a_movedown = new MyAction("Move labels down", "Move selected labels down", "movedown", KeyEvent.VK_M | KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -4L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4725,7 +4744,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionMoveDown
 
-	Action a_browsefirst = new MyAction("Browse First", "Browse First", "browsefirst", "") {
+	Action a_browsefirst = new MyAction("Browse First", "Browse First", "browsefirst", -1) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4736,7 +4755,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowseFirst
 
-	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", "P") {
+	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", KeyEvent.VK_P) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4750,7 +4769,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowsePrev
 
-	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", "N") {
+	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", KeyEvent.VK_N) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4764,7 +4783,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowseNext
 
-	Action a_browselast = new MyAction("Browse Last", "Browse Last", "browselast", "") {
+	Action a_browselast = new MyAction("Browse Last", "Browse Last", "browselast", -1) {
 		private static final long serialVersionUID = 5L;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4775,7 +4794,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionBrowse
 
-	Action a_setfont = new MyAction("Set Font", "Set Font", "font", "") {
+	Action a_setfont = new MyAction("Set Font", "Set Font", "font", -1) {
 		private static final long serialVersionUID = 5L;
 
 		// @SuppressWarnings("deprecation")
@@ -4791,34 +4810,34 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}; // class SetFont
 
 	SettingAction a_animationSpeedUp = new SettingAction("Animation Speed+", "Increase Animation Speed", "aspeedup",
-			"F");
+			KeyEvent.VK_F);
 	SettingAction a_animationSpeedDown = new SettingAction("Animation Speed-", "Decrease Animation Speed",
-			"aspeeddown", "ctrl F");
-	SettingAction a_treeWidthUp = new SettingAction("Tree Width+", "Increase Width of Trees", "treewidthup", "ctrl V");
-	SettingAction a_treeWidthDown = new SettingAction("Tree Width-", "Decrease Width of Trees", "treewidthdown", "V");
+			"aspeeddown", KeyEvent.VK_F | KeyEvent.ALT_DOWN_MASK);
+	SettingAction a_treeWidthUp = new SettingAction("Tree Width+", "Increase Width of Trees", "treewidthup", KeyEvent.VK_V);
+	SettingAction a_treeWidthDown = new SettingAction("Tree Width-", "Decrease Width of Trees", "treewidthdown", KeyEvent.VK_V | KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_cTreeWidthUp = new SettingAction("Consensus Tree Width+", "Increase Width of Consensus Trees",
-			"ctreewidthup", "ctrl W");
+			"ctreewidthup", KeyEvent.VK_W);
 	SettingAction a_cTreeWidthDown = new SettingAction("Consensus Tree Width-", "Decrease Width of Consensus Trees",
-			"ctreewidthdown", "W");
+			"ctreewidthdown", KeyEvent.VK_W | KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_intensityUp = new SettingAction("Intensity+", "Increase Intensity of Trees", "intensityup",
-			"ctrl I");
-	SettingAction a_intensityDown = new SettingAction("Intensity-", "Decrease Intensity of Trees", "intensitydown", "I");
+			KeyEvent.VK_I);
+	SettingAction a_intensityDown = new SettingAction("Intensity-", "Decrease Intensity of Trees", "intensitydown", KeyEvent.VK_I| KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_cIntensityUp = new SettingAction("Consensus Intensity+", "Increase Intensity of Consensus Trees",
-			"cintensityup", "ctrl C");
+			"cintensityup", KeyEvent.VK_C);
 	SettingAction a_cIntensityDown = new SettingAction("Consensus Intensity-", "Decrease Intensity of Consensus Trees",
-			"cintensitydown", "C");
+			"cintensitydown", KeyEvent.VK_C | KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_jitterUp = new SettingAction("Jitter+", "Increase Jitter on x-coordinate of Trees", "jitterup",
-			"ctrl J");
+			KeyEvent.VK_J);
 	SettingAction a_jitterDown = new SettingAction("Jitter-", "Decrease Jitter on x-coordinate of Trees", "jitterdown",
-			"J");
+			KeyEvent.VK_J| KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_threadsUp = new SettingAction("Drawing Threads+", "Increase number of Drawing Threads",
-			"threadsup", "ctrl T");
+			"threadsup", KeyEvent.VK_T);
 	SettingAction a_threadsDown = new SettingAction("Drawing Threads-", "Decrease number of Drawing Threads",
-			"threadsdown", "T");
+			"threadsdown", KeyEvent.VK_T| KeyEvent.ALT_DOWN_MASK);
 	SettingAction a_angleThresholdUp = new SettingAction("Angle Correction+",
-			"Increase Threshold for angle correction", "angleup", "ctrl N");
+			"Increase Threshold for angle correction", "angleup", KeyEvent.VK_N);
 	SettingAction a_a_angleThresholdDown = new SettingAction("Angle Correction-",
-			"Decrease Threshold for angle correction", "angledpown", "N");
+			"Decrease Threshold for angle correction", "angledpown", KeyEvent.VK_N| KeyEvent.ALT_DOWN_MASK);
 
 
 	public JCheckBoxMenuItem m_viewEditTree;
@@ -5070,31 +5089,31 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		JMenu shuffleMenu = new JMenu("Shuffle");
 		shuffleMenu
-				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", "", NodeOrderer.DEFAULT));
-		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", "S",
+				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
+		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S,
 				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
 		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
-				"Use root canal tree, then optimise", "", "O", NodeOrderer.OPTIMISE));
-		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", "ctrl 1",
+				"Use root canal tree, then optimise", "", KeyEvent.VK_O, NodeOrderer.OPTIMISE));
+		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1,
 				NodeOrderer.CLOSEST_FIRST));
-		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", "ctrl 2",
+		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2,
 				NodeOrderer.SINGLE));
-		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", "ctrl 3",
+		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3,
 				NodeOrderer.COMPLETE));
-		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", "ctrl 4",
+		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4,
 				NodeOrderer.AVERAGE));
-		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", "ctrl 5", NodeOrderer.MEAN));
+		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5, NodeOrderer.MEAN));
 		shuffleMenu.add(new ShuffleAction("Adjusted complete link", "Adjusted complete link hierarchical clusterer",
-				"", "6", NodeOrderer.ADJCOMLPETE));
+				"", KeyEvent.VK_6, NodeOrderer.ADJCOMLPETE));
 		// RRB: not for public release
 		shuffleMenu.addSeparator();
-		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", "", NodeOrderer.MANUAL));
-		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", "", NodeOrderer.GEOINFO));
-		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", "ctrl 7",
+		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", -1, NodeOrderer.MANUAL));
+		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", -1, NodeOrderer.GEOINFO));
+		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7,
 				NodeOrderer.META_ALL));
-		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", "ctrl 8",
+		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8,
 				NodeOrderer.META_SUM));
-		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", "ctrl 9",
+		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9,
 				NodeOrderer.META_AVERAGE));
 
 		editMenu.addSeparator();
