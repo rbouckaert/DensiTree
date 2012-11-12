@@ -655,6 +655,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * 
 	 * @throws Exception
 	 **/
+	@SuppressWarnings("deprecation")
 	public void init(String sFile) throws Exception {
 		if (m_Panel != null) {
 			setWaitCursor();

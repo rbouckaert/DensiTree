@@ -33,7 +33,7 @@
 
 	<path id="compileclasspath">
         <pathelement path="build"/>
-		<fileset dir="lib" includes="jams.jar"/>
+		<fileset dir="lib" includes="jam.jar"/>
 		<fileset dir="lib" includes="itextpdf-5.2.1.jar"/>
 		<fileset dir="lib" includes="itext-xtra-5.2.1.jar"/>
 		<fileset dir="lib" includes="debug-1.0.jar"/>
@@ -59,7 +59,9 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
-    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false"/>
+    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false">
+		<compilerarg value="-Xlint:deprecation"/>
+	</javac>
     <copy todir="${build}/viz/icons">
 	<resources>
     	<fileset dir="${src}/viz/icons/"/>
