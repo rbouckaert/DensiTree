@@ -416,13 +416,31 @@ public class TreeFileParser {
 			} catch (Exception e) {
 			}
 		}
-			for (int i = 0; i < m_nNrOfLabels; i++) {
-				if (sStr.equals(m_sLabels.elementAt(i))) {
+		for (int i = 0; i < m_nNrOfLabels; i++) {
+			if (sStr.equals(m_sLabels.elementAt(i))) {
+				return i;
+			}
+		}
+		// sStr may have (double) qoutes missing
+		for (int i = 0; i < m_nNrOfLabels; i++) {
+			String sLabel = m_sLabels.elementAt(i);
+			if (sLabel.startsWith("'") && sLabel.endsWith("'") ||
+					sLabel.startsWith("\"") && sLabel.endsWith("\"")) {
+				sLabel = sLabel.substring(1, sLabel.length()-1);
+				if (sStr.equals(sLabel)) {
 					return i;
 				}
 			}
-			throw new Exception("Label '" + sStr + "' in Newick tree could not be identified");
+		}
+		// sStr may have extra (double) qoutes
+		if (sStr.startsWith("'") && sStr.endsWith("'") ||
+				sStr.startsWith("\"") && sStr.endsWith("\"")) {
+			sStr = sStr.substring(1, sStr.length()-1);
+			return getLabelIndex(sStr);
+		}
+		throw new Exception("Label '" + sStr + "' in Newick tree could not be identified");
 	}
+	
 
 	 float height(Node node) {
 		 if (node.isLeaf()) {
