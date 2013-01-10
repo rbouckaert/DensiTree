@@ -43,15 +43,16 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	private JTextField txtPattern;
 	private JButton btnLineColors;
 	private JCheckBox chckbxShowLegend;
+	private JCheckBox chckbxNewCheckBox;
 	
 	public ColorPanel(DensiTree dt) {
 		m_dt = dt;
 		m_dt.addChangeListener(this);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE, 0.0};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE, 0.0};
 		setLayout(gridBagLayout);
 
 		
@@ -63,8 +64,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		comboBox.setMaximumSize(new Dimension(130,200));
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					
+				SwingUtilities.invokeLater(new Runnable() {					
 					@Override
 					public void run() {
 						String selected = comboBox.getSelectedItem().toString();
@@ -143,19 +143,36 @@ public class ColorPanel extends JPanel implements ChangeListener {
 				}
 			}
 		});
+		
+		chckbxNewCheckBox = new JCheckBox("categorical");
+		chckbxNewCheckBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				m_dt.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.calcColors(true);
+				m_dt.makeDirty();
+			}
+		});
+		chckbxNewCheckBox.setToolTipText("indicate that the meta data item shoud be interpreted as categorical");
+		GridBagConstraints gbc_chckbxNewCheckBox = new GridBagConstraints();
+		gbc_chckbxNewCheckBox.anchor = GridBagConstraints.WEST;
+		gbc_chckbxNewCheckBox.gridwidth = 2;
+		gbc_chckbxNewCheckBox.insets = new Insets(0, 0, 5, 5);
+		gbc_chckbxNewCheckBox.gridx = 0;
+		gbc_chckbxNewCheckBox.gridy = 3;
+		add(chckbxNewCheckBox, gbc_chckbxNewCheckBox);
 		JLabel lblPattern = new JLabel("pattern:");
 		GridBagConstraints gbc_lblPattern = new GridBagConstraints();
 		gbc_lblPattern.anchor = GridBagConstraints.EAST;
 		gbc_lblPattern.insets = new Insets(0, 0, 5, 5);
 		gbc_lblPattern.gridx = 0;
-		gbc_lblPattern.gridy = 3;
+		gbc_lblPattern.gridy = 4;
 		add(lblPattern, gbc_lblPattern);
 		GridBagConstraints gbc_txtPattern = new GridBagConstraints();
 		gbc_txtPattern.gridwidth = 2;
 		gbc_txtPattern.insets = new Insets(0, 0, 5, 5);
 		gbc_txtPattern.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtPattern.gridx = 0;
-		gbc_txtPattern.gridy = 4;
+		gbc_txtPattern.gridy = 5;
 		add(txtPattern, gbc_txtPattern);
 		txtPattern.setColumns(10);
 		txtPattern.setEnabled(false);
@@ -171,7 +188,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		gbc_btnLineColors.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnLineColors.insets = new Insets(0, 0, 0, 5);
 		gbc_btnLineColors.gridx = 0;
-		gbc_btnLineColors.gridy = 5;
+		gbc_btnLineColors.gridy = 6;
 		add(btnLineColors, gbc_btnLineColors);
 		
 	}
@@ -297,6 +314,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		} else {
 			comboBox.setSelectedItem(m_dt.m_lineColorTag);
 		}
+		
 	}
 
 }

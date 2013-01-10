@@ -173,7 +173,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public float[][] m_fRLineWidth;
 	public float[][] m_fRTopLineWidth;
 
-	
+	/** flag indicating the attribute should be interpreted as categorial **/
+	public boolean m_bColorByCategory = false;
 	
 	public Vector<String> m_sLabels;
 	/** labels of leafs **/
@@ -2686,7 +2687,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	int colorForNode(Node node, boolean colorByCategory) {
 		int color = 0;
 		Object o = node.getMetaDataSet().get(m_lineColorTag);
-		if (colorByCategory) {
+		if (colorByCategory || m_bColorByCategory) {
 			if (o != null) {
 				if (!m_colorMetaDataCategories.contains(o)) {
 					m_colorMetaDataCategories.add(o.toString());
