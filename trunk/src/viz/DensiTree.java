@@ -2706,7 +2706,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	private int colorTree(Node node, int[] nLineColor, int iPos) {
-		if (!node.isLeaf()) {
+		if (node != null && !node.isLeaf()) {
 			iPos = colorTree(node.m_left, nLineColor, iPos);
 			iPos = colorTree(node.m_right, nLineColor, iPos);
 			int color = m_color[9+node.m_iClade%9].getRGB();

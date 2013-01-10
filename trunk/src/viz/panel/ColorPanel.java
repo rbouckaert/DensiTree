@@ -43,7 +43,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	private JTextField txtPattern;
 	private JButton btnLineColors;
 	private JCheckBox chckbxShowLegend;
-	private JCheckBox chckbxNewCheckBox;
+	private JCheckBox chckbxCategorical;
 	
 	public ColorPanel(DensiTree dt) {
 		m_dt = dt;
@@ -83,6 +83,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 						txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
 						chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 								|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
+						chckbxCategorical.setEnabled(m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
 						if (m_dt.m_lineColorMode != oldMode || m_dt.m_lineColorTag != oldTag) {
 							m_dt.calcColors(false);
 							m_dt.makeDirty();
@@ -144,22 +145,23 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			}
 		});
 		
-		chckbxNewCheckBox = new JCheckBox("categorical");
-		chckbxNewCheckBox.addActionListener(new ActionListener() {
+		chckbxCategorical = new JCheckBox("categorical");
+		chckbxCategorical.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.calcColors(true);
 				m_dt.makeDirty();
 			}
 		});
-		chckbxNewCheckBox.setToolTipText("indicate that the meta data item shoud be interpreted as categorical");
+		chckbxCategorical.setToolTipText("indicate that the meta data item shoud be interpreted as categorical");
+		chckbxCategorical.setEnabled(false);
 		GridBagConstraints gbc_chckbxNewCheckBox = new GridBagConstraints();
 		gbc_chckbxNewCheckBox.anchor = GridBagConstraints.WEST;
 		gbc_chckbxNewCheckBox.gridwidth = 2;
 		gbc_chckbxNewCheckBox.insets = new Insets(0, 0, 5, 5);
 		gbc_chckbxNewCheckBox.gridx = 0;
 		gbc_chckbxNewCheckBox.gridy = 3;
-		add(chckbxNewCheckBox, gbc_chckbxNewCheckBox);
+		add(chckbxCategorical, gbc_chckbxNewCheckBox);
 		JLabel lblPattern = new JLabel("pattern:");
 		GridBagConstraints gbc_lblPattern = new GridBagConstraints();
 		gbc_lblPattern.anchor = GridBagConstraints.EAST;
