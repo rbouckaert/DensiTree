@@ -2443,7 +2443,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public LineColorMode m_prevLineColorMode = null;
 	public String m_sLineColorPattern = DEFAULT_PATTERN;
 	String m_sPrevLineColorPattern = null;
-	List<String> m_colorMetaDataCategories = new ArrayList<String>();
+	//List<String> m_colorMetaDataCategories = new ArrayList<String>();
+	Map<String,Integer> m_colorMetaDataCategories = new HashMap<String, Integer>();
 	public List<String> m_metaDataTags = new ArrayList<String>();
 	public List<MetaDataType> m_metaDataTypes = new ArrayList<MetaDataType>();
 	public String m_lineColorTag;
@@ -2512,7 +2513,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
-			m_colorMetaDataCategories = new ArrayList<String>();
+			//m_colorMetaDataCategories = new ArrayList<String>();
+			m_colorMetaDataCategories = new HashMap<String, Integer>();
 			for (int i = 0; i < m_trees.length; i++) {
 				if (m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
@@ -2552,7 +2554,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
-			m_colorMetaDataCategories = new ArrayList<String>();
+			//m_colorMetaDataCategories = new ArrayList<String>();
+			m_colorMetaDataCategories = new HashMap<String, Integer>();
 			boolean colorByCategory = false;
 			for (int i = 0; i < m_metaDataTags.size(); i++) {
 				if (m_metaDataTags.get(i).equals(m_lineColorTag)) {
@@ -2689,10 +2692,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Object o = node.getMetaDataSet().get(m_lineColorTag);
 		if (colorByCategory || m_bColorByCategory) {
 			if (o != null) {
-				if (!m_colorMetaDataCategories.contains(o)) {
-					m_colorMetaDataCategories.add(o.toString());
+				if (m_colorMetaDataCategories.get(o.toString()) == null) {
+					m_colorMetaDataCategories.put(o.toString(), m_colorMetaDataCategories.size());
 				}
-				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
+//				if (!m_colorMetaDataCategories.contains(o)) {
+//					m_colorMetaDataCategories.add(o.toString());
+//				}
+//				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
+				color = m_color[9 + m_colorMetaDataCategories.get(o.toString()) % (m_color.length - 9)].getRGB();
 			}
 		} else {
 			if (o != null) {
@@ -3115,11 +3122,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 				nGroup = 1;
 			}
 			String match = matcher.group(nGroup);
-			if (!m_colorMetaDataCategories.contains(match)) {
-				m_colorMetaDataCategories.add(match);
+			if (m_colorMetaDataCategories.get(match) == null) {
+				m_colorMetaDataCategories.put(match, m_colorMetaDataCategories.size());
 			}
-			//System.err.println(node.m_sMetaData + ": " + match + " = " + m_metaDataCategories.indexOf(match));
-			return m_colorMetaDataCategories.indexOf(match);
+			return m_colorMetaDataCategories.get(match);
+			
+//			if (!m_colorMetaDataCategories.contains(match)) {
+//				m_colorMetaDataCategories.add(match);
+//			}
+//			//System.err.println(node.m_sMetaData + ": " + match + " = " + m_metaDataCategories.indexOf(match));
+//			return m_colorMetaDataCategories.indexOf(match);
 		} catch (Exception e) {
 			//e.printStackTrace();
 		}
