@@ -1714,8 +1714,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int[] cladeRight = calcCladeIDForNode(node.m_right, mapCladeToIndex);
 			int[] clade = mergeClades(cladeLeft, cladeRight);
 			String sClade = Arrays.toString(clade);
-			int iClade = mapCladeToIndex.get(sClade);
-			node.m_iClade = iClade;
+			try {
+				int iClade = mapCladeToIndex.get(sClade);
+				node.m_iClade = iClade;
+			} catch (Exception e) {
+				// ignore
+				node.m_iClade = 0;
+			}
 			return clade;
 		}
 	}

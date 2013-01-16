@@ -1,6 +1,6 @@
 package viz.panel;
 
-import javax.swing.ComboBoxModel;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
 import javax.swing.JCheckBox;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComboBox;
-import javax.swing.JButton;
 import javax.swing.JSeparator;
 
 public class ShowPanel extends JPanel implements ChangeListener {
@@ -143,11 +142,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		}		
 		comboBox = new JComboBox(labels.toArray());
 		comboBox.addActionListener(new ActionListener() {
+			
 			public void actionPerformed(ActionEvent e) {
-				JComboBox comboBox = ((JComboBox)e.getSource());
 				int i = comboBox.getSelectedIndex();
 				if (m_dt.m_summaryTree != null) {
-					m_dt.m_rootcanaltree = m_dt.m_summaryTree.get(i);
+					m_dt.m_rootcanaltree = m_dt.m_summaryTree.get(i);					
 					m_dt.calcLines();
 					m_dt.makeDirty();
 				}

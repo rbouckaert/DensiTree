@@ -13,6 +13,9 @@ import viz.DensiTree;
 import viz.Node;
 import viz.TreeFileParser;
 
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Frame;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -208,6 +211,7 @@ public class ImportRootCanalDialog extends JPanel {
 				newick = txtNewick.getText();
 			}
 			if (b2.getModel() == group.getSelection()) {
+				 m_dt.setWaitCursor();
 				 try {
 				      String line;
 				      double fBurnIn = 100.0 * m_dt.m_nBurnIn / (m_dt.m_nBurnIn  + m_dt.m_trees.length);
@@ -218,6 +222,7 @@ public class ImportRootCanalDialog extends JPanel {
 				      }
 				      sCmd += " " + m_dt.m_sFileName;
 				      System.err.println("Trying to execute: " + sCmd);
+				      
 				      
 				      Process p = Runtime.getRuntime().exec(sCmd);
 				      BufferedReader pout = new BufferedReader((new InputStreamReader(p.getInputStream())));
@@ -235,17 +240,27 @@ public class ImportRootCanalDialog extends JPanel {
 				    catch (Exception err) {
 				      err.printStackTrace();
 				    }
-				
+				 	m_dt.setDefaultCursor();				
 			}
 			if (newick != null) {
 				TreeFileParser parser = new TreeFileParser(m_dt.m_sLabels, null, null, 0);
 				try {
 					Node tree = parser.parseNewick(newick);
 					tree.sort();
+
+					System.err.println("labelInternalNodes");
 					tree.labelInternalNodes(m_dt.m_sLabels.size());
+
+					System.err.println("positionHeight");
 					float fTreeHeight = m_dt.positionHeight(tree, 0);
+
+					System.err.println("offsetHeight");
 					m_dt.offsetHeight(tree, m_dt.m_fHeight - fTreeHeight);
+					
+					System.err.println("calcCladeIDForNode");
 					m_dt.calcCladeIDForNode(tree, m_dt.mapCladeToIndex);
+
+					System.err.println("resetCladeNr");
 					m_dt.resetCladeNr(tree, m_dt.reverseindex);
 
 					m_dt.m_summaryTree.add(tree);
