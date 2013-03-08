@@ -1894,6 +1894,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_fMaxLat = m_fMaxLat + fOffset;
 			m_fMinLong = m_fMinLong - fOffset;
 			m_fMinLat = m_fMinLat - fOffset;
+			
+			System.err.println("geo range (" +m_fMinLat + "," + m_fMinLong+ ")x(" + m_fMaxLat+","+ m_fMaxLong+")");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
