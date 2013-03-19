@@ -51,7 +51,6 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -185,6 +184,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public Vector<Float> m_fLatitude;
 	/** extreme values for position information **/
 	public float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
+	/** name of file containing locations **/
+	String m_sKMLFile = null;
 
 	/** order of appearance of leafs, used to determine x-coordinates of leafs **/
 	int[] m_nOrder;
@@ -549,7 +550,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_sOutputFile = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-kml")) {
-						loadKML(args[i + 1]);
+						m_sKMLFile = args[i + 1];
+						//loadKML(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-geowidth")) {
 						m_nGeoWidth = Integer.parseInt(args[i + 1]);
@@ -975,6 +977,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		addAction(new DoAction());
 		if (frame != null) {
 			frame.setTitle(FRAME_TITLE + " " + sFile);
+		}
+		if (m_sKMLFile != null) {
+			loadKML();
 		}
 		System.err.println("Done");
 		
@@ -1743,7 +1748,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	void loadKML(String sFileName) {
+	void loadKML() {
+		String sFileName = m_sKMLFile;
 		try {
 
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -1845,6 +1851,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (nX.size() > 0) {
 					mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 					mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+					sPlacemarkName = sPlacemarkName.replaceAll("-", "");
+					sPlacemarkName = sPlacemarkName.replaceAll("_", "");
+					if (!mapLabel2X.containsKey(sPlacemarkName)) {
+						mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
+						mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+					}
 				}
 			}
 
@@ -1855,7 +1867,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_fMaxLong = -180;
 			for (int iLabel = 0; iLabel < m_nNrOfLabels; iLabel++) {
 				String sTaxon = m_sLabels.get(iLabel).toLowerCase();
-				if (mapLabel2X.containsKey(sTaxon)) {
+				String sTaxon2 = sTaxon.replaceAll("[-_]", "");
+				if (mapLabel2X.containsKey(sTaxon) || mapLabel2X.containsKey(sTaxon2)) {
+					if (!mapLabel2X.containsKey(sTaxon)) {
+						sTaxon = sTaxon2;
+					}
 					Vector<Double> nX = mapLabel2X.get(sTaxon);
 					Vector<Double> nY = mapLabel2Y.get(sTaxon);
 					double fX = 0;
@@ -4121,6 +4137,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 		}
 		try {
+			m_sKMLFile = null;
 			init(sFileName);
 			calcLines();
 		} catch (Exception e) {
@@ -4164,7 +4181,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (sFileName.lastIndexOf('/') > 0) {
 					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
-				loadKML(sFileName);
+				m_sKMLFile = sFileName;
+				loadKML();
 				m_jStatusBar.setText("Loaded " + sFileName);
 				fitToScreen();
 				// makeDirty();

@@ -24,6 +24,8 @@ public class CreateBGImage {
 	
 	int width = 1024;
 	int height = 768;
+	double viewPortOffsetX = 0;
+	double viewPortOffsetY = 0;
 	double[] m_fBGImageBox = { -180, -90, 180, 90 };
 	
 	String svgFile = "/home/remco/data/map/TM_WORLD_BORDERS-0.3.svg";
@@ -105,6 +107,7 @@ public class CreateBGImage {
 
 	private void parseSVGFile() {
 		try {
+			System.out.println("Reading " + svgFile);
 			m_sLabels = new ArrayList<String>();
 			m_nLabels = new ArrayList<Integer>();
 			m_contours = new ArrayList<List<Double>>();
@@ -182,7 +185,17 @@ public class CreateBGImage {
 		    			k = s2.indexOf("\""); if ( k<0) k = s2.indexOf("'");
 		    			s2 = s2.substring(0, k);
 		    			svgHeight = Integer.parseInt(s2);
-		    		}
+
+		    			k = s.indexOf("viewBox=");
+		    			if (k > 0) {
+			    			s2 = s.substring(k + 9);
+			    			k = s2.indexOf("\""); if ( k<0) k = s2.indexOf("'");
+			    			s2 = s2.substring(0, k);
+			    			String [] strs = s2.split(" ");
+			    			viewPortOffsetX = Double.parseDouble(strs[0]);
+			    			viewPortOffsetY = Double.parseDouble(strs[1]);
+		    			}
+}
 		    	}
 		    }
 		} catch (Exception e) {
@@ -228,8 +241,8 @@ public class CreateBGImage {
 			for (int j = 0; j < contour.size(); j += 2) {
 				double fLong = contour.get(j);
 				double fLat = contour.get(j+1);
-				xPoints[j / 2] = (int) (fScaleX * (fLong - fOffsetX));
-				yPoints[j / 2] = (int) (fScaleY * (svgHeight - fLat - fOffsetY));
+				xPoints[j / 2] = (int) (fScaleX * (fLong - viewPortOffsetX - fOffsetX));
+				yPoints[j / 2] = (int) (fScaleY * (svgHeight + viewPortOffsetY - fLat - fOffsetY));
 			}
 			g.setColor(Color.black);
 			g.drawPolygon(xPoints, yPoints, nPoints);
