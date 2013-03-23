@@ -415,24 +415,24 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		int w = m_dt.m_rotate.getWidth(null);
 		boolean bUpdatePoints = false;
 		if (m_rotationPoints == null) {
-			m_rotationPoints = new RotationPoint[m_dt.m_fCLinesX[0].length / 4];
+			m_rotationPoints = new RotationPoint[m_dt.m_fRLinesX[0].length / 4];
 			bUpdatePoints = true;
 		}
-		for (int i = 1; i < m_dt.m_fCLinesX[0].length - 2; i += 4) {
+		for (int i = 1; i < m_dt.m_fRLinesX[0].length - 2; i += 4) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
-				x = (int) ((m_dt.m_fCLinesX[0][i] + m_dt.m_fCLinesX[0][i + 1]) * fScaleX / 2.0f);
-				y = (int) ((m_dt.m_fCLinesY[0][i] + m_dt.m_fCLinesY[0][i + 1]) * fScaleY / 2.0f);
-				x0 = (int) ((m_dt.m_fCLinesX[0][i - 1]) * fScaleX);
-				y0 = (int) ((m_dt.m_fCLinesY[0][i - 1]) * fScaleY);
-				x1 = (int) ((m_dt.m_fCLinesX[0][i + 2]) * fScaleX);
-				y1 = (int) ((m_dt.m_fCLinesY[0][i + 2]) * fScaleY);
+				x = (int) ((m_dt.m_fRLinesX[0][i] + m_dt.m_fRLinesX[0][i + 1]) * fScaleX / 2.0f);
+				y = (int) ((m_dt.m_fCLinesY[0][i] + m_dt.m_fRLinesY[0][i + 1]) * fScaleY / 2.0f);
+				x0 = (int) ((m_dt.m_fRLinesX[0][i - 1]) * fScaleX);
+				y0 = (int) ((m_dt.m_fRLinesY[0][i - 1]) * fScaleY);
+				x1 = (int) ((m_dt.m_fRLinesX[0][i + 2]) * fScaleX);
+				y1 = (int) ((m_dt.m_fRLinesY[0][i + 2]) * fScaleY);
 			} else {
-				x = (int) ((m_dt.m_fCLinesY[0][i] + m_dt.m_fCLinesY[0][i + 1]) * fScaleX / 2.0f);
-				y = (int) ((m_dt.m_fCLinesX[0][i] + m_dt.m_fCLinesX[0][i + 1]) * fScaleY / 2.0f);
-				x0 = (int) ((m_dt.m_fCLinesY[0][i - 1]) * fScaleX);
-				y0 = (int) ((m_dt.m_fCLinesX[0][i - 1]) * fScaleY);
-				x1 = (int) ((m_dt.m_fCLinesY[0][i + 2]) * fScaleX);
-				y1 = (int) ((m_dt.m_fCLinesX[0][i + 2]) * fScaleY);
+				x = (int) ((m_dt.m_fRLinesY[0][i] + m_dt.m_fRLinesY[0][i + 1]) * fScaleX / 2.0f);
+				y = (int) ((m_dt.m_fRLinesX[0][i] + m_dt.m_fRLinesX[0][i + 1]) * fScaleY / 2.0f);
+				x0 = (int) ((m_dt.m_fRLinesY[0][i - 1]) * fScaleX);
+				y0 = (int) ((m_dt.m_fRLinesX[0][i - 1]) * fScaleY);
+				x1 = (int) ((m_dt.m_fRLinesY[0][i + 2]) * fScaleX);
+				y1 = (int) ((m_dt.m_fRLinesX[0][i + 2]) * fScaleY);
 			}
 			if (bUpdatePoints) {
 				m_rotationPoints[i / 4] = new RotationPoint(x, y);

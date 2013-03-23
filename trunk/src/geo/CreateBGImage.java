@@ -211,14 +211,18 @@ public class CreateBGImage {
 		g.setTransform(new AffineTransform(1.0, 0.0, 0.0, -1.0, 0.0, height));
 		g.fillRect(0, 0, width, height);
 		if (bgFile != null) {
-			BufferedImage bg = ImageIO.read(new File(bgFile));
-			int w = bg.getWidth();
-			int h = bg.getHeight();
-			int sx1 = (int)(w * (m_fBGImageBox[0] + 180) / 360.0);
-			int sy1 = h - (int)(h * (m_fBGImageBox[1] + 90) / 180.0);
-			int sx2 = (int)(w * (m_fBGImageBox[2] + 180) / 360.0);
-			int sy2 = h - (int)(h * (m_fBGImageBox[3] + 90) / 180.0);
-			g.drawImage(bg, 0, 0, width, height, sx1, sy1, sx2, sy2, null); 
+			try {
+				BufferedImage bg = ImageIO.read(new File(bgFile));
+				int w = bg.getWidth();
+				int h = bg.getHeight();
+				int sx1 = (int)(w * (m_fBGImageBox[0] + 180) / 360.0);
+				int sy1 = h - (int)(h * (m_fBGImageBox[1] + 90) / 180.0);
+				int sx2 = (int)(w * (m_fBGImageBox[2] + 180) / 360.0);
+				int sy2 = h - (int)(h * (m_fBGImageBox[3] + 90) / 180.0);
+				g.drawImage(bg, 0, 0, width, height, sx1, sy1, sx2, sy2, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		g.setStroke(new BasicStroke(linewidth));
 		int [] xPoints;
