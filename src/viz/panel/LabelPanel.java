@@ -122,15 +122,29 @@ public class LabelPanel extends JPanel {
 		gbc_chckbxAlign.gridx = 1;
 		gbc_chckbxAlign.gridy = 2;
 		add(chckbxAlign, gbc_chckbxAlign);
+		
+		JCheckBox chckbxHide = new JCheckBox("Hide");
+		chckbxHide.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				m_dt.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.makeDirty();
+			}
+		});
+		GridBagConstraints gbc_chckbxHide = new GridBagConstraints();
+		gbc_chckbxHide.anchor = GridBagConstraints.WEST;
+		gbc_chckbxHide.insets = new Insets(0, 0, 5, 0);
+		gbc_chckbxHide.gridx = 1;
+		gbc_chckbxHide.gridy = 3;
+		add(chckbxHide, gbc_chckbxHide);
 		GridBagConstraints gbc_btnFont = new GridBagConstraints();
 		gbc_btnFont.insets = new Insets(0, 0, 5, 5);
 		gbc_btnFont.gridx = 0;
-		gbc_btnFont.gridy = 3;
+		gbc_btnFont.gridy = 4;
 		add(btnFont, gbc_btnFont);
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
 		gbc_btnColor.insets = new Insets(0, 0, 5, 0);
 		gbc_btnColor.gridx = 1;
-		gbc_btnColor.gridy = 3;
+		gbc_btnColor.gridy = 4;
 		add(btnColor, gbc_btnColor);
 		
 		JLabel lblSearch = new JLabel("Search");
@@ -138,14 +152,14 @@ public class LabelPanel extends JPanel {
 		gbc_lblSearch.insets = new Insets(0, 0, 0, 5);
 		gbc_lblSearch.anchor = GridBagConstraints.WEST;
 		gbc_lblSearch.gridx = 0;
-		gbc_lblSearch.gridy = 4;
+		gbc_lblSearch.gridy = 5;
 		add(lblSearch, gbc_lblSearch);
 		
 		textField_1 = new JTextField();
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 1;
-		gbc_textField_1.gridy = 4;
+		gbc_textField_1.gridy = 5;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(5);
 		textField_1.getDocument().addDocumentListener(new DocumentListener() {
