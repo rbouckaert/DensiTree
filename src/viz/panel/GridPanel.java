@@ -35,11 +35,29 @@ public class GridPanel extends JPanel {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	final static String HELP_GRID = "Show lines indicating timescale. Options are to show none, " +
+			"short lines at the side of the panel, or full lines over the complete tree set.";
+	final static String HELP_DIGITS = "Set number of significant digits for the grid labels.";
+	final static String HELP_REVERSE = "By setting reverse, the time scale will be drawn forward in time. " +
+			"By default, time scale is drawn backward in time, so that the height of a tree is a positive " +
+			"number. Also, set 'origin' to the date of the youngest tip.";
+	final static String HELP_FONT = "Set font of the grid labels.";
+	final static String HELP_COLOR = "Set colour of the grid labels.";
+	final static String HELP_ORIGIN = "Set date of the youngest tip.";
+	final static String HELP_AUTOMATIC = "Automatically determine the number of ticks.";
+	final static String HELP_TICKS = "Interval between two ticks.";
+	final static String HELP_OFFSET = "Time added to the ticks.";
+	final static String HELP_SCALE = "Scale time, which can be handy when the tree is in substitutions " +
+			"and a clock rate is available from the literature. A negative scale has the same effect as " +
+			"selecting 'reverse' with a positive scale.";
+
+	
+
 	DensiTree m_dt;
 	ButtonGroup m_modeGroup = new ButtonGroup();
-	private JTextField m_offsetTextField;
-	private JTextField m_ticksTextField;
 	private JTextField m_originTextField;
+	private JTextField m_ticksTextField;
+	private JTextField m_offsetTextField;
 	SpinnerNumberModel significantDigitsModel;
 	private JTextField txtScale;
 	/**
@@ -54,7 +72,6 @@ public class GridPanel extends JPanel {
 		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		gridBagLayout.columnWeights = new double[] { 1.0, 1.0, 1.0, 0.0, 0.0 };
 		setLayout(gridBagLayout);
-		
 
 		JPanel panel = new JPanel();
 		panel.setBorder(new LineBorder(Color.gray));
@@ -101,7 +118,12 @@ public class GridPanel extends JPanel {
 		m_modeGroup.add(radioButton_2);
 		m_modeGroup.setSelected(rdbtnNewRadioButton_1.getModel(), true);
 		
+		rdbtnNewRadioButton.setToolTipText(formatToolTip(HELP_GRID));
+		rdbtnNewRadioButton_1.setToolTipText(formatToolTip(HELP_GRID));
+		radioButton_2.setToolTipText(formatToolTip(HELP_GRID));
+		
 		JLabel lblDigits = new JLabel("Digits");
+		lblDigits.setToolTipText(formatToolTip(HELP_DIGITS));
 		GridBagConstraints gbc_lblDigits = new GridBagConstraints();
 		gbc_lblDigits.anchor = GridBagConstraints.SOUTHWEST;
 		gbc_lblDigits.insets = new Insets(0, 0, 5, 5);
@@ -111,6 +133,7 @@ public class GridPanel extends JPanel {
 		
 		significantDigitsModel = new SpinnerNumberModel(m_dt.m_gridDrawer.m_nGridDigits, 0, 5, 1);
 		JSpinner spinner = new JSpinner(significantDigitsModel);
+		spinner.setToolTipText(formatToolTip(HELP_DIGITS));
 		significantDigitsModel.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				m_dt.m_gridDrawer.m_nGridDigits = (Integer) significantDigitsModel.getValue();
@@ -126,6 +149,7 @@ public class GridPanel extends JPanel {
 		add(spinner, gbc_spinner);
 
 		JCheckBox reverseGrid = new JCheckBox("Reverse");
+		reverseGrid.setToolTipText(formatToolTip(HELP_REVERSE));
 		GridBagConstraints c5 = new GridBagConstraints();
 		c5.insets = new Insets(0, 0, 5, 5);
 		c5.gridx = 0;
@@ -145,6 +169,7 @@ public class GridPanel extends JPanel {
 		});
 
 		JButton btnGridFont = new RoundedButton("Font");
+		btnGridFont.setToolTipText(formatToolTip(HELP_FONT));
 		GridBagConstraints c7 = new GridBagConstraints();
 		c7.insets = new Insets(0, 0, 5, 5);
 		c7.gridwidth = 2;
@@ -172,6 +197,7 @@ public class GridPanel extends JPanel {
 		});
 
 		JButton btnGridColor = new RoundedButton("Color");
+		btnGridColor.setToolTipText(formatToolTip(HELP_COLOR));
 		GridBagConstraints c6 = new GridBagConstraints();
 		c6.insets = new Insets(0, 0, 5, 5);
 		c6.gridwidth = 2;
@@ -193,7 +219,8 @@ public class GridPanel extends JPanel {
 			}
 		});
 
-		JLabel lblOffset = new JLabel("Offset");
+		JLabel lblOffset = new JLabel("Origin");
+		lblOffset.setToolTipText(formatToolTip(HELP_ORIGIN));
 		GridBagConstraints c4 = new GridBagConstraints();
 		c4.insets = new Insets(0, 0, 5, 5);
 		c4.gridx = 0;
@@ -203,25 +230,27 @@ public class GridPanel extends JPanel {
 		c4.fill = GridBagConstraints.HORIZONTAL;
 		add(lblOffset, c4);
 
-		m_offsetTextField = new JTextField();
-		m_offsetTextField.setText(m_dt.m_gridDrawer.m_fGridOffset + "");
+		m_originTextField = new JTextField();
+		m_originTextField.setToolTipText(formatToolTip(HELP_ORIGIN));
+		m_originTextField.setText(m_dt.m_gridDrawer.m_fGridOrigin + "");
 		GridBagConstraints c8 = new GridBagConstraints();
 		c8.gridwidth = 2;
 		c8.fill = GridBagConstraints.HORIZONTAL;
 		c8.insets = new Insets(0, 0, 5, 5);
 		c8.gridx = 1;
 		c8.gridy = 7;
-		add(m_offsetTextField, c8);
-		m_offsetTextField.setColumns(4);
+		add(m_originTextField, c8);
+		m_originTextField.setColumns(4);
 
 		JCheckBox chckbxAutomatic = new JCheckBox("Automatic");
+		chckbxAutomatic.setToolTipText(formatToolTip(HELP_AUTOMATIC));
 		chckbxAutomatic.setSelected(m_dt.m_gridDrawer.m_bAutoGrid);
 		chckbxAutomatic.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_gridDrawer.m_bAutoGrid;
 				m_dt.m_gridDrawer.m_bAutoGrid = ((JCheckBox) e.getSource()).isSelected();
 				m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
-				m_originTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+				m_offsetTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
 				if (bPrev != m_dt.m_gridDrawer.m_bAutoGrid) {
 					m_dt.makeDirty();
 					m_dt.repaint();
@@ -237,6 +266,7 @@ public class GridPanel extends JPanel {
 		add(chckbxAutomatic, gbc_chckbxAutomatic);
 
 		JLabel lblTicks = new JLabel("Ticks");
+		lblTicks.setToolTipText(formatToolTip(HELP_TICKS));
 		GridBagConstraints gbc_lblTicks = new GridBagConstraints();
 		gbc_lblTicks.anchor = GridBagConstraints.WEST;
 		gbc_lblTicks.insets = new Insets(0, 0, 5, 5);
@@ -245,17 +275,36 @@ public class GridPanel extends JPanel {
 		add(lblTicks, gbc_lblTicks);
 
 		m_ticksTextField = new JTextField();
+		m_ticksTextField.setToolTipText(formatToolTip(HELP_TICKS));
 		m_ticksTextField.setText(m_dt.m_gridDrawer.m_fGridTicks+"");
-		m_ticksTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		m_ticksTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			private void updateOffset() {
 				try {
 					m_dt.m_gridDrawer.m_fGridTicks = Float.parseFloat(m_ticksTextField.getText());
 					m_dt.makeDirty();
 					m_dt.repaint();
-				} catch (Exception ex) {
+				} catch (NumberFormatException e) {
+					// ignore
 				}
 			}
+
 		});
+
 		GridBagConstraints gbc_txtScale = new GridBagConstraints();
 		gbc_txtScale.gridwidth = 2;
 		gbc_txtScale.insets = new Insets(0, 0, 5, 5);
@@ -265,7 +314,8 @@ public class GridPanel extends JPanel {
 		add(m_ticksTextField, gbc_txtScale);
 		m_ticksTextField.setColumns(4);
 
-		JLabel lblOrigin = new JLabel("Origin");
+		JLabel lblOrigin = new JLabel("Offset");
+		lblOrigin.setToolTipText(formatToolTip(HELP_OFFSET));
 		GridBagConstraints gbc_lblOrigin = new GridBagConstraints();
 		gbc_lblOrigin.anchor = GridBagConstraints.WEST;
 		gbc_lblOrigin.insets = new Insets(0, 0, 5, 5);
@@ -273,26 +323,9 @@ public class GridPanel extends JPanel {
 		gbc_lblOrigin.gridy = 10;
 		add(lblOrigin, gbc_lblOrigin);
 
-		m_originTextField = new JTextField();
-		m_originTextField.setText(m_dt.m_gridDrawer.m_fGridOrigin+"");
-		m_originTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					m_dt.m_gridDrawer.m_fGridOrigin = Float.parseFloat(m_originTextField.getText());
-					m_dt.makeDirty();
-					m_dt.repaint();
-				} catch (Exception ex) {
-				}
-			}
-		});
-		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
-		gbc_textField_1.gridwidth = 2;
-		gbc_textField_1.insets = new Insets(0, 0, 5, 5);
-		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_1.gridx = 1;
-		gbc_textField_1.gridy = 10;
-		add(m_originTextField, gbc_textField_1);
-		m_originTextField.setColumns(4);
+		m_offsetTextField = new JTextField();
+		m_offsetTextField.setToolTipText(formatToolTip(HELP_OFFSET));
+		m_offsetTextField.setText(m_dt.m_gridDrawer.m_fGridOffset+"");
 		m_offsetTextField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
@@ -312,6 +345,42 @@ public class GridPanel extends JPanel {
 			private void updateOffset() {
 				try {
 					m_dt.m_gridDrawer.m_fGridOffset = Float.parseFloat(m_offsetTextField.getText());
+					m_dt.makeDirty();
+					m_dt.repaint();
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
+
+		});
+
+		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
+		gbc_textField_1.gridwidth = 2;
+		gbc_textField_1.insets = new Insets(0, 0, 5, 5);
+		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField_1.gridx = 1;
+		gbc_textField_1.gridy = 10;
+		add(m_offsetTextField, gbc_textField_1);
+		m_offsetTextField.setColumns(4);
+		m_originTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				updateOffset();
+			}
+
+			private void updateOffset() {
+				try {
+					m_dt.m_gridDrawer.m_fGridOrigin = Float.parseFloat(m_originTextField.getText());
 					m_dt.m_Panel.clearImage();
 					m_dt.repaint();
 				} catch (NumberFormatException e) {
@@ -321,7 +390,7 @@ public class GridPanel extends JPanel {
 
 		});
 		m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
-		m_originTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
+		m_offsetTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
 		
 		JSeparator separator = new JSeparator();
 		GridBagConstraints gbc_separator = new GridBagConstraints();
@@ -334,6 +403,7 @@ public class GridPanel extends JPanel {
 
 	
 		JLabel lblS = new JLabel("Scale");
+		lblS.setToolTipText(formatToolTip(HELP_SCALE));
 		GridBagConstraints gbc_lblS = new GridBagConstraints();
 		gbc_lblS.anchor = GridBagConstraints.WEST;
 		gbc_lblS.insets = new Insets(0, 0, 0, 5);
@@ -354,6 +424,7 @@ public class GridPanel extends JPanel {
 			}
 		});
 		txtScale.setText(m_dt.m_fUserScale + "");
+		txtScale.setToolTipText(formatToolTip(HELP_SCALE));
 		GridBagConstraints gbc_txtScale2 = new GridBagConstraints();
 		gbc_txtScale2.gridwidth = 2;
 		gbc_txtScale2.insets = new Insets(0, 0, 0, 5);
@@ -362,6 +433,22 @@ public class GridPanel extends JPanel {
 		gbc_txtScale2.gridy = 12;
 		add(txtScale, gbc_txtScale2);
 		txtScale.setColumns(4);
+	}
+	
+	public static String formatToolTip(String sToolTip) {
+		String sStr = "<html>";
+		String [] sStrs = sToolTip.split("\\s");
+		int k = 0;
+		for (String sStr2 : sStrs) {
+			k += sStr2.length();
+			if (k > 60) {
+				sStr += "<br/>";
+				k = sStr2.length();
+			}
+			sStr += sStr2 + " ";
+		}
+		sStr += "</html>";
+		return sStr;
 	}
 
 }

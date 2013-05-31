@@ -92,7 +92,7 @@ import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	//final static String VERSION = "2.1.5 release candidate";
-	final static String VERSION = "2.1.9";
+	final static String VERSION = "2.1.10";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 	final static String CITATION = "Remco R. Bouckaert\n"+
 		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -691,8 +691,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_random = new Random();
 		m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
 
-		m_gridDrawer.m_bReverseGrid = false;
-		m_gridDrawer.m_fGridOffset = 0;
+		//m_gridDrawer.m_bReverseGrid = false;
+		//m_gridDrawer.m_fGridOffset = 0;
 		m_rootcanaltree = null;
 		
 		try {

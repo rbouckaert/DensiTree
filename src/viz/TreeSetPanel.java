@@ -474,12 +474,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				m_image.init(g2, m_dt.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.m_nLabelWidth, m_dt.m_fMinLong, m_dt.m_fMaxLong,
 						m_dt.m_fMinLat, m_dt.m_fMaxLat);
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
-				if (m_dt.m_bDrawGeo && m_dt.m_fLatitude.size() > 0) {
-					g2.setColor(m_dt.m_color[DensiTree.GEOCOLOR]);
-					Stroke stroke = new BasicStroke(m_dt.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g2).setStroke(stroke);
-					m_dt.drawGeo(m_dt.m_cTrees[0], g2);
-				}
 				m_dt.m_gridDrawer.paintHeightInfo(g2);
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
 				if (m_image == null) {
@@ -536,6 +530,12 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		// need this here so that the screen is updated when selection of
 		// taxa changes
 		m_dt.drawLabels(m_dt.m_trees[0], g);
+		if (m_dt.m_bDrawGeo && m_dt.m_fLatitude.size() > 0) {
+			g.setColor(m_dt.m_color[DensiTree.GEOCOLOR]);
+			Stroke stroke = new BasicStroke(m_dt.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+			((Graphics2D) g).setStroke(stroke);
+			m_dt.drawGeo(m_dt.m_cTrees[0], g);
+		}
 		// ((Graphics2D) g).scale(m_dt.m_fScale, m_dt.m_fScale);
 		if (isDrawing()) {
 			try {
