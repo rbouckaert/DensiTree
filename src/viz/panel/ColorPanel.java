@@ -35,7 +35,23 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class ColorPanel extends JPanel implements ChangeListener {
-	
+	final public static String HELP_LINE_COLOR = "Determines line color for the complete tree set. " +
+			"So, this does not affect the consensus trees or root canal tree.\n" +
+			"DEFAULT: color 1 for most frequently occurring topology, color 2 for the second most popular, " +
+			"color 3 for the third, and color 4 for the remaining trees. Colors can be changed using the " +
+			"line colors button.\n" +
+			"COLOR_BY_CLADE: draw clades in one color.\n" +
+			"COLOR_BY_META_DATA_PATTERN: draw trees matching the regular expression specified in the pattern entry below.\n" +
+			"meta data attribute: only available if any meta data attribute is specified. Use value of the attribute to color branches.";
+	final public static String HELP_SHOW_LEGEND = "Show legend mapping colors to attribute values in the DensiTree. " +
+			"This only works when a discrete attribute is selected for line coloring.";
+	final public static String HELP_MULTI_COLOR_CONSENSUS_TREES = "Use different colours for consensus trees instead of the " +
+			"standard color.";
+	final public static String HELP_CATEGORICAL = "Interpret value of attribute as categorical data.";
+	final public static String HELP_PATTERN = "Regular expression used for coloring trees when COLOR_BY_META_DATA_PATTERN " +
+			"is chosen. The string of the pattern between brackets is selected as value.";
+	final public static String HELP_LINE_COLORS = "Specify custom colors.";
+			
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
@@ -193,6 +209,12 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		gbc_btnLineColors.gridy = 6;
 		add(btnLineColors, gbc_btnLineColors);
 		
+		comboBox.setToolTipText(DensiTree.formatToolTip(HELP_LINE_COLOR));
+		txtPattern.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
+		btnLineColors.setToolTipText(DensiTree.formatToolTip(HELP_LINE_COLORS));
+		chckbxShowLegend.setToolTipText(DensiTree.formatToolTip(HELP_SHOW_LEGEND));
+		chckbxCategorical.setToolTipText(DensiTree.formatToolTip(HELP_CATEGORICAL));
+		chckbxMultiColorConsensus.setToolTipText(DensiTree.formatToolTip(HELP_MULTI_COLOR_CONSENSUS_TREES));
 	}
 	
 	public class ColorDialog extends JDialog {

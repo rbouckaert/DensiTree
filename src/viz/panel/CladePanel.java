@@ -27,6 +27,21 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 public class CladePanel extends JPanel implements ChangeListener {
+	public final static String HELP_SHOW_CLADES = "Show information for individual clades. This is only " +
+			"activated when the drawing style is not default. The default style is not clade based, so " +
+			"there is no information to position clade information.";
+	public final static String HELP_SELECTED_ONLY = "Show information only for selected clades. Clades can " +
+			"be selected by clicking them in the DensiTree, or selecting them from the clade-bar (at botom " +
+			"of the screen).";
+	public final static String HELP_MEAN = "Show mean height of clades as line or and/as text.";
+	public final static String HELP_95HPD = "Show 95% highest probability density interval of the height of clades as bar and/or as text.";
+	public final static String HELP_SUPPORT = "Show support of clade as cricle and/or as text. The support is the fraction of " +
+			"trees in the tree set that contain the clade.";
+	public final static String HELP_DIGITS = "Number of significant digits to show clade information as text.";
+	public final static String HELP_FONT = "Font used to show clade information as text.";
+	public final static String HELP_COLOR  = "Color used to show clade information as text.";
+
+	
 	private static final long serialVersionUID = 1L;
 	DensiTree m_dt;
 	
@@ -307,6 +322,19 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(btnColor, gbc_btnColor);
 		
 		stateChanged(null);
+		
+		setToolTipText(DensiTree.formatToolTip(HELP_SELECTED_ONLY));
+		chckbxSelectionOnly.setToolTipText(DensiTree.formatToolTip(HELP_SELECTED_ONLY));
+		chckbxShowClades.setToolTipText(DensiTree.formatToolTip(HELP_SHOW_CLADES));
+		chckbxMean.setToolTipText(DensiTree.formatToolTip(HELP_MEAN));
+		chckbxhpd.setToolTipText(DensiTree.formatToolTip(HELP_95HPD));
+		chckbxSupport.setToolTipText(DensiTree.formatToolTip(HELP_SUPPORT));
+		checkBox.setToolTipText(DensiTree.formatToolTip(HELP_MEAN));
+		checkBox_1.setToolTipText(DensiTree.formatToolTip(HELP_95HPD));
+		checkBox_2.setToolTipText(DensiTree.formatToolTip(HELP_SUPPORT));
+		btnFont.setToolTipText(DensiTree.formatToolTip(HELP_FONT));
+		spinner.setToolTipText(DensiTree.formatToolTip(HELP_DIGITS));
+		btnColor.setToolTipText(DensiTree.formatToolTip(HELP_COLOR));
 	}
 
 	@Override

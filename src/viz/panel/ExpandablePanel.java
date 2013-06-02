@@ -186,16 +186,24 @@ public class ExpandablePanel extends JPanel {
 
 		GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
 		gbc_btnLoadLocations.gridwidth = 1;
-		gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
+		//gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnLoadLocations.gridx = 0;
 		gbc_btnLoadLocations.gridy = 0;
 		add(editButton, gbc_btnLoadLocations);
+		
+//		JButton helpButton = new HelpButton("?", true);
+//		GridBagConstraints gbc_help = new GridBagConstraints();
+//		gbc_help.gridwidth = 1;
+//		//gbc_help.fill = GridBagConstraints.HORIZONTAL;
+//		gbc_help.gridx = 1;
+//		gbc_help.gridy = 0;
+//		add(helpButton, gbc_help);
 
 		GridBagConstraints gbc_panel = new GridBagConstraints();
-		gbc_panel.gridwidth = 1;
 		gbc_panel.fill = GridBagConstraints.HORIZONTAL;
 		gbc_panel.gridx = 0;
 		gbc_panel.gridy = 1;
+		gbc_panel.gridwidth = 1;
 		add(panel, gbc_panel);
         
         

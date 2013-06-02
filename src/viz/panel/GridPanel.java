@@ -35,19 +35,21 @@ public class GridPanel extends JPanel {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	final static String HELP_GRID = "Show lines indicating timescale. Options are to show none, " +
+	final public static String HELP_GRID = "Show lines indicating timescale. Options are to show none, " +
 			"short lines at the side of the panel, or full lines over the complete tree set.";
-	final static String HELP_DIGITS = "Set number of significant digits for the grid labels.";
-	final static String HELP_REVERSE = "By setting reverse, the time scale will be drawn forward in time. " +
+	final public static String HELP_DIGITS = "Set number of significant digits for the grid labels.";
+	final public static String HELP_REVERSE = "By setting reverse, the time scale will be drawn forward in time. " +
 			"By default, time scale is drawn backward in time, so that the height of a tree is a positive " +
 			"number. Also, set 'origin' to the date of the youngest tip.";
-	final static String HELP_FONT = "Set font of the grid labels.";
-	final static String HELP_COLOR = "Set colour of the grid labels.";
-	final static String HELP_ORIGIN = "Set date of the youngest tip.";
-	final static String HELP_AUTOMATIC = "Automatically determine the number of ticks.";
-	final static String HELP_TICKS = "Interval between two ticks.";
-	final static String HELP_OFFSET = "Time added to the ticks.";
-	final static String HELP_SCALE = "Scale time, which can be handy when the tree is in substitutions " +
+	final public static String HELP_FONT = "Set font of the grid labels.";
+	final public static String HELP_COLOR = "Set colour of the grid labels.";
+	final public static String HELP_ORIGIN = "Set date of the youngest tip.";
+	final public static String HELP_AUTOMATIC = "Automatically determine the number of ticks.";
+	final public static String HELP_TICKS = "Interval between two ticks.";
+	final public static String HELP_OFFSET = "Time added to the ticks. This can be usefull when the youngest tip of the " +
+			"tree is on a number that is not quite a round number, for example 2003.4. Setting the offset to " +
+			"-3.4 ensures the grid lines will be drawn on 2000 instead of through 2003.4.";
+	final public static String HELP_SCALE = "Scale time, which can be handy when the tree is in substitutions " +
 			"and a clock rate is available from the literature. A negative scale has the same effect as " +
 			"selecting 'reverse' with a positive scale.";
 
@@ -118,12 +120,12 @@ public class GridPanel extends JPanel {
 		m_modeGroup.add(radioButton_2);
 		m_modeGroup.setSelected(rdbtnNewRadioButton_1.getModel(), true);
 		
-		rdbtnNewRadioButton.setToolTipText(formatToolTip(HELP_GRID));
-		rdbtnNewRadioButton_1.setToolTipText(formatToolTip(HELP_GRID));
-		radioButton_2.setToolTipText(formatToolTip(HELP_GRID));
+		rdbtnNewRadioButton.setToolTipText(DensiTree.formatToolTip(HELP_GRID));
+		rdbtnNewRadioButton_1.setToolTipText(DensiTree.formatToolTip(HELP_GRID));
+		radioButton_2.setToolTipText(DensiTree.formatToolTip(HELP_GRID));
 		
 		JLabel lblDigits = new JLabel("Digits");
-		lblDigits.setToolTipText(formatToolTip(HELP_DIGITS));
+		lblDigits.setToolTipText(DensiTree.formatToolTip(HELP_DIGITS));
 		GridBagConstraints gbc_lblDigits = new GridBagConstraints();
 		gbc_lblDigits.anchor = GridBagConstraints.SOUTHWEST;
 		gbc_lblDigits.insets = new Insets(0, 0, 5, 5);
@@ -133,7 +135,7 @@ public class GridPanel extends JPanel {
 		
 		significantDigitsModel = new SpinnerNumberModel(m_dt.m_gridDrawer.m_nGridDigits, 0, 5, 1);
 		JSpinner spinner = new JSpinner(significantDigitsModel);
-		spinner.setToolTipText(formatToolTip(HELP_DIGITS));
+		spinner.setToolTipText(DensiTree.formatToolTip(HELP_DIGITS));
 		significantDigitsModel.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				m_dt.m_gridDrawer.m_nGridDigits = (Integer) significantDigitsModel.getValue();
@@ -149,7 +151,7 @@ public class GridPanel extends JPanel {
 		add(spinner, gbc_spinner);
 
 		JCheckBox reverseGrid = new JCheckBox("Reverse");
-		reverseGrid.setToolTipText(formatToolTip(HELP_REVERSE));
+		reverseGrid.setToolTipText(DensiTree.formatToolTip(HELP_REVERSE));
 		GridBagConstraints c5 = new GridBagConstraints();
 		c5.insets = new Insets(0, 0, 5, 5);
 		c5.gridx = 0;
@@ -169,7 +171,7 @@ public class GridPanel extends JPanel {
 		});
 
 		JButton btnGridFont = new RoundedButton("Font");
-		btnGridFont.setToolTipText(formatToolTip(HELP_FONT));
+		btnGridFont.setToolTipText(DensiTree.formatToolTip(HELP_FONT));
 		GridBagConstraints c7 = new GridBagConstraints();
 		c7.insets = new Insets(0, 0, 5, 5);
 		c7.gridwidth = 2;
@@ -197,7 +199,7 @@ public class GridPanel extends JPanel {
 		});
 
 		JButton btnGridColor = new RoundedButton("Color");
-		btnGridColor.setToolTipText(formatToolTip(HELP_COLOR));
+		btnGridColor.setToolTipText(DensiTree.formatToolTip(HELP_COLOR));
 		GridBagConstraints c6 = new GridBagConstraints();
 		c6.insets = new Insets(0, 0, 5, 5);
 		c6.gridwidth = 2;
@@ -220,7 +222,7 @@ public class GridPanel extends JPanel {
 		});
 
 		JLabel lblOffset = new JLabel("Origin");
-		lblOffset.setToolTipText(formatToolTip(HELP_ORIGIN));
+		lblOffset.setToolTipText(DensiTree.formatToolTip(HELP_ORIGIN));
 		GridBagConstraints c4 = new GridBagConstraints();
 		c4.insets = new Insets(0, 0, 5, 5);
 		c4.gridx = 0;
@@ -231,7 +233,7 @@ public class GridPanel extends JPanel {
 		add(lblOffset, c4);
 
 		m_originTextField = new JTextField();
-		m_originTextField.setToolTipText(formatToolTip(HELP_ORIGIN));
+		m_originTextField.setToolTipText(DensiTree.formatToolTip(HELP_ORIGIN));
 		m_originTextField.setText(m_dt.m_gridDrawer.m_fGridOrigin + "");
 		GridBagConstraints c8 = new GridBagConstraints();
 		c8.gridwidth = 2;
@@ -243,7 +245,7 @@ public class GridPanel extends JPanel {
 		m_originTextField.setColumns(4);
 
 		JCheckBox chckbxAutomatic = new JCheckBox("Automatic");
-		chckbxAutomatic.setToolTipText(formatToolTip(HELP_AUTOMATIC));
+		chckbxAutomatic.setToolTipText(DensiTree.formatToolTip(HELP_AUTOMATIC));
 		chckbxAutomatic.setSelected(m_dt.m_gridDrawer.m_bAutoGrid);
 		chckbxAutomatic.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -266,7 +268,7 @@ public class GridPanel extends JPanel {
 		add(chckbxAutomatic, gbc_chckbxAutomatic);
 
 		JLabel lblTicks = new JLabel("Ticks");
-		lblTicks.setToolTipText(formatToolTip(HELP_TICKS));
+		lblTicks.setToolTipText(DensiTree.formatToolTip(HELP_TICKS));
 		GridBagConstraints gbc_lblTicks = new GridBagConstraints();
 		gbc_lblTicks.anchor = GridBagConstraints.WEST;
 		gbc_lblTicks.insets = new Insets(0, 0, 5, 5);
@@ -275,7 +277,7 @@ public class GridPanel extends JPanel {
 		add(lblTicks, gbc_lblTicks);
 
 		m_ticksTextField = new JTextField();
-		m_ticksTextField.setToolTipText(formatToolTip(HELP_TICKS));
+		m_ticksTextField.setToolTipText(DensiTree.formatToolTip(HELP_TICKS));
 		m_ticksTextField.setText(m_dt.m_gridDrawer.m_fGridTicks+"");
 		m_ticksTextField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -315,7 +317,7 @@ public class GridPanel extends JPanel {
 		m_ticksTextField.setColumns(4);
 
 		JLabel lblOrigin = new JLabel("Offset");
-		lblOrigin.setToolTipText(formatToolTip(HELP_OFFSET));
+		lblOrigin.setToolTipText(DensiTree.formatToolTip(HELP_OFFSET));
 		GridBagConstraints gbc_lblOrigin = new GridBagConstraints();
 		gbc_lblOrigin.anchor = GridBagConstraints.WEST;
 		gbc_lblOrigin.insets = new Insets(0, 0, 5, 5);
@@ -324,7 +326,7 @@ public class GridPanel extends JPanel {
 		add(lblOrigin, gbc_lblOrigin);
 
 		m_offsetTextField = new JTextField();
-		m_offsetTextField.setToolTipText(formatToolTip(HELP_OFFSET));
+		m_offsetTextField.setToolTipText(DensiTree.formatToolTip(HELP_OFFSET));
 		m_offsetTextField.setText(m_dt.m_gridDrawer.m_fGridOffset+"");
 		m_offsetTextField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -403,7 +405,7 @@ public class GridPanel extends JPanel {
 
 	
 		JLabel lblS = new JLabel("Scale");
-		lblS.setToolTipText(formatToolTip(HELP_SCALE));
+		lblS.setToolTipText(DensiTree.formatToolTip(HELP_SCALE));
 		GridBagConstraints gbc_lblS = new GridBagConstraints();
 		gbc_lblS.anchor = GridBagConstraints.WEST;
 		gbc_lblS.insets = new Insets(0, 0, 0, 5);
@@ -424,7 +426,7 @@ public class GridPanel extends JPanel {
 			}
 		});
 		txtScale.setText(m_dt.m_fUserScale + "");
-		txtScale.setToolTipText(formatToolTip(HELP_SCALE));
+		txtScale.setToolTipText(DensiTree.formatToolTip(HELP_SCALE));
 		GridBagConstraints gbc_txtScale2 = new GridBagConstraints();
 		gbc_txtScale2.gridwidth = 2;
 		gbc_txtScale2.insets = new Insets(0, 0, 0, 5);
@@ -433,22 +435,6 @@ public class GridPanel extends JPanel {
 		gbc_txtScale2.gridy = 12;
 		add(txtScale, gbc_txtScale2);
 		txtScale.setColumns(4);
-	}
-	
-	public static String formatToolTip(String sToolTip) {
-		String sStr = "<html>";
-		String [] sStrs = sToolTip.split("\\s");
-		int k = 0;
-		for (String sStr2 : sStrs) {
-			k += sStr2.length();
-			if (k > 60) {
-				sStr += "<br/>";
-				k = sStr2.length();
-			}
-			sStr += sStr2 + " ";
-		}
-		sStr += "</html>";
-		return sStr;
 	}
 
 }

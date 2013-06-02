@@ -21,6 +21,17 @@ import javax.swing.JComboBox;
 import javax.swing.JSeparator;
 
 public class ShowPanel extends JPanel implements ChangeListener {
+	final public static String HELP_CONSENSUS_TREES = "Display consensus trees. There is one consensus tree for every topology " +
+			"in the tree set. The height of the nodes are the average of the heights for that topology.";
+	final public static String HELP_ALL_TREES = "Show all trees in the tree set.";
+	final public static String HELP_ROOT_CANAL = "Show root canal tree. This is a single summary tree representing the complete tree set. " +
+			"There are many ways to construct a summary tree.";
+	final public static String HELP_ROOT_CANAL_NUMBER = "Select root canal tree to display.";
+	final public static String HELP_IMPORT = "Import root canal tree from Newick or from the summary_tree program.";
+	final public static String HELP_ROOT_AT_TOP_ = "Display the root at the top of the display instead of on the left hand side.";
+	final public static String HELP_EDIT_TREE = "Display edit tree for manipulating order of tree and position of internal nodes. " +
+			"Works only with default drawing style.";
+
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
@@ -197,6 +208,15 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(chckbxShowEditTree, gbc_chckbxShowEditTree);
 		
 		stateChanged(null);
+		
+		checkBox_1.setToolTipText(DensiTree.formatToolTip(HELP_CONSENSUS_TREES));
+		checkBox.setToolTipText(DensiTree.formatToolTip(HELP_ALL_TREES));
+		checkBox_3.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_AT_TOP_));
+		chckbxShowEditTree.setToolTipText(DensiTree.formatToolTip(HELP_EDIT_TREE));
+		comboBox.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_CANAL_NUMBER));
+		checkBoxShowRotoCanal.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_CANAL));
+		btnImport.setToolTipText(DensiTree.formatToolTip(HELP_IMPORT));
+
 	}
 
 	@Override

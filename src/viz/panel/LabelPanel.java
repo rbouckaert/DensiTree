@@ -22,6 +22,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LabelPanel extends JPanel {
+	final public static String HELP_LABEL_WIDTH = "Width of the label.";
+	final public static String HELP_ROTATE = "Rotate label -- is only effective when root at top.";
+	final public static String HELP_ALIGN = "Align labels with label for youngest tip. This is only useful when tips are not all from the same date.";
+	final public static String HELP_HIDE = "Hide labels.";
+	final public static String HELP_FONT = "Font used for labels.";
+	final public static String HELP_COLOR = "Color used for labels.";
+	final public static String HELP_SEARCH = "Search for labels. Labels matching the search string will be selected/highlighted.";
+	
 	private static final long serialVersionUID = 1L;
 	
 	private JTextField textField;
@@ -39,6 +47,7 @@ public class LabelPanel extends JPanel {
 //		add(panel, gbc_panel);
 		
 		JLabel lblWidth = new JLabel("Width");
+		lblWidth.setToolTipText(DensiTree.formatToolTip(HELP_LABEL_WIDTH));
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.anchor = GridBagConstraints.WEST;
 		gbc_panel.insets = new Insets(0, 0, 5, 5);
@@ -47,6 +56,7 @@ public class LabelPanel extends JPanel {
 		add(lblWidth, gbc_panel);
 		
 		textField = new JTextField();
+		textField.setToolTipText(DensiTree.formatToolTip(HELP_LABEL_WIDTH));
 		textField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try{
@@ -66,6 +76,7 @@ public class LabelPanel extends JPanel {
 		textField.setColumns(5);
 		
 		JCheckBox chckbxRotate = new JCheckBox("Rotate");
+		chckbxRotate.setToolTipText(DensiTree.formatToolTip(HELP_ROTATE));
 		chckbxRotate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JCheckBox button = (JCheckBox) e.getSource();
@@ -81,6 +92,7 @@ public class LabelPanel extends JPanel {
 		add(chckbxRotate, gbc_chckbxRotate);
 		
 		JButton btnColor = new RoundedButton("Color");
+		btnColor.setToolTipText(DensiTree.formatToolTip(HELP_COLOR));
 		btnColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.LABELCOLOR]);
@@ -93,6 +105,7 @@ public class LabelPanel extends JPanel {
 		});
 		
 		JButton btnFont = new RoundedButton("Font");
+		btnFont.setToolTipText(DensiTree.formatToolTip(HELP_FONT));
 		btnFont.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFontChooser fontChooser = new JFontChooser();
@@ -109,6 +122,7 @@ public class LabelPanel extends JPanel {
 		});
 		
 		JCheckBox chckbxAlign = new JCheckBox("Align");
+		chckbxAlign.setToolTipText(DensiTree.formatToolTip(HELP_ALIGN));
 		chckbxAlign.setSelected(m_dt.m_bAlignLabels);
 		chckbxAlign.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -124,6 +138,7 @@ public class LabelPanel extends JPanel {
 		add(chckbxAlign, gbc_chckbxAlign);
 		
 		JCheckBox chckbxHide = new JCheckBox("Hide");
+		chckbxHide.setToolTipText(DensiTree.formatToolTip(HELP_HIDE));
 		chckbxHide.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
@@ -148,6 +163,7 @@ public class LabelPanel extends JPanel {
 		add(btnColor, gbc_btnColor);
 		
 		JLabel lblSearch = new JLabel("Search");
+		lblSearch.setToolTipText(DensiTree.formatToolTip(HELP_SEARCH));
 		GridBagConstraints gbc_lblSearch = new GridBagConstraints();
 		gbc_lblSearch.insets = new Insets(0, 0, 0, 5);
 		gbc_lblSearch.anchor = GridBagConstraints.WEST;
@@ -156,6 +172,7 @@ public class LabelPanel extends JPanel {
 		add(lblSearch, gbc_lblSearch);
 		
 		textField_1 = new JTextField();
+		textField_1.setToolTipText(DensiTree.formatToolTip(HELP_SEARCH));
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 1;
