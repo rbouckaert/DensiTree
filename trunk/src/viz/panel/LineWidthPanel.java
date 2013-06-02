@@ -37,6 +37,28 @@ import javax.swing.JSeparator;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter.DEFAULT;
 
 public class LineWidthPanel extends JPanel implements ChangeListener {
+	final static public String HELP_LINE_WIDTH = "Determine line width of trees of both tree set and consensus trees." +
+			"For consensus trees, the average value for the topology is used.\n" +
+			"DEFAULT: all lines are same width.\n" +
+			"BY_META_DATA_PATTERN: use value of pattern specified below.\n" +
+			"BY_META_DATA_NUMBER: use the N-th attribute value in the meta data.\n" +
+			"meta data attribute: only available if any meta data attribute is specified. Use value of the attribute for line width of branches.";
+	final static public String HELP_PATTERN = "Regular expression used for width of branches when BY_META_DATA_PATTERN " +
+			"is chosen. The string of the pattern between brackets is selected as value.;";
+	final static public String HELP_TOP = "Specifies N-th meta data attribute for top of branch when BY_META_DATA_NUMBER is seleced.";
+	final static public String HELP_LINE_WIDTH_BOTTOM = "Line width at bottom of branch.\n" +
+			"same as top: use same specification as for top of branch.\n" +
+			"Fit to bottom: adjust bottom widths so they fit to top of branch below.\n" +
+			"BY_META_DATA_PATTERN: use value of pattern specified below.\n" +
+			"BY_META_DATA_NUMBER: use the N-th attribute value in the meta data.\n" +
+			"meta data attribute: only available if any meta data attribute is specified. Use value of the attribute for line width of branches.";
+	final static public String HELP_BOTTOM = "Specifies N-th meta data attribute for top of branch when BY_META_DATA_NUMBER is seleced.";
+	final static public String HELP_ZERO_BASED = "If selected, the minimum value is zero, otherwise the minimum value of the range of " +
+			"whatever value is used.";
+	final static public String HELP_SCALE = "Scale width with this number.";
+	
+	
+	
 	private static final long serialVersionUID = 1L;
 	private JTextField textField;
 	private JTextField textField_1;
@@ -48,7 +70,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 	JComboBox comboBoxBottom;
 	JComboBox comboBoxTop= new JComboBox();
 
-	final static String SAME_AS_BOTTOM = "Same as bottom";
+	final static String SAME_AS_BOTTOM = "Same as top";
 	final static String MAKE_FIT_BOTTOM = "Make fit to bottom";
 	
 	DensiTree m_dt;
@@ -170,6 +192,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				}
 			}
 		});
+		
 		
 		JLabel lblNumberOfItem_1 = new JLabel("top");
 		GridBagConstraints gbc_lblNumberOfItem_1 = new GridBagConstraints();
@@ -343,6 +366,16 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 //			}
 //		}
 		
+		textField.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
+		textField_1.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
+		textField_3.setToolTipText(DensiTree.formatToolTip(HELP_SCALE));
+		spinner.setToolTipText(DensiTree.formatToolTip(HELP_TOP));
+		spinner_1.setToolTipText(DensiTree.formatToolTip(HELP_BOTTOM));
+		lblNumberOfItem_1.setToolTipText(DensiTree.formatToolTip(HELP_TOP));
+		lblNumberOfItem.setToolTipText(DensiTree.formatToolTip(HELP_BOTTOM));
+		comboBoxBottom.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH));
+		comboBoxTop.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH_BOTTOM));
+		chckbxZeroBased.setToolTipText(DensiTree.formatToolTip(HELP_ZERO_BASED));
 	}
 			
 	private void updateEnabled() {

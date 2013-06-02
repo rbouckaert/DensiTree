@@ -272,7 +272,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * burn in = nr of trees ignored at the start of tree file, can be set by
 	 * command line option
 	 **/
-	public int m_nBurnIn = 0;
+	public int m_nBurnIn = 10;
+	public boolean m_bBurnInIsPercentage = true;
 
 	double m_w = 0;
 	/** current directory for opening files **/
@@ -5350,6 +5351,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_changeListeners.add(changeListener);
 	}
 
+	public static String formatToolTip(String sToolTip) {
+		String sStr = "<html>";
+		int k = 0;
+		for (int i = 0; i < sToolTip.length(); i++) {
+			char c = sToolTip.charAt(i);
+			if (c == '\n') {
+				sStr += "<br/>";
+				k = 0;
+			} else if (Character.isWhitespace(c)) {
+				if ( k > 60) {
+					sStr += "<br/>";
+					k = 0;
+				} else {
+					sStr += " ";
+				}
+			} else {
+				sStr += c;
+			}
+			k++;
+		}
+		sStr += "</html>";
+		return sStr;
+	}
 	/**
 	 * Main method
 	 */
