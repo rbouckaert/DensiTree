@@ -85,9 +85,9 @@ public class DocumentationCreator extends DensiTreeBase {
 		String _class = o.getClass().getName();
 		_class = _class.substring(_class.lastIndexOf('.') + 1);
 		_class = _class.replace("Panel", " Panel");
-		out.println("\\section{" + _class + "}");
+		out.println("\\subsubsection{" + _class + "}");
 		out.println("\\begin{center}");
-		out.println("\\includegraphics[width=0.4\\textwidth]{screenshots/" + _class.replaceAll(" ", "") + "}");
+		out.println("\\includegraphics[width=0.25\\textwidth]{screenshots/" + _class.replaceAll(" ", "") + "}");
 		out.println("\\end{center}");
 		
 		Field [] fields = o.getClass().getFields();
