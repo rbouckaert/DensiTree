@@ -4380,7 +4380,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -20389110859353L;
 		public void actionPerformed(ActionEvent ae) {
 			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
-					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2012\n\n" +
+					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2013\n\n" +
 							"Citation:\n" + CITATION,
 					"About Message", JOptionPane.YES_NO_OPTION,
 					JOptionPane.PLAIN_MESSAGE, getIcon("DensiTree"), new String[]{"Copy citation to clipboard","Close"},"Close") == 0) {
