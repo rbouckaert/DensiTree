@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import javax.swing.JCheckBox;
 
 import viz.DensiTree;
+import viz.util.Util;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
@@ -53,7 +54,7 @@ public class GeoPanel extends JPanel {
 		setLayout(gridBagLayout);
 		
 		JCheckBox chckbxShowGeoInfo = new JCheckBox("<html>Show geo info<br>(if any)</html>");
-		chckbxShowGeoInfo.setToolTipText(DensiTree.formatToolTip(HELP_SHOW_GEO_INFO));
+		chckbxShowGeoInfo.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_GEO_INFO));
 		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -72,7 +73,7 @@ public class GeoPanel extends JPanel {
 		add(chckbxShowGeoInfo, gbc_chckbxShowGeoInfo);
 		
 		JLabel lblLineWidth = new JLabel("Line width");
-		lblLineWidth.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH));
+		lblLineWidth.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_WIDTH));
 		GridBagConstraints gbc_lblLineWidth = new GridBagConstraints();
 		gbc_lblLineWidth.anchor = GridBagConstraints.EAST;
 		gbc_lblLineWidth.insets = new Insets(0, 0, 5, 5);
@@ -86,7 +87,7 @@ public class GeoPanel extends JPanel {
 		                               100, //max
 		                               1); // stepsize 
 		JSpinner spinner = new JSpinner(model);
-		spinner.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH));
+		spinner.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_WIDTH));
 		GridBagConstraints gbc_spinner = new GridBagConstraints();
 		gbc_spinner.anchor = GridBagConstraints.WEST;
 		gbc_spinner.insets = new Insets(0, 0, 5, 0);
@@ -106,7 +107,7 @@ public class GeoPanel extends JPanel {
 		});
 				
 		JButton btnLoadLocations = new RoundedButton("<html>Load<br>locations</html>");
-		btnLoadLocations.setToolTipText(DensiTree.formatToolTip(HELP_LOAD_LOCATIONS));
+		btnLoadLocations.setToolTipText(Util.formatToolTipAsHtml(HELP_LOAD_LOCATIONS));
 		btnLoadLocations.setText("<html>Load locations</html>");
 		btnLoadLocations.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -122,7 +123,7 @@ public class GeoPanel extends JPanel {
 		add(btnLoadLocations, gbc_btnLoadLocations);
 				
 		JButton btnLineColor = new RoundedButton("Color");
-		btnLineColor.setToolTipText(DensiTree.formatToolTip(HELP_COLOR));
+		btnLineColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 		btnLineColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);

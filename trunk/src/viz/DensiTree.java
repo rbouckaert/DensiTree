@@ -5351,29 +5351,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_changeListeners.add(changeListener);
 	}
 
-	public static String formatToolTip(String sToolTip) {
-		String sStr = "<html>";
-		int k = 0;
-		for (int i = 0; i < sToolTip.length(); i++) {
-			char c = sToolTip.charAt(i);
-			if (c == '\n') {
-				sStr += "<br/>";
-				k = 0;
-			} else if (Character.isWhitespace(c)) {
-				if ( k > 60) {
-					sStr += "<br/>";
-					k = 0;
-				} else {
-					sStr += " ";
-				}
-			} else {
-				sStr += c;
-			}
-			k++;
-		}
-		sStr += "</html>";
-		return sStr;
-	}
 	/**
 	 * Main method
 	 */

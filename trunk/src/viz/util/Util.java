@@ -86,4 +86,46 @@ public class Util {
     public static boolean isMac() {
         return System.getProperty("os.name").toLowerCase().startsWith("mac");
     }
+
+	public static String formatToolTipAsHtml(String sToolTip) {
+		String sStr = "<html>";
+		int k = 0;
+		for (int i = 0; i < sToolTip.length(); i++) {
+			char c = sToolTip.charAt(i);
+			if (c == '\n') {
+				sStr += "<br/>";
+				k = 0;
+			} else if (Character.isWhitespace(c)) {
+				if ( k > 60) {
+					sStr += "<br/>";
+					k = 0;
+				} else {
+					sStr += " ";
+				}
+			} else {
+				sStr += c;
+			}
+			k++;
+		}
+		sStr += "</html>";
+		return sStr;
+	}
+
+	public static String formatToolTipAsTeX(String sToolTip) {
+		String sStr = "";
+		for (int i = 0; i < sToolTip.length(); i++) {
+			char c = sToolTip.charAt(i);
+			if (c == '\n') {
+				sStr += "\n\n";
+			} else if (c == '%') {
+				sStr += "\\%";
+			} else if (c == '_') {
+				sStr += "\\_";
+			} else {
+				sStr += c;
+			}
+		}
+		return sStr;
+	}
+
 }

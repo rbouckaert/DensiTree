@@ -15,6 +15,7 @@ import javax.swing.JCheckBox;
 import viz.DensiTree;
 import viz.DensiTree.LineColorMode;
 import viz.DensiTree.MetaDataType;
+import viz.util.Util;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
@@ -209,12 +210,12 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		gbc_btnLineColors.gridy = 6;
 		add(btnLineColors, gbc_btnLineColors);
 		
-		comboBox.setToolTipText(DensiTree.formatToolTip(HELP_LINE_COLOR));
-		txtPattern.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
-		btnLineColors.setToolTipText(DensiTree.formatToolTip(HELP_LINE_COLORS));
-		chckbxShowLegend.setToolTipText(DensiTree.formatToolTip(HELP_SHOW_LEGEND));
-		chckbxCategorical.setToolTipText(DensiTree.formatToolTip(HELP_CATEGORICAL));
-		chckbxMultiColorConsensus.setToolTipText(DensiTree.formatToolTip(HELP_MULTI_COLOR_CONSENSUS_TREES));
+		comboBox.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_COLOR));
+		txtPattern.setToolTipText(Util.formatToolTipAsHtml(HELP_PATTERN));
+		btnLineColors.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_COLORS));
+		chckbxShowLegend.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_LEGEND));
+		chckbxCategorical.setToolTipText(Util.formatToolTipAsHtml(HELP_CATEGORICAL));
+		chckbxMultiColorConsensus.setToolTipText(Util.formatToolTipAsHtml(HELP_MULTI_COLOR_CONSENSUS_TREES));
 	}
 	
 	public class ColorDialog extends JDialog {

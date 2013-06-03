@@ -22,6 +22,7 @@ package viz;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.Vector;
 
@@ -44,6 +45,7 @@ public class TreeFileParser {
 	int m_nNrOfLabels;
 	/** burn in = nr of trees ignored at the start of tree file, can be set by command line option **/
 	int m_nBurnIn = 0;
+	boolean m_bBurnInIsPercentage = true;
 	//DensiTree m_densiTree;
 	/** for memory saving, set to true **/
 	boolean m_bSurpressMetadata = true;
@@ -58,6 +60,7 @@ public class TreeFileParser {
 		m_fLongitude = densiTree.m_fLongitude;
 		m_fLatitude = densiTree.m_fLatitude;
 		m_nBurnIn = densiTree.m_nBurnIn;
+		m_bBurnInIsPercentage = densiTree.m_bBurnInIsPercentage;
 		m_fMinLat = 90; m_fMinLong = 180;
 		m_fMaxLat = -90; m_fMaxLong = -180;
 		m_bAllowSingleChild = densiTree.m_bAllowSingleChild;
@@ -80,12 +83,18 @@ public class TreeFileParser {
 		//Vector<String> sNewickTrees = new Vector<String>();
 		Vector<Node> trees = new Vector<Node>();
 		m_nOffset = 0;
+		
+		File file = new File(sFile);
+		long nFileSize = file.length();
+		
 		// parse Newick tree file
 		BufferedReader fin = new BufferedReader(new FileReader(sFile));
 		String sStr = fin.readLine();
+		nFileSize -= sStr.length();
 		// grab translate block
 		while (fin.ready() && sStr.toLowerCase().indexOf("translate") < 0) {
 			sStr = fin.readLine();
+			nFileSize -= sStr.length();
 		}
 		m_bIsLabelledNewick = false;
 		m_nNrOfLabels = m_sLabels.size();
@@ -95,8 +104,21 @@ public class TreeFileParser {
 			// could not find translate block, assume it is a list of Newick trees instead of Nexus file
 			fin.close();
 			fin = new BufferedReader(new FileReader(sFile));
+
+			int nBurnIn = m_nBurnIn;
+			if (m_bBurnInIsPercentage) {
+				nFileSize = file.length();
+				nBurnIn = (int) (m_nBurnIn * nFileSize/ 100);
+			}
+			
 			while (fin.ready() && m_nNrOfLabels == 0) {
+				nFileSize = file.length();
 				sStr = fin.readLine();
+				if (m_bBurnInIsPercentage) {
+					nBurnIn -= sStr.length();
+				} else {
+					nBurnIn--;
+				}
 				if (sStr.length() > 2 && sStr.indexOf("(") >= 0) {
 					String sStr2 = sStr;
 					sStr2 = sStr2.substring(sStr2.indexOf("("));
@@ -117,10 +139,12 @@ public class TreeFileParser {
 							}
 						}
 					}
-					Node tree = parseNewick(sStr);
-					tree.sort();
-					tree.labelInternalNodes(m_nNrOfLabels);
-					trees.add(tree);
+					if (nBurnIn < 0) {
+						Node tree = parseNewick(sStr);
+						tree.sort();
+						tree.labelInternalNodes(m_nNrOfLabels);
+						trees.add(tree);
+					}
 //					sNewickTrees.add(sStr);
 				}
 			}
@@ -138,6 +162,7 @@ public class TreeFileParser {
 		} else {
 			// read tree set from file, and store in individual strings
 			sStr = fin.readLine();
+			nFileSize -= sStr.length(); 
 			//m_nNrOfLabels = 0;
 			boolean bLastLabel = false;
 			while (fin.ready() && !bLastLabel) {
@@ -189,14 +214,22 @@ public class TreeFileParser {
 				}
 				if (!bLastLabel) {
 					sStr = fin.readLine();
+					nFileSize -= sStr.length(); 
 				}
 			}
 			
 			// read trees
 			int nBurnIn = m_nBurnIn;
+			if (m_bBurnInIsPercentage) {
+				nBurnIn = (int) (m_nBurnIn * nFileSize/ 100);
+			}
+			
 			//int k = 0;
 			while (fin.ready()) {
 				sStr = fin.readLine();
+				if (m_bBurnInIsPercentage) {
+					nBurnIn -= sStr.length();
+				}
 				sStr = sStr.trim();
 				if (sStr.length() > 5) {
 					String sTree = sStr.substring(0,5);
@@ -222,16 +255,22 @@ public class TreeFileParser {
 							if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
 							//sNewickTrees.add(sStr);
 						} else {
-							nBurnIn--;
+							if (!m_bBurnInIsPercentage) {
+								nBurnIn--;
+							}
 						}
 					}
 				}
 			}
 			fin.close();
 			if (nBurnIn > 0) {
-				System.err.println("WARNING: Burn-in too large, resetting burn-in to zero");
+				System.err.println("WARNING: Burn-in too large, resetting burn-in to default");
 				m_sLabels.clear();
-				m_nBurnIn = 0;
+				if (m_bBurnInIsPercentage) {					
+					m_nBurnIn = 10;
+				} else {
+					m_nBurnIn = 0;
+				}
 				return parseFile(sFile);
 			}
 		}

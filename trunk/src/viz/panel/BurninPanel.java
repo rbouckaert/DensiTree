@@ -9,6 +9,7 @@ import java.awt.GridBagConstraints;
 import javax.swing.JTextField;
 
 import viz.DensiTree;
+import viz.util.Util;
 
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -19,7 +20,8 @@ public class BurninPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	public static String HELP_BURNIN = "Specifies the set of trees at the beginning of the set that are removed " +
 			"from the tree set. When the tree set represents a sample from an MCMC run, typically about 10% of the trees " +
-			"are sampled while the chain is in burn-in, and are not representative for the tree distribution.";
+			"are sampled while the chain is in burn-in, and are not representative for the tree distribution.\n" +
+			"Focus and press enter to reload file with adjusted burn-in settings.";
 	public static String HELP_PERCENTAGE = "If selected, the burn-in is interpreted as a percentage, hence should be in " +
 			"between 0 and 100. If the burn-in falls outside that range, burn-in is reset to 10.";
 	public static String HELP_NUMBER_OF_TREES = "If selected, the burn-in is interpreted as the number of trees at the " +
@@ -41,7 +43,7 @@ public class BurninPanel extends JPanel {
 		setLayout(gridBagLayout);
 		
 		JLabel lblBurnIn = new JLabel("Burn in");
-		lblBurnIn.setToolTipText(DensiTree.formatToolTip(HELP_BURNIN));
+		lblBurnIn.setToolTipText(Util.formatToolTipAsHtml(HELP_BURNIN));
 		GridBagConstraints gbc_lblBurnIn = new GridBagConstraints();
 		gbc_lblBurnIn.insets = new Insets(0, 0, 5, 5);
 		gbc_lblBurnIn.anchor = GridBagConstraints.EAST;
@@ -50,7 +52,7 @@ public class BurninPanel extends JPanel {
 		add(lblBurnIn, gbc_lblBurnIn);
 		
 		textField = new JTextField(m_dt.m_nBurnIn + "");
-		textField.setToolTipText(DensiTree.formatToolTip(HELP_BURNIN));
+		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_BURNIN));
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
@@ -61,7 +63,7 @@ public class BurninPanel extends JPanel {
 		
 		JRadioButton rdbtnPercentage = new JRadioButton("percentage");
 		rdbtnPercentage.setSelected(true);
-		rdbtnPercentage.setToolTipText(DensiTree.formatToolTip(HELP_PERCENTAGE));
+		rdbtnPercentage.setToolTipText(Util.formatToolTipAsHtml(HELP_PERCENTAGE));
 		rdbtnPercentage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bBurnInIsPercentage = true;
@@ -77,7 +79,7 @@ public class BurninPanel extends JPanel {
 		add(rdbtnPercentage, gbc_rdbtnPercentage);
 		
 		JRadioButton rdbtnTrees = new JRadioButton("#trees");
-		rdbtnTrees.setToolTipText(DensiTree.formatToolTip(HELP_NUMBER_OF_TREES));
+		rdbtnTrees.setToolTipText(Util.formatToolTipAsHtml(HELP_NUMBER_OF_TREES));
 		rdbtnTrees.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bBurnInIsPercentage = false;

@@ -122,7 +122,7 @@ public class ExpandablePanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
     
-	JPanel m_panel;
+	public JPanel m_panel;
 	String m_sLabel;
 	DropDownButton editButton;
 	
@@ -168,6 +168,11 @@ public class ExpandablePanel extends JPanel {
 		panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 		
 		editButton = new DropDownButton(sLabel);
+		
+		String name = panel.getClass().getName();
+		name = name.substring(name.lastIndexOf('.') + 1);
+		setName(name);
+		editButton.setName(name + "Button");
 		Dimension size = (viz.util.Util.isMac() ? new Dimension(200,20) : new Dimension(150,20));
 		editButton.setPreferredSize(size);
 		
