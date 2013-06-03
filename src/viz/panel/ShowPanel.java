@@ -8,6 +8,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import viz.DensiTree;
+import viz.util.Util;
 
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -28,7 +29,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			"There are many ways to construct a summary tree.";
 	final public static String HELP_ROOT_CANAL_NUMBER = "Select root canal tree to display.";
 	final public static String HELP_IMPORT = "Import root canal tree from Newick or from the summary_tree program.";
-	final public static String HELP_ROOT_AT_TOP_ = "Display the root at the top of the display instead of on the left hand side.";
+	final public static String HELP_ROOT_AT_TOP = "Display the root at the top of the display instead of on the left hand side.";
 	final public static String HELP_EDIT_TREE = "Display edit tree for manipulating order of tree and position of internal nodes. " +
 			"Works only with default drawing style.";
 
@@ -209,13 +210,13 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		
 		stateChanged(null);
 		
-		checkBox_1.setToolTipText(DensiTree.formatToolTip(HELP_CONSENSUS_TREES));
-		checkBox.setToolTipText(DensiTree.formatToolTip(HELP_ALL_TREES));
-		checkBox_3.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_AT_TOP_));
-		chckbxShowEditTree.setToolTipText(DensiTree.formatToolTip(HELP_EDIT_TREE));
-		comboBox.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_CANAL_NUMBER));
-		checkBoxShowRotoCanal.setToolTipText(DensiTree.formatToolTip(HELP_ROOT_CANAL));
-		btnImport.setToolTipText(DensiTree.formatToolTip(HELP_IMPORT));
+		checkBox_1.setToolTipText(Util.formatToolTipAsHtml(HELP_CONSENSUS_TREES));
+		checkBox.setToolTipText(Util.formatToolTipAsHtml(HELP_ALL_TREES));
+		checkBox_3.setToolTipText(Util.formatToolTipAsHtml(HELP_ROOT_AT_TOP));
+		chckbxShowEditTree.setToolTipText(Util.formatToolTipAsHtml(HELP_EDIT_TREE));
+		comboBox.setToolTipText(Util.formatToolTipAsHtml(HELP_ROOT_CANAL_NUMBER));
+		checkBoxShowRotoCanal.setToolTipText(Util.formatToolTipAsHtml(HELP_ROOT_CANAL));
+		btnImport.setToolTipText(Util.formatToolTipAsHtml(HELP_IMPORT));
 
 	}
 

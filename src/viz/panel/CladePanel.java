@@ -17,6 +17,7 @@ import javax.swing.JButton;
 
 import viz.DensiTree;
 import viz.graphics.JFontChooser;
+import viz.util.Util;
 
 import javax.swing.JSpinner;
 import javax.swing.JSeparator;
@@ -323,18 +324,18 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		stateChanged(null);
 		
-		setToolTipText(DensiTree.formatToolTip(HELP_SELECTED_ONLY));
-		chckbxSelectionOnly.setToolTipText(DensiTree.formatToolTip(HELP_SELECTED_ONLY));
-		chckbxShowClades.setToolTipText(DensiTree.formatToolTip(HELP_SHOW_CLADES));
-		chckbxMean.setToolTipText(DensiTree.formatToolTip(HELP_MEAN));
-		chckbxhpd.setToolTipText(DensiTree.formatToolTip(HELP_95HPD));
-		chckbxSupport.setToolTipText(DensiTree.formatToolTip(HELP_SUPPORT));
-		checkBox.setToolTipText(DensiTree.formatToolTip(HELP_MEAN));
-		checkBox_1.setToolTipText(DensiTree.formatToolTip(HELP_95HPD));
-		checkBox_2.setToolTipText(DensiTree.formatToolTip(HELP_SUPPORT));
-		btnFont.setToolTipText(DensiTree.formatToolTip(HELP_FONT));
-		spinner.setToolTipText(DensiTree.formatToolTip(HELP_DIGITS));
-		btnColor.setToolTipText(DensiTree.formatToolTip(HELP_COLOR));
+		setToolTipText(Util.formatToolTipAsHtml(HELP_SELECTED_ONLY));
+		chckbxSelectionOnly.setToolTipText(Util.formatToolTipAsHtml(HELP_SELECTED_ONLY));
+		chckbxShowClades.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_CLADES));
+		chckbxMean.setToolTipText(Util.formatToolTipAsHtml(HELP_MEAN));
+		chckbxhpd.setToolTipText(Util.formatToolTipAsHtml(HELP_95HPD));
+		chckbxSupport.setToolTipText(Util.formatToolTipAsHtml(HELP_SUPPORT));
+		checkBox.setToolTipText(Util.formatToolTipAsHtml(HELP_MEAN));
+		checkBox_1.setToolTipText(Util.formatToolTipAsHtml(HELP_95HPD));
+		checkBox_2.setToolTipText(Util.formatToolTipAsHtml(HELP_SUPPORT));
+		btnFont.setToolTipText(Util.formatToolTipAsHtml(HELP_FONT));
+		spinner.setToolTipText(Util.formatToolTipAsHtml(HELP_DIGITS));
+		btnColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 	}
 
 	@Override

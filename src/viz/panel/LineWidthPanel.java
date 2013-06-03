@@ -26,6 +26,7 @@ import javax.swing.event.ChangeListener;
 import viz.DensiTree;
 import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
+import viz.util.Util;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -366,16 +367,16 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 //			}
 //		}
 		
-		textField.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
-		textField_1.setToolTipText(DensiTree.formatToolTip(HELP_PATTERN));
-		textField_3.setToolTipText(DensiTree.formatToolTip(HELP_SCALE));
-		spinner.setToolTipText(DensiTree.formatToolTip(HELP_TOP));
-		spinner_1.setToolTipText(DensiTree.formatToolTip(HELP_BOTTOM));
-		lblNumberOfItem_1.setToolTipText(DensiTree.formatToolTip(HELP_TOP));
-		lblNumberOfItem.setToolTipText(DensiTree.formatToolTip(HELP_BOTTOM));
-		comboBoxBottom.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH));
-		comboBoxTop.setToolTipText(DensiTree.formatToolTip(HELP_LINE_WIDTH_BOTTOM));
-		chckbxZeroBased.setToolTipText(DensiTree.formatToolTip(HELP_ZERO_BASED));
+		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_PATTERN));
+		textField_1.setToolTipText(Util.formatToolTipAsHtml(HELP_PATTERN));
+		textField_3.setToolTipText(Util.formatToolTipAsHtml(HELP_SCALE));
+		spinner.setToolTipText(Util.formatToolTipAsHtml(HELP_TOP));
+		spinner_1.setToolTipText(Util.formatToolTipAsHtml(HELP_BOTTOM));
+		lblNumberOfItem_1.setToolTipText(Util.formatToolTipAsHtml(HELP_TOP));
+		lblNumberOfItem.setToolTipText(Util.formatToolTipAsHtml(HELP_BOTTOM));
+		comboBoxBottom.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_WIDTH));
+		comboBoxTop.setToolTipText(Util.formatToolTipAsHtml(HELP_LINE_WIDTH_BOTTOM));
+		chckbxZeroBased.setToolTipText(Util.formatToolTipAsHtml(HELP_ZERO_BASED));
 	}
 			
 	private void updateEnabled() {
