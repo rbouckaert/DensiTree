@@ -15,7 +15,7 @@ public class GridDrawer {
 	public float m_fGridOrigin = 0;
 	public boolean m_bReverseGrid = false;
 	public boolean m_bAutoGrid = true;
-	public float m_fGridTicks = 1;
+	public float m_fGridTicks = 100;
 	public float m_fGridOffset = 0;
 	public int m_nGridDigits = 2;
 	
