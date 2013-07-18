@@ -17,14 +17,9 @@ import java.awt.Insets;
 
 import javax.swing.JColorChooser;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.SwingConstants;
 import javax.swing.JSpinner;
 
 public class GeoPanel extends JPanel {
@@ -40,7 +35,6 @@ public class GeoPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
-	private JTextField textField;
 	SpinnerNumberModel model;
 	
 	public GeoPanel(DensiTree dt) {

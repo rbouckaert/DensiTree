@@ -772,6 +772,14 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			m_dt.resetCladeSelection();
 		}
 		m_dt.m_fScale = f;
+		
+		System.out.print("selected: ");
+		for (int i = 0; i < m_dt.m_bSelection.length; i++) {
+			if (m_dt.m_bSelection[i]) {
+				System.out.println(m_dt.m_sLabels.get(i) + " ");
+			}
+		}
+		System.out.println();
 	}
 
 	@Override
