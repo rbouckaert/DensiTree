@@ -196,7 +196,7 @@ public class GridDrawer {
 			}
 			//boolean bReverseGrid = false;
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
-				int nW = m_dt.getWidth();
+				int nW = (int)(m_dt.getWidth() * m_dt.m_fScale);
 				if (m_nGridMode == GridMode.SHORT) {
 					nW = 10;
 				}
@@ -232,7 +232,7 @@ public class GridDrawer {
 					}
 				}
 			} else {
-				int nH = m_dt.getHeight();
+				int nH = (int) (m_dt.getHeight() * m_dt.m_fScale);
 				if (m_nGridMode == GridMode.SHORT) {
 					nH = 10;
 				}

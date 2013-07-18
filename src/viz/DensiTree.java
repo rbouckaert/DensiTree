@@ -1752,6 +1752,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	void loadKML() {
 		String sFileName = m_sKMLFile;
+		HashMap<String, Vector<Double>> mapLabel2X = new HashMap<String, Vector<Double>>();
+		HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<String, Vector<Double>>();
+
 		try {
 
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -1789,8 +1792,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 
-			HashMap<String, Vector<Double>> mapLabel2X = new HashMap<String, Vector<Double>>();
-			HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<String, Vector<Double>>();
 
 			// grab polygon info from placemarks
 			//List<Integer> iDistrictCenter = new ArrayList<Integer>();
@@ -1862,6 +1863,46 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 
+		} catch (Exception e) {
+			// try to process as tab-delimited txt file
+			try {
+				m_fMinLat = 90;
+				m_fMinLong = 180;
+				m_fMaxLat = -90;
+				m_fMaxLong = -180;
+
+				BufferedReader fin = new BufferedReader(new FileReader(sFileName));
+				String sStr = null;
+				// skip header line
+				sStr = fin.readLine();
+				while (fin.ready()) {
+					sStr = fin.readLine();
+					String [] sStrs = sStr.split("\\s");
+					if (sStrs.length >= 3) {
+						String sPlacemarkName = sStrs[0];
+						Vector<Double> nX = new Vector<Double>();
+						Vector<Double> nY = new Vector<Double>();
+						nX.add(Double.parseDouble(sStrs[2]));
+						nY.add(Double.parseDouble(sStrs[1]));
+						mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
+						mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+						sPlacemarkName = sPlacemarkName.replaceAll("-", "");
+						sPlacemarkName = sPlacemarkName.replaceAll("_", "");
+						if (!mapLabel2X.containsKey(sPlacemarkName)) {
+							mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
+							mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+						}
+					}
+				}
+				fin.close();
+			
+			
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+
+		try {
 			// grab Taxa From Objects
 			m_fMinLat = 90;
 			m_fMinLong = 180;
@@ -1917,6 +1958,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	
 	} // loadKMLFile
 
 	/* remove all data from memory */
@@ -4175,6 +4217,23 @@ public class DensiTree extends JPanel implements ComponentListener {
 				// The description of this filter
 				public String getDescription() {
 					return "KML file with taxon locations";
+				}
+			});
+			fc.addChoosableFileFilter(new FileFilter() {
+				public boolean accept(File f) {
+					if (f.isDirectory()) {
+						return true;
+					}
+					String name = f.getName().toLowerCase();
+					if (name.endsWith(".txt") || name.endsWith(".dat")) {
+						return true;
+					}
+					return false;
+				}
+
+				// The description of this filter
+				public String getDescription() {
+					return "text file with taxon locations, tab delimited";
 				}
 			});
 
