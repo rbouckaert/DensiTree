@@ -2573,7 +2573,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case BY_METADATA_PATTERN:
 			m_pattern = Pattern.compile(m_sLineColorPattern);
@@ -2614,7 +2614,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case COLOR_BY_METADATA_TAG:
 			m_pattern = Pattern.compile(m_sPattern);
@@ -2661,7 +2661,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case DEFAULT:
 			m_nLineColor = new int[m_trees.length][];
@@ -2703,7 +2703,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[CONSCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		}
 	} // calcColors
