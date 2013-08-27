@@ -300,11 +300,11 @@ public class GridPanel extends JPanel {
 			private void updateOffset() {
 				try {
 					float fGridTicks = Float.parseFloat(m_ticksTextField.getText());
-					if (fGridTicks >= 0) {
+					if (fGridTicks > 0) {
 						m_dt.m_gridDrawer.m_fGridTicks = fGridTicks;
+						m_dt.makeDirty();
+						m_dt.repaint();
 					}
-					m_dt.makeDirty();
-					m_dt.repaint();
 				} catch (NumberFormatException e) {
 					// ignore
 				}
