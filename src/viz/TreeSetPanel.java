@@ -202,6 +202,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				if (m_dt.m_viewMode == ViewMode.DRAW) {
 					m_drawThread[m_nFrom] = null;
 					if (!isDrawing()) {
+						if (m_dt.m_bShowRootCanalTopology) {
+							drawRootCanalTree(g);
+						}
 						double fEntropy = calcImageEntropy();
 						m_dt.m_jStatusBar.setText("Done Drawing trees ");
 						System.out.println("Entropy(x100): " + fEntropy + " Mean cumulative width: " + m_dt.m_w);
@@ -489,22 +492,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					m_drawThread[i].start();
 				}
 				if (m_dt.m_bShowRootCanalTopology) {
-					float fScaleX = m_dt.m_fScaleX;
-					float fScaleY = m_dt.m_fScaleY;
-					if (m_dt.m_bUseLogScale) {
-						if (m_dt.m_treeDrawer.m_bRootAtTop) {
-							fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
-						} else {
-							fScaleX *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
-						}
-					}
-
-					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-					Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
-					g.setColor(m_dt.m_color[DensiTree.ROOTCANALCOLOR]);
-					m_dt.m_treeDrawer.draw(0, m_dt.m_fRLinesX, m_dt.m_fRLinesY, m_dt.m_fRLineWidth,
-							m_dt.m_fRTopLineWidth, m_dt.m_nRLineColor, g, fScaleX, fScaleY);
+					drawRootCanalTree(g);
 				}
 			}
 
@@ -568,6 +556,27 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			m_dt.m_bRecord = false;
 		}
 	} // drawTreeSet
+	
+	
+	void drawRootCanalTree(Graphics2D g) {
+		float fScaleX = m_dt.m_fScaleX;
+		float fScaleY = m_dt.m_fScaleY;
+		if (m_dt.m_bUseLogScale) {
+			if (m_dt.m_treeDrawer.m_bRootAtTop) {
+				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
+			} else {
+				fScaleX *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
+			}
+		}
+	
+		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+		Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+		((Graphics2D) g).setStroke(stroke);
+		g.setColor(m_dt.m_color[DensiTree.ROOTCANALCOLOR]);
+		m_dt.m_treeDrawer.draw(0, m_dt.m_fRLinesX, m_dt.m_fRLinesY, m_dt.m_fRLineWidth,
+				m_dt.m_fRTopLineWidth, m_dt.m_nRLineColor, g, fScaleX, fScaleY);
+	}
+
 	/** draw new frame in animation or browse action **/
 	void drawFrame(Graphics g) {
 		Color oldBackground = ((Graphics2D) g).getBackground();

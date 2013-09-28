@@ -37,6 +37,7 @@ public class LabelPanel extends JPanel {
 	private JTextField textField;
 	DensiTree m_dt;
 	private JTextField textField_1;
+	private JTextField textField_2;
 	
 	public LabelPanel(DensiTree dt) {
 		//setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -86,11 +87,38 @@ public class LabelPanel extends JPanel {
 				m_dt.fitToScreen();
 			}
 		});
+		
+		JLabel lblIndent = new JLabel("Indent");
+		GridBagConstraints gbc_lblIndent = new GridBagConstraints();
+		gbc_lblIndent.anchor = GridBagConstraints.WEST;
+		gbc_lblIndent.insets = new Insets(0, 0, 5, 5);
+		gbc_lblIndent.gridx = 0;
+		gbc_lblIndent.gridy = 1;
+		add(lblIndent, gbc_lblIndent);
+		
+		textField_2 = new JTextField(m_dt.m_fLabelIndent + "");
+		textField_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try{
+					m_dt.m_fLabelIndent = Float.parseFloat(textField.getText());
+				} catch (Exception ex) {
+				}
+				m_dt.fitToScreen();
+				
+			}
+		});
+		GridBagConstraints gbc_textField_2 = new GridBagConstraints();
+		gbc_textField_2.anchor = GridBagConstraints.WEST;
+		gbc_textField_2.insets = new Insets(0, 0, 5, 0);
+		gbc_textField_2.gridx = 1;
+		gbc_textField_2.gridy = 1;
+		add(textField_2, gbc_textField_2);
+		textField_2.setColumns(5);
 		GridBagConstraints gbc_chckbxRotate = new GridBagConstraints();
 		gbc_chckbxRotate.anchor = GridBagConstraints.WEST;
 		gbc_chckbxRotate.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxRotate.gridx = 1;
-		gbc_chckbxRotate.gridy = 1;
+		gbc_chckbxRotate.gridy = 2;
 		add(chckbxRotate, gbc_chckbxRotate);
 		
 		JButton btnColor = new RoundedButton("Color");
@@ -136,7 +164,7 @@ public class LabelPanel extends JPanel {
 		gbc_chckbxAlign.anchor = GridBagConstraints.WEST;
 		gbc_chckbxAlign.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxAlign.gridx = 1;
-		gbc_chckbxAlign.gridy = 2;
+		gbc_chckbxAlign.gridy = 3;
 		add(chckbxAlign, gbc_chckbxAlign);
 		
 		JCheckBox chckbxHide = new JCheckBox("Hide");
@@ -151,17 +179,17 @@ public class LabelPanel extends JPanel {
 		gbc_chckbxHide.anchor = GridBagConstraints.WEST;
 		gbc_chckbxHide.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxHide.gridx = 1;
-		gbc_chckbxHide.gridy = 3;
+		gbc_chckbxHide.gridy = 4;
 		add(chckbxHide, gbc_chckbxHide);
 		GridBagConstraints gbc_btnFont = new GridBagConstraints();
 		gbc_btnFont.insets = new Insets(0, 0, 5, 5);
 		gbc_btnFont.gridx = 0;
-		gbc_btnFont.gridy = 4;
+		gbc_btnFont.gridy = 5;
 		add(btnFont, gbc_btnFont);
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
 		gbc_btnColor.insets = new Insets(0, 0, 5, 0);
 		gbc_btnColor.gridx = 1;
-		gbc_btnColor.gridy = 4;
+		gbc_btnColor.gridy = 5;
 		add(btnColor, gbc_btnColor);
 		
 		JLabel lblSearch = new JLabel("Search");
@@ -170,7 +198,7 @@ public class LabelPanel extends JPanel {
 		gbc_lblSearch.insets = new Insets(0, 0, 0, 5);
 		gbc_lblSearch.anchor = GridBagConstraints.WEST;
 		gbc_lblSearch.gridx = 0;
-		gbc_lblSearch.gridy = 5;
+		gbc_lblSearch.gridy = 6;
 		add(lblSearch, gbc_lblSearch);
 		
 		textField_1 = new JTextField();
@@ -178,7 +206,7 @@ public class LabelPanel extends JPanel {
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 1;
-		gbc_textField_1.gridy = 5;
+		gbc_textField_1.gridy = 6;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(5);
 		textField_1.getDocument().addDocumentListener(new DocumentListener() {

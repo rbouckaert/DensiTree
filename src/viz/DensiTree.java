@@ -314,7 +314,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * shifts all labels with a constant amount. Units are in terms of tree
 	 * height.
 	 */
-	float m_fLabelIndent = 0.0f;
+	public float m_fLabelIndent = 0.0f;
 
 	/**
 	 * Flag to indicate image should be recorded Frames that are drawn while
