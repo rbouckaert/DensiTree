@@ -494,6 +494,33 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** parse command line arguments, and load file if specified **/
 	void parseArgs(String[] args) {
+		// check whether there is a config file to pick up arguments from
+		File cfgFile = new File(".densitree");
+		if (cfgFile.exists()) {
+			List<String> cfgArgs = new ArrayList<String>();
+			try {
+				BufferedReader fin = new BufferedReader(new FileReader(cfgFile));
+				StringBuffer buf = new StringBuffer();
+				String sStr = null;
+				while (fin.ready()) {
+					sStr = fin.readLine();
+					if (sStr.length() > 0 && !sStr.matches("^\\s*$")) {
+							cfgArgs.add(sStr);
+					}
+				}
+				fin.close();
+				for (String arg : args) {
+					cfgArgs.add(arg);
+				}
+				args = cfgArgs.toArray(new String[]{});
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+				System.err.println("WARNING: could not process cfg file");
+			}
+		}
+		
+		
+		// process arguments
 		int i = 0;
 		try {
 			while (i < args.length) {
@@ -1755,8 +1782,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		HashMap<String, Vector<Double>> mapLabel2X = new HashMap<String, Vector<Double>>();
 		HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<String, Vector<Double>>();
 
+		// sanity check
+		if (!(new File(sFileName)).exists()) {
+			JOptionPane.showMessageDialog(this, "Tried to read goe info, but could not find file " + sFileName );
+			return;
+		}
+		
 		try {
-
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(false);
 			org.w3c.dom.Document doc = null;
@@ -4184,7 +4216,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 		}
 		try {
-			m_sKMLFile = null;
+			//m_sKMLFile = null;
 			init(sFileName);
 			calcLines();
 		} catch (Exception e) {
@@ -5105,6 +5137,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 					}
 					System.err.println(Arrays.toString(m_cladelist.getSelectedValues()));
+					System.err.println(m_cladelist.getSelectedValues().length + " items selected");
 					repaint();
 				}
 			}
