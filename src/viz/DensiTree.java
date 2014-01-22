@@ -519,6 +519,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		
+		System.out.println("args=" + Arrays.toString(args));
+		
 		
 		// process arguments
 		int i = 0;
@@ -1497,6 +1499,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (m_cladeSelection.size() == 1) {
 				m_cladelist.ensureIndexIsVisible(i);
 			}
+		}
+
+		if (m_cladeSelection.size() > 0) {
+		Arrays.fill(m_bSelection, false);
+			for (int i : m_cladeSelection) {
+				for (int j = 0; j < m_clades.get(i).length; j++) {
+					m_bSelection[m_clades.get(i)[j]] = true;
+				}
+		}
 		}
 		m_bAllowCladeSelection = true;
 	}
@@ -5136,6 +5147,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 							m_cladeSelection.add(i);
 						}
 					}
+					resetCladeSelection();
 					System.err.println(Arrays.toString(m_cladelist.getSelectedValues()));
 					System.err.println(m_cladelist.getSelectedValues().length + " items selected");
 					repaint();
