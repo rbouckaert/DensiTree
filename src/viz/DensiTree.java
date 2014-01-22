@@ -518,9 +518,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				System.err.println("WARNING: could not process cfg file");
 			}
 		}
-		
-		System.out.println("args=" + Arrays.toString(args));
-		
+				
 		
 		// process arguments
 		int i = 0;
@@ -638,6 +636,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					}
 					if (i == iOld) {
+						if (new File(args[i]).exists()) {
+							init(args[i++]);
+							calcLines();
+							if (i != args.length) {
+								String [] args2 = new String[args.length - 1];
+								for (int k = 0; k < i - 1; k++) {
+									args2[k] = args[k];
+								}
+								for (int k = i; k < args.length; k++) {
+									args2[k-1] = args[k];
+								}
+								startNew(args2);
+							}
+							return;
+						}
 						throw new Exception("Wrong argument");
 					}
 				} else {
@@ -5369,7 +5382,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public static DensiTree startNew(String [] args) {
 		viz.util.Util.loadUIManager();
 
-		final DensiTree a = new DensiTree(args);
+		final DensiTree a = new DensiTree(new String[]{});
 		
 		if (viz.util.Util.isMac()) {
 			try {
@@ -5422,6 +5435,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		f = new JFrame(FRAME_TITLE);
 		a.frame = f;
 		f.setVisible(true);
+		a.parseArgs(args);
 		JMenuBar menuBar = a.getMenuBar();
 		f.setJMenuBar(menuBar);
 		f.add(a.m_jTbTools, BorderLayout.NORTH);
