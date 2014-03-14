@@ -214,7 +214,12 @@ public class ImportRootCanalDialog extends JPanel {
 				 m_dt.setWaitCursor();
 				 try {
 				      String line;
-				      double fBurnIn = 100.0 * m_dt.m_nBurnIn / (m_dt.m_nBurnIn  + m_dt.m_trees.length);
+				      double fBurnIn;
+				      if (m_dt.m_bBurnInIsPercentage) {
+				    	  fBurnIn = m_dt.m_nBurnIn;
+				      } else {
+				    	  fBurnIn = 100.0 * m_dt.m_nBurnIn / (m_dt.m_nBurnIn  + m_dt.m_trees.length);
+				      }
 				      STOption option = (STOption) comboBox.getSelectedItem();
 				      String sCmd = "summary_tree --burnin " + fBurnIn + " " +  option.m_sOptions;
 				      if (option.m_bHasExtraOptions) {
