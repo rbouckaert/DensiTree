@@ -63,7 +63,9 @@ public class CladeDrawer {
 			format += "#";
 		}
 		DecimalFormat formatter = new DecimalFormat(format);
-		DecimalFormat supportFormatter = new DecimalFormat("##.#");
+		formatter.setMinimumFractionDigits(m_nSignificantDigits);
+		formatter.setMaximumFractionDigits(m_nSignificantDigits);
+		DecimalFormat supportFormatter = new DecimalFormat(format);//"##.#");
 		for (int i = 0/* m_dt.m_sLabels.size() */; i < m_dt.m_cladeHeight.size(); i++) {
 			if (m_dt.m_cladeWeight.get(i) > 0.01 && (
 					(m_dt.m_Xmode == 1 && (m_dt.m_clades.get(i).length > 1 || m_dt.m_bLeafCladeSelection)) 
