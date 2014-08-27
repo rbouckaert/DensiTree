@@ -1864,7 +1864,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					if (oChild.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
 						String sName = oChild.getNodeName();
 						if (sName.equals("name")) {
-							sPlacemarkName = oChild.getTextContent();
+							sPlacemarkName = oChild.getTextContent().trim();
 						} else if (sName.equals("Style")) {
 							String expression = ".//PolyStyle/color";
 							XPath xpath = XPathFactory.newInstance().newXPath();
