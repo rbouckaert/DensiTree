@@ -55,7 +55,6 @@
 package viz;
 
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -80,6 +79,7 @@ public class NodeOrderer {
 	public final static int WARD = 5;
 	public final static int ADJCOMLPETE = 6;
 	public final static int OPTIMISE = 7;
+	public final static int SORT_BY_ROOT_CANAL_LENGTH = 8;
 
 	/** calc y-coordinate by meta data info.
 	 * ALL = all paths from root to leafs
@@ -138,6 +138,10 @@ public class NodeOrderer {
 			nRevOrder = new int[fDist.length];
 			traverse(rootCanalTree, nRevOrder, 0);  
 		}
+		if (m_nLinkType == SORT_BY_ROOT_CANAL_LENGTH) {
+			nRevOrder = new int[fDist.length];
+			traverse2(rootCanalTree, nRevOrder, 0);  
+		}
 		
 		if (nRevOrder != null) {
 			nOrder = new int[nNrOfLabels];
@@ -166,6 +170,22 @@ public class NodeOrderer {
 		} else {
 			i = traverse(node.m_left, nOrder, i);
 			i = traverse(node.m_right, nOrder, i);
+		}
+		return i;
+	}
+
+	private int traverse2(Node node, int[] nOrder, int i) {
+		if (node.isLeaf()) {
+			nOrder[i] = node.m_iLabel;
+			i++;
+		} else {
+			if (node.m_left.m_fLength > node.m_right.m_fLength) {
+				i = traverse2(node.m_left, nOrder, i);
+				i = traverse2(node.m_right, nOrder, i);
+			} else {
+				i = traverse2(node.m_right, nOrder, i);
+				i = traverse2(node.m_left, nOrder, i);
+			}
 		}
 		return i;
 	}
