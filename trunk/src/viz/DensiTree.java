@@ -944,7 +944,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					m_jStatusBar.setText("Optimising node order");
 					int [] oldOrder = m_nOrder.clone();
 					if (!m_bAllowSingleChild) {
-						reshuffle(NodeOrderer.OPTIMISE);
+						reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
 						calcPositions();
 						calcLines();
 						notifyChangeListeners();
