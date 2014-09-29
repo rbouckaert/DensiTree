@@ -1933,7 +1933,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				sStr = fin.readLine();
 				while (fin.ready()) {
 					sStr = fin.readLine();
-					String [] sStrs = sStr.split("\\s");
+					String [] sStrs = sStr.split("\\s+");
 					if (sStrs.length >= 3) {
 						String sPlacemarkName = sStrs[0];
 						Vector<Double> nX = new Vector<Double>();
