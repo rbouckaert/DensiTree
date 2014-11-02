@@ -31,6 +31,8 @@ public class LabelPanel extends JPanel {
 	final public static String HELP_FONT = "Font used for labels.";
 	final public static String HELP_COLOR = "Color used for labels.";
 	final public static String HELP_SEARCH = "Search for labels. Labels matching the search string will be selected/highlighted.";
+	final public static String HELP_LOAD = "Load images for all taxa.";
+	final public static String HELP_IMAGE_SIZE = "Size of images used in labels.";
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -195,7 +197,7 @@ public class LabelPanel extends JPanel {
 		JLabel lblSearch = new JLabel("Search");
 		lblSearch.setToolTipText(Util.formatToolTipAsHtml(HELP_SEARCH));
 		GridBagConstraints gbc_lblSearch = new GridBagConstraints();
-		gbc_lblSearch.insets = new Insets(0, 0, 0, 5);
+		gbc_lblSearch.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSearch.anchor = GridBagConstraints.WEST;
 		gbc_lblSearch.gridx = 0;
 		gbc_lblSearch.gridy = 6;
@@ -204,11 +206,30 @@ public class LabelPanel extends JPanel {
 		textField_1 = new JTextField();
 		textField_1.setToolTipText(Util.formatToolTipAsHtml(HELP_SEARCH));
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
+		gbc_textField_1.insets = new Insets(0, 0, 5, 0);
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.gridx = 1;
 		gbc_textField_1.gridy = 6;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(5);
+		
+		JButton btnLoad = new RoundedButton("Load image map");
+		btnLoad.setToolTipText(HELP_LOAD);
+		btnLoad.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				m_dt.loadImages();
+			}
+		});
+		
+		
+		GridBagConstraints gbc_btnLoad = new GridBagConstraints();
+		gbc_btnLoad.gridwidth = 2;
+		gbc_btnLoad.insets = new Insets(0, 0, 0, 5);
+		gbc_btnLoad.gridx = 0;
+		gbc_btnLoad.gridy = 7;
+		add(btnLoad, gbc_btnLoad);
+		
+		
 		textField_1.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {

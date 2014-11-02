@@ -176,6 +176,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public boolean m_bColorByCategory = false;
 	
 	public Vector<String> m_sLabels;
+	public BufferedImage[] m_LabelImages;
+	public int m_nImageSize = 20;
 	public boolean m_bHideLabels = false;
 	/** labels of leafs **/
 	/** nr of labels in dataset **/
@@ -3443,6 +3445,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					r.y = y - 10;
 					r.height = 10;
 					r.width = m_nLabelWidth;
+					drawImage(g, x, y, node.m_iLabel);
 				} else {
 					String sLabel = m_sLabels.elementAt(node.m_iLabel);
 					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().stringWidth(sLabel)
@@ -3455,6 +3458,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					r.y = y - 10;
 					r.height = 10;
 					r.width = m_nLabelWidth;
+					drawImage(g, x, y, node.m_iLabel);
 				}
 			} else {
 				int y = (int) (node.m_fPosX * m_fScaleY/* m_fScale */) + g.getFontMetrics().getHeight() / 3;
@@ -3465,6 +3469,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				r.y = y - 10;
 				r.height = 10;
 				r.width = m_nLabelWidth;
+				drawImage(g, x, y, node.m_iLabel);
 			}
 		} else {
 			drawLabels(node.m_left, g);
@@ -3474,6 +3479,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
+	private void drawImage(Graphics g, int x, int y, int iLabel) {
+		if (m_LabelImages != null && m_LabelImages[iLabel] != null) {
+			BufferedImage img = m_LabelImages[iLabel];
+			g.drawImage(img, x, y-m_nImageSize, x+m_nImageSize, y, 0, 0, img.getWidth(), img.getHeight(), null);
+		}
+	}
+	
 	/** draw lines from labels of a tree to corresponding geographic point **/
 	void drawGeo(Node node, Graphics g) {
 		if (node.isLeaf()) {
@@ -4382,6 +4394,71 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 	}; // class ActionSaveAs
+
+	public void loadImages() {
+		JFileChooser fc = new JFileChooser(m_sDir);
+		fc.setDialogTitle("Load Image Map (text file mapping taxon names on image files)");
+		int rval = fc.showOpenDialog(m_Panel);
+
+		if (rval == JFileChooser.APPROVE_OPTION) {
+			String sFileName = fc.getSelectedFile().toString();
+			if (sFileName.lastIndexOf('/') > 0) {
+				m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+			}
+			try {
+				m_LabelImages = new BufferedImage[m_sLabels.size()];
+		        BufferedReader fin = new BufferedReader(new FileReader(sFileName));
+		        StringBuffer buf = new StringBuffer();
+		        String sStr = null;
+		        // eat up the header
+	            fin.readLine();
+		        while (fin.ready()) {
+		            sStr = fin.readLine();
+			            if (!sStr.trim().equals("")) {
+			            String [] sStrs = sStr.split("\\s+");
+			            if (sStrs.length != 2) {
+			            	JOptionPane.showMessageDialog(m_Panel, "Found \"" + sStr + "\" but expected only two words on a line");
+			            	m_LabelImages = null;
+			            	return;
+			            }
+			            String sLabel = sStrs[0].toLowerCase();
+			            String imageFile = sStrs[1];
+			            int k = 0;
+			            while (k < m_sLabels.size() && !m_sLabels.get(k).toLowerCase().equals(sLabel)) {
+			            	k++;
+			            }
+			            if (k == m_sLabels.size()) {
+			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + m_sLabels + "\" could not be found");
+			            	m_LabelImages = null;
+			            	return;
+			            }
+			            System.err.println("Loading " + imageFile);
+			            File file = new File(imageFile);
+			            if (file.exists()) {
+			            	m_LabelImages[k] = ImageIO.read(file);
+			            } else {
+			            	System.err.println("File " + imageFile + " does not exist");
+			            }
+		            }
+		        }
+		        fin.close();
+				
+			} catch (OutOfMemoryError e) {
+				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
+						JOptionPane.PLAIN_MESSAGE);
+            	m_LabelImages = null;
+				return;
+			} catch (Exception e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
+						JOptionPane.PLAIN_MESSAGE);
+            	m_LabelImages = null;
+				return;
+			}
+			makeDirty();
+		}
+		
+	}
 
 	Action a_loadimage = new MyAction("Background image ", "Load background image", "bgimage", -1) {
 		private static final long serialVersionUID = 1L;
