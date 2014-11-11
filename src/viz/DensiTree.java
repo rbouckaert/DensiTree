@@ -1197,7 +1197,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Arrays.sort(index, new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < 1e-4) {
+				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < 1e-8) {
 					return (int) Math.signum(m_clades.get(o1).length- m_clades.get(o2).length);
 				}
 				return -Double.compare(m_cladeWeight.get(o1), m_cladeWeight.get(o2));
