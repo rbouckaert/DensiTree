@@ -4,11 +4,12 @@
 \def\DensiTree{DensiTree}
 \def\webdir{/home/remco/research/DensiTree/web}
 
-\title{\DensiTree\ Manual: \\{Making sense of sets of trees}\\Version 2.1}
+\title{\DensiTree\ Manual: \\{Making sense of sets of trees}\\Version 2.2}
 \author{Remco Bouckaert\\
-\url{remco@cs.auckland.ac.nz}\\
-\url{remco@cs.waikato.ac.nz}\\
-\url{rrb@xm.co.nz}}
+\url{r.bouckaert@auckland.ac.nz}\\
+%\url{remco@cs.waikato.ac.nz}\\
+%\url{rrb@xm.co.nz}
+}
 
 \setcounter{tocdepth}{1}
 \begin{document}
@@ -98,6 +99,20 @@ of trees and/or consensus trees. Alternatively, one can {\em browse} through the
 tree topologies.
 
 \subsection{What is new \label{ssec.new}}
+From Version 2.1 to 2.2, the following changes were made:
+
+o support for images as labels
+
+o more robust geography data parsing
+
+o allow geography draw lines from the left
+
+o better integration with summary\_tree
+
+o support for .densitree configuration file with default settings
+
+o many small bugs
+
 From Version 2.01 to 2.1.10, the following changes were made:
 
 o layout improved
@@ -139,12 +154,10 @@ o Label rotatable when the root is at top + more sensible label placement.
 \newpage
 \section{Getting started\label{sec.start}}
 
-To run \DensiTree, you need a Java 1.6 runtime installed 
-(for instance available from \url{http://java.sun.com}) and the \DensiTree\ binary,
-which can be downloaded from \url{http://www.cs.auckland.ac.nz/~remco/DensiTree.jar}.
+To run \DensiTree, you need a Java at least version 6 runtime installed (but version 7 or higher is faster). This is available for instance available from \url{http://java.com}). You also need the \DensiTree\ binary,
+which can be downloaded from \url{http://www.cs.auckland.ac.nz/~remco/DensiTree}.
 
-You can run \DensiTree\ by calling {\tt java -jar DensiTree.jar} from the command line.
-Make sure that the file DensiTree.jar is in the directory you start at.
+You can run \DensiTree\ by calling {\tt java -jar DensiTree.jar} from the command line. Make sure that the file DensiTree.jar is in the directory you start at.
 
 Sorry, it's not more complex than this.
 
@@ -963,9 +976,10 @@ for the gallery.
 
 \bibliographystyle{plain}
 \begin{thebibliography}{1}
-\bibitem{BEAST}BEAST: Bayesian Evolutionary Analysis Sampling Trees.
-           Alexei J. Drummond and Andrew Rambaut
-\url{http://beast.bio.ed.ac.uk/}
+\bibitem{BEAST}
+Bouckaert RR, Heled J, Kuehnert D, Vaughan TG, Wu C-H, Xie D, Suchard MA,
+Rambaut A, Drummond AJ (2014) BEAST 2: A software platform for Bayesian
+evolutionary analysis. PLoS Computational Biology 10(4): e1003537
 \bibitem{FigTree}FigTree. Andrew Rambaut
 \url{http://tree.bio.ed.ac.uk/software/figtree/}
 \bibitem{SplitsTree}D. H. Huson and D. Bryant, Application of Phylogenetic Networks in Evolutionary Studies, Mol. Biol. Evol., 23(2):254-267, 2006.

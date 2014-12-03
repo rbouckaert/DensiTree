@@ -92,12 +92,16 @@ import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	//final static String VERSION = "2.1.5 release candidate";
-	final static String VERSION = "2.1.11";
+	final static String VERSION = "2.2.0";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
-	final static String CITATION = "Remco R. Bouckaert\n"+
-		"DensiTree: making sense of sets of phylogenetic trees\n"+
-		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
-		"doi: 10.1093/bioinformatics/btq110";
+//	final static String CITATION = "Remco R. Bouckaert\n"+
+//		"DensiTree: making sense of sets of phylogenetic trees\n"+
+//		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
+//		"doi: 10.1093/bioinformatics/btq110";
+	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
+			"DensiTree 2: Seeing Trees Through the Forest\n"+
+			"PeerJ PrePrints 2:eXXXv1\n" +
+			" http://dx.doi.org/10.7287/peerj.preprints.XXXv1.\n";
 	static int instances = 1;
 	
 	/** flag for testing summary tree optimisation **/
