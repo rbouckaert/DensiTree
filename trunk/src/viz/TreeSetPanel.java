@@ -607,7 +607,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			// g2.setBackground(m_dt.m_color[DensiTree.BGCOLOR]);
 			// g2.clearRect(0, 0, m_image.getWidth(), m_image.getHeight());
 			m_image.init(g2, m_dt.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.m_nLabelWidth, m_dt.m_fMinLong, m_dt.m_fMaxLong,
-					m_dt.m_fMinLat, m_dt.m_fMaxLat);
+				m_dt.m_fMinLat, m_dt.m_fMaxLat);
 			// drawBGImage(g2);
 			// m_image.drawImage(g2 , this);
 			if (m_dt.m_bDrawGeo && m_dt.m_fLatitude.size() > 0) {

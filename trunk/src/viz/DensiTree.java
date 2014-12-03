@@ -185,6 +185,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** position information for the leafs (if available) **/
 	public Vector<Float> m_fLongitude;
 	public Vector<Float> m_fLatitude;
+	boolean m_bInvertLongitude = false;
 	/** extreme values for position information **/
 	public float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
 	/** name of file containing locations **/
@@ -563,6 +564,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 						int nHeight = (int) Integer.parseInt(sStrs[1]);
 						setSize(nWidth, nHeight);
 						i += 2;
+					} else if (args[i].equals("-invertLongitude")) {
+						m_bInvertLongitude = true;
+						i += 1;
 					} else if (args[i].equals("-scalemode")) {
 						String sMode = args[i+1].toLowerCase();
 						if (sMode.equals("none")) {
@@ -3505,6 +3509,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 				} else {
 					int y = (int) (node.m_fPosX * m_fScaleY * m_fScale);
 					int x = getPosX(node.m_fPosY * m_fScale);
+					if (m_bInvertLongitude) {
+						x = 0;
+					}
 					g.drawLine(x, y, gx, gy);
 					g.setColor(Color.BLACK);
 					g.drawOval(gx - 1, gy - 1, 3, 3);
