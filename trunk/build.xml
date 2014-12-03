@@ -9,7 +9,7 @@
   <property name="dist"  location="dist"/>
   <property name="report" value="build/junitreport" />
 
-	<property name="version" value="2.1.7" />
+	<property name="version" value="2.2.0" />
 
 	<property name="release_dir" value="release" />
 	<property name="Windows_dir" value="${release_dir}/Windows" />
