@@ -100,8 +100,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 //		"doi: 10.1093/bioinformatics/btq110";
 	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
 			"DensiTree 2: Seeing Trees Through the Forest\n"+
-			"PeerJ PrePrints 2:eXXXv1\n" +
-			" http://dx.doi.org/10.7287/peerj.preprints.XXXv1.\n";
+			"bioRxiv http://biorxiv.org/content/biorxiv/early/2014/XXXXXXv1\n" +
+			"http://dx.doi.org/10.1101/XXXXXX\n";
 	static int instances = 1;
 	
 	/** flag for testing summary tree optimisation **/
