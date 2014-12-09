@@ -100,8 +100,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 //		"doi: 10.1093/bioinformatics/btq110";
 	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
 			"DensiTree 2: Seeing Trees Through the Forest\n"+
-			"bioRxiv http://biorxiv.org/content/biorxiv/early/2014/XXXXXXv1\n" +
-			"http://dx.doi.org/10.1101/XXXXXX\n";
+			"bioRxiv\n" +
+			"http://dx.doi.org/10.1101/012401\n";
 	static int instances = 1;
 	
 	/** flag for testing summary tree optimisation **/
@@ -678,7 +678,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "remco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2013\n\n\n"
+				+ "remcot@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2014\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -4583,7 +4583,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -20389110859353L;
 		public void actionPerformed(ActionEvent ae) {
 			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
-					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2013\n\n" +
+					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2014\n\n" +
 							"Citation:\n" + CITATION,
 					"About Message", JOptionPane.YES_NO_OPTION,
 					JOptionPane.PLAIN_MESSAGE, getIcon("DensiTree"), new String[]{"Copy citation to clipboard","Close"},"Close") == 0) {
