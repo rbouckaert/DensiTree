@@ -92,7 +92,7 @@ import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
 	//final static String VERSION = "2.1.5 release candidate";
-	final static String VERSION = "2.2.0";
+	final static String VERSION = "2.2.1";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -100,7 +100,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 //		"doi: 10.1093/bioinformatics/btq110";
 	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
 			"DensiTree 2: Seeing Trees Through the Forest\n"+
-			"bioRxiv\n" +
+			"bioRxiv, 2014,\n" +
 			"http://dx.doi.org/10.1101/012401\n";
 	static int instances = 1;
 	
@@ -1205,7 +1205,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Arrays.sort(index, new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < 1e-8) {
+				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < 1e-4) {
 					return (int) Math.signum(m_clades.get(o1).length- m_clades.get(o2).length);
 				}
 				return -Double.compare(m_cladeWeight.get(o1), m_cladeWeight.get(o2));
