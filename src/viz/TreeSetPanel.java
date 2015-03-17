@@ -14,6 +14,7 @@ import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.io.File;
@@ -48,6 +49,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	/** image in memory containing tree set drawing **/
 	private BufferedImageF m_image;
+	
+	private BufferedImage m_selectedImage;
 
 	/** constructor **/
 	public TreeSetPanel(DensiTree dt) {
@@ -386,6 +389,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				g.drawString(s, 10, k*15+15);
 				k++;
 			}
+		}
+		if (m_selectedImage != null) {
+			int w = m_selectedImage.getWidth();
+			int h = m_selectedImage.getHeight();
+			g.drawImage(m_selectedImage, 0, 0, w, h, 0, 0, w, h, null);
 		}
 	}
 
@@ -937,6 +945,29 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			for (int i = 0; i < m_dt.m_bLabelRectangle.length; i++) {
 				if (m_dt.m_bLabelRectangle[i].contains(p)) {
 					m_dt.m_jStatusBar.setText(m_dt.m_sLabels.elementAt(i) + " ");
+					if (m_dt.m_LabelImages != null) {
+						int w = 0, h = 0;
+						BufferedImage old = m_selectedImage; 
+						if (m_selectedImage != null) {
+							w = old.getWidth();
+							h = old.getHeight();
+						}
+						m_selectedImage = m_dt.m_LabelImages[i];
+						if (m_selectedImage != null) {
+							w = Math.max(w, m_selectedImage.getWidth());
+							h = Math.max(h, m_selectedImage.getHeight());
+						}
+						if (old != m_selectedImage) {
+							repaint(0, 0, w, h);
+						}
+					} else {
+						if (m_selectedImage != null) {
+							int w = m_selectedImage.getWidth();
+							int h = m_selectedImage.getHeight();
+							m_selectedImage = null;
+							repaint(0, 0, w, h);
+						}
+					}
 					found = true;
 				}
 			}

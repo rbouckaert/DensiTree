@@ -678,7 +678,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "remcot@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2014\n\n\n"
+				+ "remco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2015\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -4439,7 +4439,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			            	k++;
 			            }
 			            if (k == m_sLabels.size()) {
-			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + m_sLabels + "\" could not be found");
+			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + sLabel + "\" could not be found");
 			            	m_LabelImages = null;
 			            	return;
 			            }
