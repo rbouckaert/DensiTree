@@ -194,7 +194,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
 	/** name of file containing locations **/
 	String m_sKMLFile = null;
-
+	static float GEO_OFFSET = 3.0f;
+	
 	/** order of appearance of leafs, used to determine x-coordinates of leafs **/
 	int[] m_nOrder;
 	/** reverse of m_nOrder, useful for reordering **/
@@ -568,6 +569,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 						int nHeight = (int) Integer.parseInt(sStrs[1]);
 						setSize(nWidth, nHeight);
 						i += 2;
+					} else if (args[i].equals("-geooffset")) {
+						GEO_OFFSET = Float.parseFloat(args[i + 1]);
+						i += 2;
 					} else if (args[i].equals("-invertLongitude")) {
 						m_bInvertLongitude = true;
 						i += 1;
@@ -777,7 +781,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 			a_loadkml.setEnabled(true);
 			// m_nOffset = parser.m_nOffset;
-			float fOffset = 3f;
+			float fOffset = GEO_OFFSET;
 			m_fMaxLong = parser.m_fMaxLong + fOffset;
 			m_fMaxLat = parser.m_fMaxLat + fOffset;
 			m_fMinLong = parser.m_fMinLong - fOffset;
@@ -2014,7 +2018,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					m_fLongitude.set(iLabel, 0f);
 				}
 			}
-			float fOffset = 3f;
+			float fOffset = GEO_OFFSET;
 			m_fMaxLong = m_fMaxLong + fOffset;
 			m_fMaxLat = m_fMaxLat + fOffset;
 			m_fMinLong = m_fMinLong - fOffset;
