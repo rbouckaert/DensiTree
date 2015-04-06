@@ -4107,15 +4107,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 					return "PDF files (*.pdf)";
 				}
 			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				public String getExtention() {
-					return ".svg";
-				}
-
-				public String getDescription() {
-					return "Standard Vector Graphics files";
-				}
-			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				public String getExtention() {
+//					return ".svg";
+//				}
+//
+//				public String getDescription() {
+//					return "Standard Vector Graphics files";
+//				}
+//			});
 			fc.setDialogTitle("Export DensiTree As");
 			int rval = fc.showSaveDialog(m_Panel);
 			if (rval == JFileChooser.APPROVE_OPTION) {
@@ -4182,10 +4182,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 						return;
 					}
-					if (sFileName.toLowerCase().endsWith(".svg")) {
-						m_Panel.toSVG(sFileName);
-						return;
-					}
+//					if (sFileName.toLowerCase().endsWith(".svg")) {
+//						m_Panel.toSVG(sFileName);
+//						return;
+//					}
 					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
 							+ " not recognized as png,bmp,jpg or svg file");
 				}
