@@ -53,7 +53,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 //		gridBagLayout.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
-		JCheckBox checkBox_1 = new JCheckBox("Consenus Trees");
+		JCheckBox checkBox_1 = new JCheckBox("Consensus Trees");
 		checkBox_1.setSelected(m_dt.m_bViewCTrees);
 		checkBox_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
