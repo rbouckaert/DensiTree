@@ -55,6 +55,7 @@
 package viz;
 
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -156,7 +157,7 @@ public class NodeOrderer {
 		
 	    System.out.print("nOrder: ");
 	    for (int i = 0; i < nNrOfLabels ; i++) {
-	    	System.out.print(Math.round(nOrder[i]) + " | ");
+	    	System.out.print(nOrder[i] + " | ");
 	    }
 		System.out.println("\nfinal score = " + score(nOrder, fDist));
 
@@ -191,64 +192,64 @@ public class NodeOrderer {
 	}
 
 
-	private void optimise(int[] nOrder, int[] nRevOrder, List<int[]> clades, List<Double> cladeWeights, double [][] fDistance) {
-		double fSumWeight = 0;
-		int nTaxa = nOrder.length;
-		for (int i = nTaxa; i < clades.size(); i++) {
-			fSumWeight += cladeWeights.get(i);
-		}
-		Random rand = new Random(1);//System.currentTimeMillis());
-		double fScore = score(nOrder, fDistance);
-		int [] nNewOrder = new int[nOrder.length];
-		int [] nNewRevOrder = new int[nOrder.length];
-		System.out.println("Start score: " + fScore);
-		for (int i = 0; i < 10000; i++) {
-			double fWeight = fSumWeight * rand.nextDouble();
-			int iClade = nTaxa;
-			while(fWeight > cladeWeights.get(iClade)) {
-				fWeight -= cladeWeights.get(iClade);
-				iClade++;
-			}
-			
-			// rotate clade
-			System.arraycopy(nOrder, 0, nNewOrder, 0, nTaxa);
-			int [] clade = clades.get(iClade);
-			boolean [] bClade = new boolean[nTaxa];
-			for (int j = 0; j < clade.length; j++) {
-				bClade[nRevOrder[j]] = true;
-			}
-			int k = 0, e = nTaxa - 1;
-			while (!bClade[k]) {
-				k++;
-			}
-			while (!bClade[e]) {
-				e--;
-			}
-			while (k < e) {
-				int tmp = nNewOrder[k];
-				nNewOrder[k] = nNewOrder[e]; 
-				nNewOrder[e] = tmp;
-				k++; e--;
-			}
-			for (int j = 0; j < nRevOrder.length; j++) {
-				nNewRevOrder[nNewOrder[j]] = j;
-			}
-			
-			// accept new order if it is doing better
-			double fNewScore = score(nOrder, fDistance);
-			if (fScore > fNewScore) {
-				fScore = fNewScore;
-				System.arraycopy(nNewOrder, 0, nOrder, 0, nTaxa);
-//				double fScore2 = score(nRevOrder, fDistance);
-				for (int j = 0; j < nRevOrder.length; j++) {
-					nRevOrder[nOrder[j]] = j;
-				}
-			}
-		}
-		
-		double fScore2 = score(nOrder, fDistance);
-		System.out.println("End score: " + fScore + " " + fScore2);
-	}
+//	private void optimise(int[] nOrder, int[] nRevOrder, List<int[]> clades, List<Double> cladeWeights, double [][] fDistance) {
+//		double fSumWeight = 0;
+//		int nTaxa = nOrder.length;
+//		for (int i = nTaxa; i < clades.size(); i++) {
+//			fSumWeight += cladeWeights.get(i);
+//		}
+//		Random rand = new Random(1);//System.currentTimeMillis());
+//		double fScore = score(nOrder, fDistance);
+//		int [] nNewOrder = new int[nOrder.length];
+//		int [] nNewRevOrder = new int[nOrder.length];
+//		System.out.println("Start score: " + fScore);
+//		for (int i = 0; i < 10000; i++) {
+//			double fWeight = fSumWeight * rand.nextDouble();
+//			int iClade = nTaxa;
+//			while(fWeight > cladeWeights.get(iClade)) {
+//				fWeight -= cladeWeights.get(iClade);
+//				iClade++;
+//			}
+//			
+//			// rotate clade
+//			System.arraycopy(nOrder, 0, nNewOrder, 0, nTaxa);
+//			int [] clade = clades.get(iClade);
+//			boolean [] bClade = new boolean[nTaxa];
+//			for (int j = 0; j < clade.length; j++) {
+//				bClade[nRevOrder[j]] = true;
+//			}
+//			int k = 0, e = nTaxa - 1;
+//			while (!bClade[k]) {
+//				k++;
+//			}
+//			while (!bClade[e]) {
+//				e--;
+//			}
+//			while (k < e) {
+//				int tmp = nNewOrder[k];
+//				nNewOrder[k] = nNewOrder[e]; 
+//				nNewOrder[e] = tmp;
+//				k++; e--;
+//			}
+//			for (int j = 0; j < nRevOrder.length; j++) {
+//				nNewRevOrder[nNewOrder[j]] = j;
+//			}
+//			
+//			// accept new order if it is doing better
+//			double fNewScore = score(nOrder, fDistance);
+//			if (fScore > fNewScore) {
+//				fScore = fNewScore;
+//				System.arraycopy(nNewOrder, 0, nOrder, 0, nTaxa);
+////				double fScore2 = score(nRevOrder, fDistance);
+//				for (int j = 0; j < nRevOrder.length; j++) {
+//					nRevOrder[nOrder[j]] = j;
+//				}
+//			}
+//		}
+//		
+//		double fScore2 = score(nOrder, fDistance);
+//		System.out.println("End score: " + fScore + " " + fScore2);
+//	}
 
 	/** used for priority queue for efficient retrieval of pair of clusters to merge**/
 	class Tuple {
@@ -613,7 +614,7 @@ public class NodeOrderer {
 			}
 			*/
 			// use priority queue to find next best pair to cluster
-			Tuple t;
+			Tuple t = null;
 			do {
 				t = queue.poll();
 			} while (t!=null && (nClusterID[t.m_iCluster1].size()!=t.m_nClusterSize1 || nClusterID[t.m_iCluster2].size()!=t.m_nClusterSize2));
@@ -657,11 +658,11 @@ public class NodeOrderer {
 		
 		//  collect hierarchy
 		TreeNode cluster = null;
-		int iRoot = -1;
+		//int iRoot = -1;
 		for (int i = 0; i < nInstances; i++) {
 			if (nClusterID[i].size() > 0) {
 				cluster = clusterNodes[i];
-				iRoot = i;
+				//iRoot = i;
 				break;
 			}
 		}
@@ -702,7 +703,7 @@ public class NodeOrderer {
 				
 				cluster.order(order, 0);
 				double fScore2 = score(order, fDistance0);
-				System.out.println(order + " " + fScore + " " + fScore2);
+				System.out.println(Arrays.toString(order) + " " + fScore + " " + fScore2);
 				
 			}
 		} while (bProgress);

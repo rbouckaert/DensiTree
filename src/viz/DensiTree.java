@@ -1392,7 +1392,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcCladePairs(node.m_right, fWeight);
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
 			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
-			Integer i = iCladeRight << 16 + iCladeLeft;
+			Integer i = (iCladeRight << 16) + iCladeLeft;
 			if (!m_cladePairs.containsKey(i)) {
 				m_cladePairs.put(i, fWeight);
 			} else {
@@ -1448,7 +1448,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 							int iClade2 = mapCladeToIndex.get(sCladeRight);
 							int iCladeLeft = Math.min(iClade1, iClade2);
 							int iCladeRight = Math.max(iClade1, iClade2);
-							Integer hash = iCladeRight << 16 + iCladeLeft;
+							Integer hash = (iCladeRight << 16) + iCladeLeft;
 							weight = m_cladePairs.get(hash);
 						} else {
 							weight = m_cladeWeight.get(iClade);
@@ -1597,7 +1597,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
 			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
 
-			Integer i = iCladeRight << 16 + iCladeLeft;
+			Integer i = (iCladeRight << 16) + iCladeLeft;
 			Double f = m_cladePairs.get(i);
 			if (f == null) {
 				f = m_cladePairs.get(i);
@@ -2478,6 +2478,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcPositions();
 			calcLines();
 		}
+		m_prevLineWidthMode = m_lineWidthMode;
+		m_prevLineWidthTag = m_lineWidthTag;
+		m_sPrevLineWidthPattern = m_sLineWidthPattern;
 		setWaitCursor();
 
 		if (m_sLabels == null) {
@@ -3744,7 +3747,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** this contains the TreeSetPanel */
 	JScrollPane m_jScrollPane;
 	/** panel for drawing the trees **/
-	public TreeSetPanel m_Panel;
+	public TreeSetPanel m_Panel = null;
 	/** the menu bar for this application. */
 	JMenuBar m_menuBar;
 	/** status bar at bottom of window */
