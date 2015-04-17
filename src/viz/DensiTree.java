@@ -2470,8 +2470,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public void calcLineWidths(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag == m_prevLineWidthTag
-					&& m_sLineWidthPattern == m_sPrevLineWidthPattern) {
+			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag.equals(m_prevLineWidthTag)
+					&& m_sLineWidthPattern.equals(m_sPrevLineWidthPattern)) {
 				return;
 			}
 		} else {
@@ -2594,8 +2594,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	public void calcColors(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineColorMode == m_prevLineColorMode && m_lineColorTag == m_prevLineColorTag
-					&& m_sLineColorPattern == m_sPrevLineColorPattern) {
+			if (m_lineColorMode == m_prevLineColorMode && m_lineColorTag.equals(m_prevLineColorTag)
+					&& m_sLineColorPattern.equals(m_sPrevLineColorPattern)) {
 				return;
 			}
 		}
@@ -2627,9 +2627,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				if (m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_cTrees[i]);
-				}
+				//if (m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
@@ -2642,9 +2642,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			if (m_bAllowSingleChild) {
-				break;
-			}
+			//if (m_bAllowSingleChild) {
+			//	break;
+			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
@@ -2668,9 +2668,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				if (m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_cTrees[i]);
-				}
+				//if (m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
@@ -2683,9 +2683,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			if (m_bAllowSingleChild) {
-				break;
-			}
+			//if (m_bAllowSingleChild) {
+			//	break;
+			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
 			break;
@@ -2718,9 +2718,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				if (m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_cTrees[i]);
-				}
+				// it is known m_bAllowSingleChild = false at this point
+				//if (m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {

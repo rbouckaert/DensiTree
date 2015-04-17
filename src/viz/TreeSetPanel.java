@@ -280,7 +280,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //				treeDrawer.m_branchStyle = 2;
 //			}
 //			DrawThread thread = new DrawThread("draw thread", 0, m_dt.m_trees.length, 1, treeDrawer);
-//			thread.run();
+//			thread.start();
 //			drawLabelsSVG(m_dt.m_trees[0], buf);
 //			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
 //

@@ -101,7 +101,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 						chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 								|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
 						chckbxCategorical.setEnabled(m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
-						if (m_dt.m_lineColorMode != oldMode || m_dt.m_lineColorTag != oldTag) {
+						if (m_dt.m_lineColorMode != oldMode || !m_dt.m_lineColorTag.equals(oldTag)) {
 							m_dt.calcColors(false);
 							m_dt.makeDirty();
 						}
