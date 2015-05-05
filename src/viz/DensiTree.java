@@ -5257,8 +5257,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 					}
 					resetCladeSelection();
-					System.err.println(Arrays.toString(m_cladelist.getSelectedValues()));
-					System.err.println(m_cladelist.getSelectedValues().length + " items selected");
+					System.err.println(Arrays.toString(m_cladelist.getSelectedValuesList().toArray()));
+					System.err.println(m_cladelist.getSelectedValuesList().size() + " items selected");
 					repaint();
 				}
 			}
