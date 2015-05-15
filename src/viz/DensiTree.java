@@ -2470,7 +2470,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public void calcLineWidths(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag.equals(m_prevLineWidthTag)
+			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag != null && m_lineWidthTag.equals(m_prevLineWidthTag)
 					&& m_sLineWidthPattern.equals(m_sPrevLineWidthPattern)) {
 				return;
 			}
@@ -2594,7 +2594,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	public void calcColors(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineColorMode == m_prevLineColorMode && m_lineColorTag.equals(m_prevLineColorTag)
+			if (m_lineColorMode == m_prevLineColorMode && m_lineColorTag != null && m_lineColorTag.equals(m_prevLineColorTag)
 					&& m_sLineColorPattern.equals(m_sPrevLineColorPattern)) {
 				return;
 			}
