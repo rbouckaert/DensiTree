@@ -158,9 +158,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				int i = comboBox.getSelectedIndex();
 				if (m_dt.m_summaryTree != null) {
-					m_dt.m_rootcanaltree = m_dt.m_summaryTree.get(i);					
-					m_dt.calcLines();
-					m_dt.makeDirty();
+					if (i>= 0 && i < m_dt.m_summaryTree.size() - 1) {
+						m_dt.m_rootcanaltree = m_dt.m_summaryTree.get(i);					
+						m_dt.calcLines();
+						m_dt.makeDirty();
+					}
 				}
 			}
 		});
