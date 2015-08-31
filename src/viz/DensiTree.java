@@ -498,6 +498,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_color[k++] = new Color(0, 100, 25);
 		m_color[k++] = new Color(100, 25, 100);
 		m_color[k++] = new Color(25, 100, 100);
+		m_color[k++] = new Color(100, 100, 100);
 	} // initColors
 
 	/** parse command line arguments, and load file if specified **/
@@ -2840,7 +2841,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 //					m_colorMetaDataCategories.add(o.toString());
 //				}
 //				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
-				color = m_color[9 + m_colorMetaDataCategories.get(o.toString()) % (m_color.length - 9)].getRGB();
+				int i = m_colorMetaDataCategories.get(o.toString());
+				System.err.println(i + " " + (9 + i % (m_color.length - 9)) + " " + m_color.length);
+				color = m_color[9 + i % (m_color.length - 9)].getRGB();
 			}
 		} else {
 			if (o != null) {
