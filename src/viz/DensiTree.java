@@ -401,6 +401,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 */
 	public boolean m_bWidthsAreZeroBased = true;
 	
+	/** for storing the PDF file name from CLI **/
+	String m_asPDF = null;
+	
 	/** thread for processing meta data **/
 	Thread thread = null;
 	
@@ -628,6 +631,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-colorpattern")) {
 						m_sColorPattern = args[i + 1];
 						i += 2;
+					} else if (args[i].equals("-linecolortag")) {
+						m_lineColorTag = args[i + 1];
+						m_lineColorMode = LineColorMode.COLOR_BY_METADATA_TAG;
+						i += 2;
+					} else if (args[i].equals("-linecolorlegend")) {
+						m_showLegend = true;
+						i++;
 					} else if (args[i].equals("-singlechild")) {
 						m_bAllowSingleChild = Boolean.parseBoolean(args[i + 1]);
 						i += 2;
@@ -655,11 +665,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_sOptTree = args[i+1];
 						m_bOptimiseRootCanalTree = false;
 						i += 2;
+					} else if (args[i].equals("-asPDF")) {
+						m_asPDF = args[i+1];
+						i += 2;
 					}
+					
+					
 					if (i == iOld) {
 						if (new File(args[i]).exists()) {
 							init(args[i++]);
 							calcLines();
+
 							if (i != args.length) {
 								String [] args2 = new String[args.length - 1];
 								for (int k = 0; k < i - 1; k++) {
@@ -678,6 +694,26 @@ public class DensiTree extends JPanel implements ComponentListener {
 					init(args[i++]);
 					calcLines();
 				}
+			}
+			if (m_asPDF != null) {
+				new Thread() {
+					public void run() {
+						try {
+							Thread.sleep(5000);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						while (!m_bMetaDataReady) {
+							try {
+								Thread.sleep(100);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						exportPDF(m_asPDF);
+						System.exit(0);
+					};
+				}.start();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -738,6 +774,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_viewMode = ViewMode.DRAW;
 		a_animateStart.setIcon("start");
 		m_prevLineColorMode = null;
+		LineColorMode orgLineColorMode =  m_lineColorMode;
 		m_lineColorMode = LineColorMode.DEFAULT;
 		m_prevLineWidthMode = null;
 		m_lineWidthMode = LineWidthMode.DEFAULT;
@@ -997,6 +1034,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					m_bMetaDataReady = true;			
 					notifyChangeListeners();
 					m_jStatusBar.setText("Done parsing metadata");
+					
 					thread = null;
 				}
 
@@ -1016,8 +1054,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_metaDataTags = new ArrayList<String>();
 			m_metaDataTypes = new ArrayList<MetaDataType>();
 			collectMetaDataTags(m_trees[0]);
-
 			notifyChangeListeners();
+
+			if (orgLineColorMode != LineColorMode.DEFAULT) {
+				while (!m_bMetaDataReady) {
+					Thread.sleep(100);
+				}
+				m_lineColorMode = orgLineColorMode;
+				calcColors(false);
+				makeDirty();
+			}
+
 		} catch (OutOfMemoryError e) {
 			clear();
 			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
@@ -1047,7 +1094,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			loadKML();
 		}
 		System.err.println("Done");
-		
 	} // init
 
 	void notifyChangeListeners() {
@@ -4079,7 +4125,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		abstract public String getExtention();
 	}
 
-	Action a_exportVector = new MyAction("Export", "Export", "export", -1) {
+	Action a_export = new MyAction("Export", "Export", "export", -1) {
 		private static final long serialVersionUID = -1;
 
 		public void actionPerformed(ActionEvent ae) {
@@ -4146,29 +4192,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 
                     if (sFileName.toLowerCase().endsWith(".pdf")) {
-                    	try {
-                    	com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
-                    	PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
-                    	doc.setPageSize(new com.itextpdf.text.Rectangle(m_Panel.getWidth(), m_Panel.getHeight()));
-                    	doc.open();
-                    	PdfContentByte cb = writer.getDirectContent();
-                    	Graphics2D g = new PdfGraphics2D(cb, m_Panel.getWidth(), m_Panel.getHeight());
-                    	 
-						BufferedImage bi;
-						bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-						//g = bi.getGraphics();
-						g.setPaintMode();
-						g.setColor(getBackground());
-						g.fillRect(0, 0, m_Panel.getWidth(), m_Panel.getHeight());
-						m_Panel.paint(g);
-						//m_Panel.printAll(g);
-
-                    	g.dispose();
-                    	doc.close();
-                    	} catch (Exception e) {
-							JOptionPane.showMessageDialog(m_Panel, "Export may have failed: " + e.getMessage());
-						}
-                        repaint();
+                    	exportPDF(sFileName);
+                       repaint();
                     	return;
                     } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
 							|| sFileName.toLowerCase().endsWith(".bmp")) {
@@ -4205,6 +4230,32 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 	}; // class ActionExport
+	
+	void exportPDF(String sFileName) {
+		try {
+			com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+			PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
+			doc.setPageSize(new com.itextpdf.text.Rectangle(m_Panel.getWidth(), m_Panel.getHeight()));
+			doc.open();
+			PdfContentByte cb = writer.getDirectContent();
+			Graphics2D g = new PdfGraphics2D(cb, m_Panel.getWidth(), m_Panel.getHeight());
+			 
+			BufferedImage bi;
+			bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
+			//g = bi.getGraphics();
+			g.setPaintMode();
+			g.setColor(getBackground());
+			g.fillRect(0, 0, m_Panel.getWidth(), m_Panel.getHeight());
+			m_Panel.paint(g);
+			//m_Panel.printAll(g);
+		
+			g.dispose();
+			doc.close();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(m_Panel, "Export may have failed: " + e.getMessage());
+		}
+	}
+
 
 	Action a_print = new MyAction("Print", "Print Graph", "print", KeyEvent.VK_P) {
 		private static final long serialVersionUID = -20389001859354L;
@@ -4237,41 +4288,45 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -2038911085935515L;
 
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_sDir);
-			fc.addChoosableFileFilter(new FileFilter() {
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".trees")) {
-						return true;
-					}
-					if (name.endsWith(".tre")) {
-						return true;
-					}
-					if (name.endsWith(".nex")) {
-						return true;
-					}
-					if (name.endsWith(".t")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				public String getDescription() {
-					return "Nexus trees files";
-				}
-			});
-
-			fc.setDialogTitle("Load Tree Set");
-			int rval = fc.showOpenDialog(m_Panel);
-
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				doOpen(fc.getSelectedFile().toString());
-				// makeDirty();
+			File [] files = Util.getFile("Load Tree Set", true, new File(m_sDir), false, "Nexus trees files", "trees","tre","nex","t");
+			if (files != null && files.length > 0) {
+				doOpen(files[0].getPath());
 			}
+//			JFileChooser fc = new JFileChooser(m_sDir);
+//			fc.addChoosableFileFilter(new FileFilter() {
+//				public boolean accept(File f) {
+//					if (f.isDirectory()) {
+//						return true;
+//					}
+//					String name = f.getName().toLowerCase();
+//					if (name.endsWith(".trees")) {
+//						return true;
+//					}
+//					if (name.endsWith(".tre")) {
+//						return true;
+//					}
+//					if (name.endsWith(".nex")) {
+//						return true;
+//					}
+//					if (name.endsWith(".t")) {
+//						return true;
+//					}
+//					return false;
+//				}
+//
+//				// The description of this filter
+//				public String getDescription() {
+//					return "Nexus trees files";
+//				}
+//			});
+//
+//			fc.setDialogTitle("Load Tree Set");
+//			int rval = fc.showOpenDialog(m_Panel);
+//
+//			if (rval == JFileChooser.APPROVE_OPTION) {
+//				doOpen(fc.getSelectedFile().toString());
+//				// makeDirty();
+//			}
 		}
 	}; // class ActionLoad
 
@@ -5312,7 +5367,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		fileMenu.addSeparator();
 		fileMenu.add(a_print);
 		// fileMenu.add(a_export);
-		fileMenu.add(a_exportVector);
+		fileMenu.add(a_export);
 		if (!viz.util.Util.isMac()) {
 			fileMenu.addSeparator();
 			fileMenu.add(a_quit);
