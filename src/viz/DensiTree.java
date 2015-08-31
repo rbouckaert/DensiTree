@@ -466,7 +466,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	void initColors() {
-		m_color = new Color[10 + 18];
+		m_color = new Color[10 + 11 + 50];
 		m_color[0] = Color.getColor("color.1", Color.blue);
 		m_color[1] = Color.getColor("color.2", Color.red);
 		m_color[2] = Color.getColor("color.3", Color.green);
@@ -492,13 +492,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_color[k++] = Color.magenta;
 		m_color[k++] = new Color(100, 200, 25);
 		;
-		m_color[k++] = new Color(100, 0, 25);
-		m_color[k++] = new Color(25, 0, 100);
-		m_color[k++] = new Color(0, 25, 100);
-		m_color[k++] = new Color(0, 100, 25);
-		m_color[k++] = new Color(100, 25, 100);
-		m_color[k++] = new Color(25, 100, 100);
-		m_color[k++] = new Color(100, 100, 100);
+//		m_color[k++] = new Color(100, 0, 25);
+//		m_color[k++] = new Color(25, 0, 100);
+//		m_color[k++] = new Color(0, 25, 100);
+//		m_color[k++] = new Color(0, 100, 25);
+//		m_color[k++] = new Color(100, 25, 100);
+//		m_color[k++] = new Color(25, 100, 100);
+//		m_color[k++] = new Color(100, 100, 100);
+
+		for (float saturation = 0.9f; saturation >= 0.0f; saturation -= 0.2) {
+			for (float hue = 0.0f; hue < 1.0f; hue += 0.1) {
+				m_color[k++] = new Color(Color.HSBtoRGB(hue+saturation/10, saturation, 0.9f));
+			}
+		}
 	} // initColors
 
 	/** parse command line arguments, and load file if specified **/

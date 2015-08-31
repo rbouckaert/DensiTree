@@ -250,9 +250,9 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			});
 			add(button);
 			
-			setPreferredSize(new Dimension(300,200));
-			setSize(new Dimension(300,200));
-			setLocation(300, 200);
+			setPreferredSize(new Dimension(300,600));
+			setSize(new Dimension(300,600));
+			setLocation(300, 600);
 			setModal(true);
 			setVisible(true);
 		}
