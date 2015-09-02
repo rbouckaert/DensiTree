@@ -60,12 +60,13 @@
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
-    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false">
-<!--
+    <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false"
 		   source="1.6"
   	       target="1.6"
 		   bootclasspath='/opt/jdk1.6.0_45/jre/lib/rt.jar'
-		<compilerarg value="-Xlint:deprecation"/>
+		   >
+<!--
+		   <compilerarg value="-Xlint:deprecation"/>
 -->
 	</javac>
     <copy todir="${build}/viz/icons">

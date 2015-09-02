@@ -128,7 +128,7 @@ public class TreeFileParser {
 						sStr2 = sStr2.substring(0, i0) + sStr2.substring(i1 + 1);
 					}
 					sStr2 = sStr2.replaceAll("[;\\(\\),]"," ");
-					sStr2 = sStr2.replaceAll(":[0-9\\.Ee-]+"," ");
+					sStr2 = sStr2.replaceAll(":\\s*[0-9\\.Ee-]+"," ");
 					String [] sLabels = sStr2.split("\\s+");
 					if (bAddLabels) {
 						m_nNrOfLabels = 0;
