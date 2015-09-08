@@ -64,22 +64,32 @@ public class Util {
         }
 
         if (!lafLoaded) {
-            UIManager.LookAndFeelInfo[] lafs = UIManager.getInstalledLookAndFeels();
-            for (UIManager.LookAndFeelInfo laf : lafs) {
-                System.out.println(laf);
-            }
+            final UIManager.LookAndFeelInfo[] lafs = UIManager.getInstalledLookAndFeels();
+            //for (UIManager.LookAndFeelInfo laf : lafs) {
+            //    System.out.println(laf + " [[" + laf.getName() + "]]");
+            //}
+            //System.out.println(UIManager.getCrossPlatformLookAndFeelClassName());
 
             try {
                 // set the System Look and Feel in the UIManager
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
                     	try {
-                    	    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                    	if (isMac()) {
+                    	    for (LookAndFeelInfo info : lafs) {
+                    	        if ("Mac OS X".equals(info.getName())) {
+                    	            UIManager.setLookAndFeel(info.getClassName());
+                    	            break;
+                    	        }
+                    	    }
+                    	} else {
+                    	    for (LookAndFeelInfo info : lafs) {
                     	        if ("Nimbus".equals(info.getName())) {
                     	            UIManager.setLookAndFeel(info.getClassName());
                     	            break;
                     	        }
                     	    }
+                    	}
                     	} catch (Exception e) {
                         try {
                             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -87,6 +97,7 @@ public class Util {
                         } catch (Exception e2) {
                             e.printStackTrace();
                         }
+                    	
                     	}
                     }
                 });
