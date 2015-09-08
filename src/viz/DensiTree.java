@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
- * @version $Revision: 2.1 $
+ * @version $Revision: 2.2.3 $
  */
 
 // the magic sentence to look for when releasing:
@@ -91,8 +91,7 @@ import viz.process.BranchLengthOptimiser;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	//final static String VERSION = "2.1.5 release candidate";
-	final static String VERSION = "2.2.2";
+	final static String VERSION = "2.2.3";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -5321,16 +5320,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 					}
 					resetCladeSelection();
-					System.err.println(Arrays.toString(m_cladelist.getSelectedValuesList().toArray()));
-					System.err.println(m_cladelist.getSelectedValuesList().size() + " items selected");
+					System.err.println(Arrays.toString(m_cladelist.getSelectedValues()));
+					System.err.println(m_cladelist.getSelectedValues().length + " items selected");
 					repaint();
 				}
 			}
 		});
 		JScrollPane scrollingList = new JScrollPane(m_cladelist);
-		scrollingList.setPreferredSize(new Dimension(600,30));
-		scrollingList.setMinimumSize(scrollingList.getPreferredSize());
-		m_jTbCladeTools.add(scrollingList);
+		//scrollingList.setPreferredSize(new Dimension(1200,600));
+		//scrollingList.setMinimumSize(scrollingList.getPreferredSize());
+		m_jTbCladeTools.setLayout(new BorderLayout());
+		m_jTbCladeTools.add(scrollingList, BorderLayout.CENTER);
 		m_jTbCladeTools.setFloatable(false);
 		m_jTbCladeTools.setVisible(false);
 	} // makeToolbar

@@ -73,12 +73,21 @@ public class Util {
                 // set the System Look and Feel in the UIManager
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
+                    	try {
+                    	    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                    	        if ("Nimbus".equals(info.getName())) {
+                    	            UIManager.setLookAndFeel(info.getClassName());
+                    	            break;
+                    	        }
+                    	    }
+                    	} catch (Exception e) {
                         try {
                             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //                              UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                        } catch (Exception e) {
+                        } catch (Exception e2) {
                             e.printStackTrace();
                         }
+                    	}
                     }
                 });
             } catch (Exception e) {
@@ -160,12 +169,12 @@ public class Util {
                 chooser.setFilenameFilter(filter);
             }
 
-            chooser.setMultipleMode(bAllowMultipleSelection);
+            //chooser.setMultipleMode(bAllowMultipleSelection);
             chooser.setVisible(true);
             if (chooser.getFile() == null) return null;
-            if (bAllowMultipleSelection) {
-            	return chooser.getFiles();
-            }
+            //if (bAllowMultipleSelection) {
+            //	return chooser.getFiles();
+            //}
             File file = new java.io.File(chooser.getDirectory(), chooser.getFile());
             chooser.dispose();
             frame.dispose();
