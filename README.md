@@ -1,6 +1,7 @@
 DensiTree: making sense of sets of trees.
 
-To get the latest release, download https://github.com/rbouckaert/DensiTree/releases/download/v2.2.1/DensiTree.v2.2.1.jar
+To get the latest release, download DensiTree.v2.X.X.jar from
+https://github.com/rbouckaert/DensiTree/releases/
 
 Double click to start. 
 
