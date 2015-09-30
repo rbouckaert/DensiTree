@@ -668,7 +668,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-asPDF")) {
 						m_asPDF = args[i+1];
 						i += 2;
-					} else if (args[i].equals("cladeThreshold")) {
+					} else if (args[i].equals("-cladeThreshold")) {
 						m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
 					}
