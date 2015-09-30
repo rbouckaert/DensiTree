@@ -242,7 +242,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
-	
+	double m_cladeThreshold = 1e-4;
+
 	/** flag to allow leafs to be draw and dragged around.
 	 * As a side effect, internal clades will not be positioned correctly,
 	 * so this flag can only be set with the -allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions flag **/
@@ -666,6 +667,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-asPDF")) {
 						m_asPDF = args[i+1];
+						i += 2;
+					} else if (args[i].equals("cladeThreshold")) {
+						m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
 					}
 					
@@ -1258,10 +1262,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			index[i] = i;
 		}
 		
+		
 		Arrays.sort(index, new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < 1e-4) {
+				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < m_cladeThreshold) {
 					return (int) Math.signum(m_clades.get(o1).length- m_clades.get(o2).length);
 				}
 				return -Double.compare(m_cladeWeight.get(o1), m_cladeWeight.get(o2));
