@@ -5545,7 +5545,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 
 	public static DensiTree startNew(String [] args) {
-		viz.util.Util.loadUIManager();
 
 		final DensiTree a = new DensiTree(new String[]{});
 		
@@ -5638,6 +5637,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * Main method
 	 */
 	public static void main(String[] args) {
+		viz.util.Util.loadUIManager();
 		startNew(args);
 	}
 	
