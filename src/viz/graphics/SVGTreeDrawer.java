@@ -21,13 +21,6 @@
 
 package viz.graphics;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
-import java.util.Random;
-
 
 /** This class takes care of drawing a single tree out of a tree set in SVG
  * into a StringBuffer 

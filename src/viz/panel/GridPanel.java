@@ -93,6 +93,7 @@ public class GridPanel extends JPanel {
 		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("No grid");
 		panel.add(rdbtnNewRadioButton_1);
 		rdbtnNewRadioButton_1.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.NONE;
 				m_dt.makeDirty();
@@ -104,6 +105,7 @@ public class GridPanel extends JPanel {
 		JRadioButton rdbtnNewRadioButton = new JRadioButton("Short grid");
 		panel.add(rdbtnNewRadioButton);
 		rdbtnNewRadioButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.SHORT;
 				m_dt.makeDirty();
@@ -114,6 +116,7 @@ public class GridPanel extends JPanel {
 		JRadioButton radioButton_2 = new JRadioButton("Full grid");
 		panel.add(radioButton_2);
 		radioButton_2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.FULL;
 				m_dt.makeDirty();
@@ -139,6 +142,7 @@ public class GridPanel extends JPanel {
 		JSpinner spinner = new JSpinner(significantDigitsModel);
 		spinner.setToolTipText(Util.formatToolTipAsHtml(HELP_DIGITS));
 		significantDigitsModel.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				m_dt.m_gridDrawer.m_nGridDigits = (Integer) significantDigitsModel.getValue();
 				m_dt.makeDirty();
@@ -250,6 +254,7 @@ public class GridPanel extends JPanel {
 		chckbxAutomatic.setToolTipText(Util.formatToolTipAsHtml(HELP_AUTOMATIC));
 		chckbxAutomatic.setSelected(m_dt.m_gridDrawer.m_bAutoGrid);
 		chckbxAutomatic.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_gridDrawer.m_bAutoGrid;
 				m_dt.m_gridDrawer.m_bAutoGrid = ((JCheckBox) e.getSource()).isSelected();
@@ -420,6 +425,7 @@ public class GridPanel extends JPanel {
 		
 		txtScale = new JTextField();
 		txtScale.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_fUserScale = Float.parseFloat(txtScale.getText());

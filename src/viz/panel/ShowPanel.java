@@ -56,6 +56,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		JCheckBox checkBox_1 = new JCheckBox("Consensus Trees");
 		checkBox_1.setSelected(m_dt.m_bViewCTrees);
 		checkBox_1.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bViewCTrees;
 				m_dt.m_bViewCTrees = ((JCheckBox) e.getSource()).isSelected();
@@ -75,6 +76,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		JCheckBox checkBox = new JCheckBox("All Trees");
 		checkBox.setSelected(m_dt.m_bViewAllTrees);
 		checkBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bViewAllTrees;
 				m_dt.m_bViewAllTrees = ((JCheckBox) e.getSource()).isSelected();
@@ -94,6 +96,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		checkBoxShowRotoCanal = new JCheckBox("Root Canal");
 		checkBoxShowRotoCanal.setSelected(m_dt.m_bShowRootCanalTopology);
 		checkBoxShowRotoCanal.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bShowRootCanalTopology;
 				m_dt.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
@@ -122,6 +125,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		JCheckBox checkBox_3 = new JCheckBox("Root At Top");
 		checkBox_3.setSelected(m_dt.m_treeDrawer.m_bRootAtTop);
 		checkBox_3.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_treeDrawer.m_bRootAtTop;
 				m_dt.m_treeDrawer.m_bRootAtTop = ((JCheckBox) e.getSource()).isSelected();
@@ -133,6 +137,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		
 		btnImport = new RoundedButton("import");
 		btnImport.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				ImportRootCanalDialog dlg = new ImportRootCanalDialog(m_dt);
 				if (dlg.showDialog(null)) {
@@ -155,6 +160,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		comboBox = new JComboBox(labels.toArray());
 		comboBox.addActionListener(new ActionListener() {
 			
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int i = comboBox.getSelectedIndex();
 				if (m_dt.m_summaryTree != null) {
@@ -195,6 +201,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(checkBox_3, gbc_checkBox_3);
 		
 		chckbxShowEditTree.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bViewEditTree;
 				m_dt.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();

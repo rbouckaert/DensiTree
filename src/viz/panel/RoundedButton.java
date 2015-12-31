@@ -14,6 +14,10 @@ import javax.swing.JButton;
 
 public class RoundedButton extends JButton implements MouseListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	boolean mouseIn = false;
 
 	public RoundedButton(String label) {
@@ -48,20 +52,25 @@ public class RoundedButton extends JButton implements MouseListener {
         //g2.dispose();
     }
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
     }
 
-    public void mouseEntered(MouseEvent e) {
+    @Override
+	public void mouseEntered(MouseEvent e) {
         mouseIn = true;
     }
 
-    public void mouseExited(MouseEvent e) {
+    @Override
+	public void mouseExited(MouseEvent e) {
         mouseIn = false;
     }
 
-    public void mousePressed(MouseEvent e) {
+    @Override
+	public void mousePressed(MouseEvent e) {
     }
 
-    public void mouseReleased(MouseEvent e) {
+    @Override
+	public void mouseReleased(MouseEvent e) {
     }
 }

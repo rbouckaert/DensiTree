@@ -30,7 +30,7 @@ public class GridDrawer {
 			DecimalFormat formatter = new DecimalFormat("##.##");
 			float fTreeHeight = m_dt.m_fHeight * m_dt.m_fUserScale;
 
-			float fUserScale = Math.abs(m_dt.m_fUserScale);
+			//float fUserScale = Math.abs(m_dt.m_fUserScale);
 			float fUserSign = Math.signum(m_dt.m_fUserScale);
 			if (m_bReverseGrid) {
 				fUserSign = - fUserSign;

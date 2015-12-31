@@ -13,9 +13,6 @@ import viz.DensiTree;
 import viz.Node;
 import viz.TreeFileParser;
 
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Frame;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -79,6 +76,7 @@ public class ImportRootCanalDialog extends JPanel {
 		gbc_rdbtnNewRadioButton.gridx = 0;
 		gbc_rdbtnNewRadioButton.gridy = 0;
 		b1.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				update();
 			}
@@ -113,6 +111,7 @@ public class ImportRootCanalDialog extends JPanel {
 		gbc_rdbtnNewRadioButton_1.gridy = 2;
 		add(b2, gbc_rdbtnNewRadioButton_1);
 		b2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				update();
 			}
@@ -136,6 +135,7 @@ public class ImportRootCanalDialog extends JPanel {
 		comboBox.addItem(new STOption("Min. distance by branch score", "--method min-distance  --distance-method branch-score", true));
 		
 		comboBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				update();
 			}

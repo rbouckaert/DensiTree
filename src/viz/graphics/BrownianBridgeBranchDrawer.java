@@ -27,6 +27,7 @@ public class BrownianBridgeBranchDrawer extends BranchDrawer {
 	Random m_random = new Random();
 	final static int NR_OF_POINTS = 32;
 	final static double NOISE = 1.5;
+	@Override
 	void lineAA(BufferedImageF image, int x1, int y1, int x2, int y2, float fAlpha, int nRed, int nGreen, int nBlue, float fLineWidth) {
 		int [] nX = new int[NR_OF_POINTS];
 		int [] nY = new int[NR_OF_POINTS];

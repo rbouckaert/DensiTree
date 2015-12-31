@@ -17,6 +17,7 @@ public class RotationPoint {
 		return (Math.abs(nX - m_nX) < 5 && Math.abs(nY - m_nY) < 5);
 	}
 	
+	@Override
 	public String toString() {
 		return "(" + m_nX + "," + m_nY + ")";
 	}

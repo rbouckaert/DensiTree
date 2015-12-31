@@ -2,7 +2,6 @@ package viz.panel;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,16 +13,10 @@ import java.awt.RenderingHints;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.TitledBorder;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.RoundRectangle2D;
@@ -45,6 +38,10 @@ public class ExpandablePanel extends JPanel {
 
 	
 	public class DropDownButton extends JButton implements MouseListener {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		boolean mouseIn = false;
 		boolean isOpen = false;
 		void setOpen(boolean isOpen) {
@@ -98,21 +95,26 @@ public class ExpandablePanel extends JPanel {
 	        g2.dispose();
 	    }
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 	    }
 
-	    public void mouseEntered(MouseEvent e) {
+	    @Override
+		public void mouseEntered(MouseEvent e) {
 	        mouseIn = true;
 	    }
 
-	    public void mouseExited(MouseEvent e) {
+	    @Override
+		public void mouseExited(MouseEvent e) {
 	        mouseIn = false;
 	    }
 
-	    public void mousePressed(MouseEvent e) {
+	    @Override
+		public void mousePressed(MouseEvent e) {
 	    }
 
-	    public void mouseReleased(MouseEvent e) {
+	    @Override
+		public void mouseReleased(MouseEvent e) {
 	    }
 	}
 

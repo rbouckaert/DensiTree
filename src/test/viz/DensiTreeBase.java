@@ -23,6 +23,7 @@ public class DensiTreeBase extends FestSwingJUnitTestCase {
 	protected FrameFixture dtFrame;
 	protected DensiTree densitree;
 
+	@Override
 	protected void onSetUp() {
 		dtFrame = new FrameFixture(robot(), createNewEditor());
 		dtFrame.show();
@@ -31,6 +32,7 @@ public class DensiTreeBase extends FestSwingJUnitTestCase {
 	@RunsInEDT
 	private static JFrame createNewEditor() {
 		return execute(new GuiQuery<JFrame>() {
+			@Override
 			protected JFrame executeInEDT() throws Throwable {
 				DensiTree densitree = DensiTree.startNew(new String[] {});
 				JFrame frame = (JFrame) SwingUtilities.getRoot(densitree);

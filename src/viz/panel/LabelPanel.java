@@ -63,6 +63,7 @@ public class LabelPanel extends JPanel {
 		textField = new JTextField();
 		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_LABEL_WIDTH));
 		textField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try{
 				m_dt.m_nLabelWidth = Integer.parseInt(textField.getText());
@@ -83,6 +84,7 @@ public class LabelPanel extends JPanel {
 		JCheckBox chckbxRotate = new JCheckBox("Rotate");
 		chckbxRotate.setToolTipText(Util.formatToolTipAsHtml(HELP_ROTATE));
 		chckbxRotate.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JCheckBox button = (JCheckBox) e.getSource();
 				m_dt.m_bRotateTextWhenRootAtTop = button.isSelected();
@@ -100,6 +102,7 @@ public class LabelPanel extends JPanel {
 		
 		textField_2 = new JTextField(m_dt.m_fLabelIndent + "");
 		textField_2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try{
 					m_dt.m_fLabelIndent = Float.parseFloat(textField.getText());
@@ -126,6 +129,7 @@ public class LabelPanel extends JPanel {
 		JButton btnColor = new RoundedButton("Color");
 		btnColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 		btnColor.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.LABELCOLOR]);
 				if (newColor != null) {
@@ -139,6 +143,7 @@ public class LabelPanel extends JPanel {
 		JButton btnFont = new RoundedButton("Font");
 		btnFont.setToolTipText(Util.formatToolTipAsHtml(HELP_FONT));
 		btnFont.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFontChooser fontChooser = new JFontChooser();
 				if (m_dt.m_font != null) {
@@ -157,6 +162,7 @@ public class LabelPanel extends JPanel {
 		chckbxAlign.setToolTipText(Util.formatToolTipAsHtml(HELP_ALIGN));
 		chckbxAlign.setSelected(m_dt.m_bAlignLabels);
 		chckbxAlign.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bAlignLabels = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
@@ -172,6 +178,7 @@ public class LabelPanel extends JPanel {
 		JCheckBox chckbxHide = new JCheckBox("Hide");
 		chckbxHide.setToolTipText(Util.formatToolTipAsHtml(HELP_HIDE));
 		chckbxHide.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
@@ -216,6 +223,7 @@ public class LabelPanel extends JPanel {
 		JButton btnLoad = new RoundedButton("Load image map");
 		btnLoad.setToolTipText(HELP_LOAD);
 		btnLoad.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.loadImages();
 			}

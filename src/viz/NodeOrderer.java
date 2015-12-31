@@ -58,7 +58,6 @@ package viz;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.Random;
 import java.util.Vector;
 import java.util.List;
 import java.util.ArrayList;
@@ -269,6 +268,7 @@ public class NodeOrderer {
 
 	/** comparator used by priority queue**/
 	class TupleComparator implements Comparator<Tuple> {
+		@Override
 		public int compare(Tuple o1, Tuple o2) {
 			if (o1.m_fDist < o2.m_fDist) {
 				return -1;

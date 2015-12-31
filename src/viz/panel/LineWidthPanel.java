@@ -35,7 +35,6 @@ import java.util.ArrayList;
 
 import javax.swing.JComboBox;
 import javax.swing.JSeparator;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter.DEFAULT;
 
 public class LineWidthPanel extends JPanel implements ChangeListener {
 	final static public String HELP_LINE_WIDTH = "Determine line width of trees of both tree set and consensus trees." +
@@ -95,6 +94,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		comboBoxBottom.setSelectedItem(m_dt.m_lineWidthMode);
 
 		comboBoxBottom.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					
@@ -228,6 +228,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				comboBoxTop.setMaximumSize(new Dimension(130,200));
 				comboBoxTop.setSelectedItem(m_dt.m_lineWidthMode);
 				comboBoxTop.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 							SwingUtilities.invokeLater(new Runnable() {
 								
@@ -278,6 +279,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		gbc_textField.gridy = 7;
 		add(textField, gbc_textField);
 		textField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					m_dt.m_sLineWidthPatternTop = textField.getText();
@@ -307,6 +309,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		chckbxZeroBased = new JCheckBox("Zero based");
 		chckbxZeroBased.setSelected(m_dt.m_bWidthsAreZeroBased);
 		chckbxZeroBased.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
 				m_dt.m_bWidthsAreZeroBased = ((JCheckBox) e.getSource()).isSelected();

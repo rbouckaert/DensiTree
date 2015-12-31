@@ -33,6 +33,10 @@ import java.util.regex.Pattern;
 // Also, assumes that the geo coordinates in the labels coincide with those in the metadata,
 // so if metadata x & y are from a grid, then x & y of taxa should be from a grid.
 public class AddSpeed extends DensiTree {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/** regular expression pattern for finding width information in metadata **/ 
 	static Pattern g_pattern;
 	final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";

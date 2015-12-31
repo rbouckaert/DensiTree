@@ -3,7 +3,6 @@ package viz;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -11,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -18,21 +18,16 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.io.File;
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import viz.DensiTree.LineColorMode;
 import viz.DensiTree.ViewMode;
-import viz.graphics.ArcBranchDrawer;
 import viz.graphics.BufferedImageBounded;
 import viz.graphics.BufferedImageF;
-import viz.graphics.SVGTreeDrawer;
-import viz.graphics.SteepArcBranchDrawer;
 import viz.graphics.TreeDrawer;
 
 /**
@@ -120,6 +115,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			m_dt.m_treeDrawer = treeDrawer;
 		} // c'tor
 
+		@Override
 		public void run() {
 			if (m_image == null) {
 				return;
@@ -142,9 +138,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				if (m_dt.m_bViewAllTrees && m_nTo >= m_nEvery) {
 					int iStart = m_nTo - m_nEvery;
 					float fAlpha = Math.min(1.0f, 20.0f / iStart * m_dt.m_fTreeIntensity);
-					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fAlpha));
+					g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fAlpha));
 					Stroke stroke = new BasicStroke(m_dt.m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
+					g.setStroke(stroke);
 					m_dt.m_treeDrawer.setJitter(m_dt.m_nJitter);
 					for (int i = iStart; i >= m_nFrom; i -= m_nEvery) {
 						if (m_bStop) {
@@ -179,8 +175,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					m_dt.m_jStatusBar.setText("Drawing consensus trees");
 //					g.setColor(m_dt.m_color[DensiTree.CONSCOLOR]);
 					Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
-					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+					g.setStroke(stroke);
+					g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 					g.setClip(0, 0, getWidth(), getHeight());
 					m_dt.m_treeDrawer.setJitter(0);
 					for (int i = m_nFrom; i < m_dt.m_nTopologies; i += m_nEvery) {
@@ -190,7 +186,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //						if (m_dt.m_bViewMultiColor) {
 //							g.setColor(m_dt.m_color[9 + (i % (m_dt.m_color.length - 9))]);						}
 						if (m_iTreeTopology < 0 || m_iTreeTopology == i) {
-							((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+							g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
 									Math.min(1.0f, 0.5f * m_dt.m_fCTreeIntensity * m_dt.m_fTreeWeight[i])));
 							m_dt.m_treeDrawer.draw(i, m_dt.m_fCLinesX, m_dt.m_fCLinesY, m_dt.m_fCLineWidth, m_dt.m_fTopCLineWidth, m_dt.m_nCLineColor, g,
 									fScaleX, fScaleY);
@@ -333,6 +329,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	 * @param g
 	 *            the drawing surface.
 	 */
+	@Override
 	public void paintComponent(Graphics g) {
 		m_dt.a_undo.setEnabled(m_dt.m_doActions.size() > 0 && m_dt.m_iUndo > 1);
 		m_dt.a_redo.setEnabled(m_dt.m_iUndo < m_dt.m_doActions.size());
@@ -458,11 +455,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	/** draw complete set of trees **/
 	void drawTreeSet(Graphics2D g) {
-		Color oldBackground = ((Graphics2D) g).getBackground();
-		((Graphics2D) g).setBackground(m_dt.m_color[DensiTree.BGCOLOR]);
+		Color oldBackground = g.getBackground();
+		g.setBackground(m_dt.m_color[DensiTree.BGCOLOR]);
 		Rectangle r = g.getClipBounds();
 		g.clearRect(r.x, r.y, r.width, r.height);
-		((Graphics2D) g).setBackground(oldBackground);
+		g.setBackground(oldBackground);
 		g.setClip(r.x, r.y, r.width, r.height);
 
 		if (m_dt.m_trees == null || m_dt.m_fCLinesY == null || m_dt.m_bInitializing) {
@@ -518,9 +515,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				int y = m_dt.m_nSelectedRect.y + (m_dt.m_treeDrawer.m_bRootAtTop ? 0 : m_dt.m_nSelectedRect.height);
 				g.drawImage(m_dt.m_rotate, x - w / 2, y - h / 2, x + h / 2, y + w / 2, 0, 0, h, w, null);
 			} else {
-				g.drawRect((int) (m_dt.m_nSelectedRect.x + Math.min(m_dt.m_nSelectedRect.width, 0)),
-						(int) (m_dt.m_nSelectedRect.y + Math.min(m_dt.m_nSelectedRect.height, 0)),
-						(int) (Math.abs(m_dt.m_nSelectedRect.width)), (int) (Math.abs(m_dt.m_nSelectedRect.height)));
+				g.drawRect(m_dt.m_nSelectedRect.x + Math.min(m_dt.m_nSelectedRect.width, 0),
+						m_dt.m_nSelectedRect.y + Math.min(m_dt.m_nSelectedRect.height, 0),
+						(Math.abs(m_dt.m_nSelectedRect.width)), (Math.abs(m_dt.m_nSelectedRect.height)));
 			}
 		}
 		// need this here so that the screen is updated when selection of
@@ -529,7 +526,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_dt.m_bDrawGeo && m_dt.m_fLatitude.size() > 0) {
 			g.setColor(m_dt.m_color[DensiTree.GEOCOLOR]);
 			Stroke stroke = new BasicStroke(m_dt.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-			((Graphics2D) g).setStroke(stroke);
+			g.setStroke(stroke);
 			m_dt.drawGeo(m_dt.m_cTrees[0], g);
 		}
 		// ((Graphics2D) g).scale(m_dt.m_fScale, m_dt.m_fScale);
@@ -577,9 +574,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			}
 		}
 	
-		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 		Stroke stroke = new BasicStroke(m_dt.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-		((Graphics2D) g).setStroke(stroke);
+		g.setStroke(stroke);
 		g.setColor(m_dt.m_color[DensiTree.ROOTCANALCOLOR]);
 		m_dt.m_treeDrawer.draw(0, m_dt.m_fRLinesX, m_dt.m_fRLinesY, m_dt.m_fRLineWidth,
 				m_dt.m_fRTopLineWidth, m_dt.m_nRLineColor, g, fScaleX, fScaleY);
@@ -621,7 +618,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_dt.m_bDrawGeo && m_dt.m_fLatitude.size() > 0) {
 				g2.setColor(m_dt.m_color[DensiTree.GEOCOLOR]);
 				Stroke stroke = new BasicStroke(m_dt.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-				((Graphics2D) g2).setStroke(stroke);
+				g2.setStroke(stroke);
 				m_dt.drawGeo(m_dt.m_cTrees[0], g2);
 			}
 			m_dt.m_gridDrawer.paintHeightInfo(g2);
@@ -654,6 +651,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	 * 
 	 * @see Printable
 	 */
+	@Override
 	public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 		if (pageIndex > 0) {
 			return (NO_SUCH_PAGE);
@@ -871,9 +869,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					m_dt.m_nSelectedRect.y += m_dt.m_nSelectedRect.height;
 					m_dt.m_nSelectedRect.height = -m_dt.m_nSelectedRect.height;
 				}
-				if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0) {
+				if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
 					toggleSelection(m_dt.m_nSelectedRect);
-				} else if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0) {
+				} else if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0) {
 					addToSelection(m_dt.m_nSelectedRect);
 				} else {
 					clearSelection();

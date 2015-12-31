@@ -21,6 +21,7 @@
 package viz.graphics;
 
 public class SteepArcBranchDrawer extends BranchDrawer {
+	@Override
 	void lineAA(BufferedImageF image, int x1, int y1, int x2, int y2, float fAlpha, int nRed, int nGreen, int nBlue, float fLineWidth) {
 	    if (x2 < x1) {
 	    	int h = x1;x1 = x2; x2 = h;
@@ -37,7 +38,7 @@ public class SteepArcBranchDrawer extends BranchDrawer {
 	    int xpxl2 = x2;//xend;  // this will be used in the main loop
 	    //int ypxl2 = y2;//(int)yend;
 	    float fScale = (float)((y2-y1)/Math.sqrt(Math.abs(xpxl2-xpxl1-1)));
-	    fScale = (float)((y2-y1));///Math.sqrt(Math.abs(xpxl2-xpxl1)));
+	    fScale = ((y2-y1));///Math.sqrt(Math.abs(xpxl2-xpxl1)));
 	    float fStep = Math.min(0.25f, (xpxl2-xpxl1)/2000f);
 	    for (float xf0 = xpxl1; xf0 < xpxl2; xf0 += fStep) {
 	    	float xf = xpxl1 + (xf0 - xpxl1) * (xf0 - xpxl1) / (xpxl2 - xpxl1);

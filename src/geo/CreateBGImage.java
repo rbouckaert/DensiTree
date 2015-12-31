@@ -195,7 +195,7 @@ public class CreateBGImage {
 			    			viewPortOffsetX = Double.parseDouble(strs[0]);
 			    			viewPortOffsetY = Double.parseDouble(strs[1]);
 		    			}
-}
+		    		}
 		    	}
 		    }
 		} catch (Exception e) {

@@ -27,6 +27,7 @@ public class SimpleArgsTest extends FestSwingJUnitTestCase {
 	@RunsInEDT
 	private static JFrame createNewEditor() {
 		return execute(new GuiQuery<JFrame>() {
+			@Override
 			protected JFrame executeInEDT() throws Throwable {
 				DensiTree densitree = DensiTree.startNew(new String[] {"examples/ape.trees"});
 				JFrame frame = (JFrame) SwingUtilities.getRoot(densitree);

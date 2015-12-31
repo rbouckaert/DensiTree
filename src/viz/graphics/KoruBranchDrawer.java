@@ -25,6 +25,7 @@ package viz.graphics;
 public class KoruBranchDrawer extends BranchDrawer {
 
 
+	@Override
 	void lineAA(BufferedImageF image, int x1, int y1, int x2, int y2, float fAlpha, int nRed, int nGreen, int nBlue, float fLineWidth) {
 	    if (x2 < x1) {
 	    	int h = x1;x1 = x2; x2 = h;

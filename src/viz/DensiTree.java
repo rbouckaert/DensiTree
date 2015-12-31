@@ -518,7 +518,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			List<String> cfgArgs = new ArrayList<String>();
 			try {
 				BufferedReader fin = new BufferedReader(new FileReader(cfgFile));
-				StringBuffer buf = new StringBuffer();
+				//StringBuffer buf = new StringBuffer();
 				String sStr = null;
 				while (fin.ready()) {
 					sStr = fin.readLine();
@@ -575,8 +575,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-geo")) {
 						String[] sStrs = args[i + 1].split("x");
-						int nWidth = (int) Integer.parseInt(sStrs[0]);
-						int nHeight = (int) Integer.parseInt(sStrs[1]);
+						int nWidth = Integer.parseInt(sStrs[0]);
+						int nHeight = Integer.parseInt(sStrs[1]);
 						setSize(nWidth, nHeight);
 						i += 2;
 					} else if (args[i].equals("-geooffset")) {
@@ -656,7 +656,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-rootcanaltree")) {
 						try {
-							m_iOptTree = (int) Integer.parseInt(args[i+1]);
+							m_iOptTree = Integer.parseInt(args[i+1]);
 						} catch (NumberFormatException e) {
 							m_sOptTree = args[i+1];
 						}
@@ -700,6 +700,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			if (m_asPDF != null) {
 				new Thread() {
+					@Override
 					public void run() {
 						try {
 							Thread.sleep(5000);
@@ -998,6 +999,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			
 			m_bMetaDataReady = false;			
 			thread = new Thread() {
+				@Override
 				public void run() {
 					m_jStatusBar.setText("Calculating clades");
 					calcClades();
@@ -1157,8 +1159,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public List<List<Double>> m_cladeHeightSetBottom;
 	public List<List<Double>> m_cladeHeightSetTop;
 	/** UI component for manipulating clade selection **/
-	JList m_cladelist;
-	DefaultListModel m_cladelistmodel = new DefaultListModel();
+	JList<String> m_cladelist;
+	DefaultListModel<String> m_cladelistmodel = new DefaultListModel<String>();
 
 	public Map<String, Integer> mapCladeToIndex;
 	public Integer [] reverseindex;
@@ -1186,6 +1188,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		int m_iRight;
 		double m_fWeight;
 
+		@Override
 		public String toString() {
 			return "(" + m_iLeft + "," + m_iRight + ")" + m_fWeight + " ";
 		}
@@ -1333,10 +1336,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		
 		// find tree topology with highest product of clade support of all its clades
 		int iMaxCladeProbTopology = 0;
-		int iMaxMinCladeProbTopology = 0;
+		//int iMaxMinCladeProbTopology = 0;
 		double fMaxCladeProb = cladeProb(m_cTrees[0], true);
 		double fMaxMinCladeProb = cladeProb(m_cTrees[0], false);
-		int iMaxCCDProbTopology = 0;
+		//int iMaxCCDProbTopology = 0;
 		double fMaxCCDProb = CCDProb(m_cTrees[0]);//, index);
 		for (int i = 1; i < m_cTrees.length; i++) {
 			double fCladeProb = cladeProb(m_cTrees[i], true);
@@ -1348,14 +1351,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 1; i < m_cTrees.length; i++) {
 			double fMinCladeProb = cladeProb(m_cTrees[i], false);
 			if (fMinCladeProb > fMaxMinCladeProb) {
-				iMaxMinCladeProbTopology = i;
+				//iMaxMinCladeProbTopology = i;
 				fMaxMinCladeProb = fMinCladeProb;
 			}
 		}
 		for (int i = 1; i < m_cTrees.length; i++) {
 			double fCCDProb = CCDProb(m_cTrees[i]);//, index);
 			if (fCCDProb > fMaxCCDProb) {
-				iMaxCCDProbTopology = i;
+				//iMaxCCDProbTopology = i;
 				fMaxCCDProb = fCCDProb;
 			}
 		}
@@ -1458,6 +1461,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 	
+/*
 	private void removeNegBranches(Node node) {
 		if (!node.isLeaf()) {
 			removeNegBranches(node.m_left);
@@ -1474,7 +1478,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}		
 	}
-
+*/
 	private void cleanUpSummaryTree(Node summaryTree) {
 		setHeightByClade(summaryTree);
 		summaryTree.m_fLength = (float) (m_fHeight - m_cladeHeight.get(summaryTree.m_iClade));
@@ -1482,6 +1486,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		offsetHeight(summaryTree, m_fHeight - fHeight);
 	}
 
+/*
 	private Node constructMaxCladeTree(List<int[]> cladeIDs, Map<String, Integer> mapCladeToIndex, 
 			List<Node> nodes, boolean useCCD) {
 		int k = nodes.size();
@@ -1539,7 +1544,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}		
 		return nodes.get(0);
 	}
-
+*/
+	
 	// merge clades, keep in sorted order
 	private int[] mergeClades(int[] cladeLeft, int[] cladeRight) {
 		int [] clade = new int[cladeLeft.length + cladeRight.length];
@@ -1766,10 +1772,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			node.m_iClade = node.getNr();
 			m_cladeHeightSetBottom.get(node.m_iClade).add(fHeight);
 			m_cladeHeightSetTop.get(node.m_iClade).add(fHeight - node.m_fLength);
-			if (node.m_fLength < 0) {
-				int h = 3;
-				h++;
-			}
 			return clade;
 		} else {
 			int[] cladeLeft = calcCladeForNode2(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
@@ -1802,10 +1804,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int iClade = mapCladeToIndex.get(sClade);
 			m_cladeHeightSetBottom.get(iClade).add(fHeight);
 			m_cladeHeightSetTop.get(iClade).add(fHeight - node.m_fLength);
-			if (node.m_fLength <= 0 && !node.isRoot()) {
-				int h = 3;
-				h++;
-			}
 			node.m_iClade = iClade;
 
 			// update child clades
@@ -1896,6 +1894,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						doc = factory.newDocumentBuilder().parse(zf.getInputStream(ze));
 					}
 				}
+				zf.close();
 			} else {
 				doc = factory.newDocumentBuilder().parse(new File(sFileName));
 			}
@@ -3051,7 +3050,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (index < 0) {
 					index = 0;
 				}
-				return (float) (node.getMetaDataList().get(index)/node.g_maxListValue.get(index));
+				return (float) (node.getMetaDataList().get(index)/Node.g_maxListValue.get(index));
 			} else {
 				Map<String,Object> map = node.getMetaDataSet();
 				if (map != null) {
@@ -3067,8 +3066,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 								return (float) frac;								
 							}
 						} catch (Exception e) {
-							int h = 3;
-							h++;
+							// ignore
 						}
 					}
 				}
@@ -3646,8 +3644,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fScaleY = 10;
 		int nW = (int) (getWidth() / m_fScale) - 24;
 		int nH = (int) (getHeight() / m_fScale) - 24;
-		nW = (int) getWidth() - 24;
-		nH = (int) getHeight() - 24;
+		nW = getWidth() - 24;
+		nH = getHeight() - 24;
 		if (m_treeDrawer.m_bRootAtTop) {
 			m_fScaleX = (nW + 0.0f) / m_sLabels.size();
 			m_fScaleGX = (nW + 0.0f) / (m_fMaxLong - m_fMinLong);
@@ -3883,8 +3881,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
 		        super(sName);
 			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-			    if ((acceleratorKey & KeyEvent.ALT_DOWN_MASK) > 0) {
-				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - KeyEvent.ALT_DOWN_MASK, KeyEvent.ALT_DOWN_MASK);
+			    if ((acceleratorKey & InputEvent.ALT_DOWN_MASK) > 0) {
+				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - InputEvent.ALT_DOWN_MASK, InputEvent.ALT_DOWN_MASK);
 			    }
 		        // setToolTipText(sToolTipText);
 		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
@@ -3894,13 +3892,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        }
 		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
 		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
-		        if (true || !viz.util.Util.isMac()) {
+		        //if (true || !viz.util.Util.isMac()) {
 			        if (tempURL != null) {
 			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
 			        } else {
 			            putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 			        }
-		        }
+		        //}
 		    } // c'tor
 
 //		    public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
@@ -3939,6 +3937,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		/**
 		 * Place holder. Should be implemented by derived classes. (non-Javadoc)
 		 */
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 		}
 	} // class MyAction
@@ -3953,6 +3952,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_iColor = iColor;
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			Color newColor = JColorChooser.showDialog(m_Panel, getName(), m_color[m_iColor]);
 			if (newColor != null) {
@@ -3972,6 +3972,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nMode = nMode;
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			setWaitCursor();
 			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
@@ -3991,6 +3992,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_sName = sName;
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (m_sName.equals("Jitter+")) {
 				m_nJitter++;
@@ -4088,6 +4090,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public Action a_quit = new MyAction("Exit", "Exit Program", "exit", -1) {
 		private static final long serialVersionUID = -10;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			System.exit(0);
 		}
@@ -4096,6 +4099,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_paste = new MyAction("Paste", "Paste tree(s) from clipboard", "paste", KeyEvent.VK_V) {
 		private static final long serialVersionUID = -10;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			Transferable contents = clipboard.getContents(null);
@@ -4122,6 +4126,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}; // class ActionPaste
 
 	abstract class MyFileFilter extends FileFilter {
+		@Override
 		public boolean accept(File f) {
 			return f.isDirectory() || f.getName().toLowerCase().endsWith(getExtention());
 		}
@@ -4132,40 +4137,49 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_export = new MyAction("Export", "Export", "export", -1) {
 		private static final long serialVersionUID = -1;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JFileChooser fc = new JFileChooser(m_sDir);
 			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
 				public String getExtention() {
 					return ".bmp";
 				}
 
+				@Override
 				public String getDescription() {
 					return "Bitmap files (*.bmp)";
 				}
 			});
 			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
 				public String getExtention() {
 					return ".jpg";
 				}
 
+				@Override
 				public String getDescription() {
 					return "JPEG bitmap files (*.jpg)";
 				}
 			});
 			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
 				public String getExtention() {
 					return ".png";
 				}
 
+				@Override
 				public String getDescription() {
 					return "PNG bitmap files (*.png)";
 				}
 			});
 			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
 				public String getExtention() {
 					return ".pdf";
 				}
 
+				@Override
 				public String getDescription() {
 					return "PDF files (*.pdf)";
 				}
@@ -4244,8 +4258,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			PdfContentByte cb = writer.getDirectContent();
 			Graphics2D g = new PdfGraphics2D(cb, m_Panel.getWidth(), m_Panel.getHeight());
 			 
-			BufferedImage bi;
-			bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
+			//BufferedImage bi;
+			//bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 			//g = bi.getGraphics();
 			g.setPaintMode();
 			g.setColor(getBackground());
@@ -4266,6 +4280,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		// boolean m_bIsPrinting = false;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			PrinterJob printJob = PrinterJob.getPrinterJob();
 			printJob.setPrintable(m_Panel);
@@ -4283,6 +4298,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_new = new MyAction("New", "New instance of DensiTree", "new", KeyEvent.VK_N) {
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			startNew(new String[]{});
 		}
@@ -4291,6 +4307,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_load = new MyAction("Load", "Load tree set", "open", KeyEvent.VK_O) {
 		private static final long serialVersionUID = -2038911085935515L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			File [] files = Util.getFile("Load Tree Set", true, new File(m_sDir), false, "Nexus trees files", "trees","tre","nex","t");
 			if (files != null && files.length > 0) {
@@ -4355,9 +4372,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", -1) {
 		private static final long serialVersionUID = -1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JFileChooser fc = new JFileChooser(m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					if (f.isDirectory()) {
 						return true;
@@ -4370,11 +4389,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 
 				// The description of this filter
+				@Override
 				public String getDescription() {
 					return "KML file with taxon locations";
 				}
 			});
 			fc.addChoosableFileFilter(new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					if (f.isDirectory()) {
 						return true;
@@ -4387,6 +4408,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 
 				// The description of this filter
+				@Override
 				public String getDescription() {
 					return "text file with taxon locations, tab delimited";
 				}
@@ -4412,9 +4434,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_saveas = new MyAction("Save as", "Save as", "save", KeyEvent.VK_S) {
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JFileChooser fc = new JFileChooser(m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					if (f.isDirectory()) {
 						return true;
@@ -4436,6 +4460,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 
 				// The description of this filter
+				@Override
 				public String getDescription() {
 					return "Nexus trees files";
 				}
@@ -4495,7 +4520,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			try {
 				m_LabelImages = new BufferedImage[m_sLabels.size()];
 		        BufferedReader fin = new BufferedReader(new FileReader(sFileName));
-		        StringBuffer buf = new StringBuffer();
+		        //StringBuffer buf = new StringBuffer();
 		        String sStr = null;
 		        // eat up the header
 	            fin.readLine();
@@ -4506,6 +4531,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			            if (sStrs.length != 2) {
 			            	JOptionPane.showMessageDialog(m_Panel, "Found \"" + sStr + "\" but expected only two words on a line");
 			            	m_LabelImages = null;
+			            	fin.close();
 			            	return;
 			            }
 			            String sLabel = sStrs[0].toLowerCase();
@@ -4517,6 +4543,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			            if (k == m_sLabels.size()) {
 			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + sLabel + "\" could not be found");
 			            	m_LabelImages = null;
+			            	fin.close();
 			            	return;
 			            }
 			            System.err.println("Loading " + imageFile);
@@ -4550,9 +4577,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_loadimage = new MyAction("Background image ", "Load background image", "bgimage", -1) {
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JFileChooser fc = new JFileChooser(m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					if (f.isDirectory()) {
 						return true;
@@ -4565,6 +4594,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 
 				// The description of this filter
+				@Override
 				public String getDescription() {
 					return "Image files";
 				}
@@ -4615,6 +4645,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_viewClades = new MyAction("View clades", "List clades and their densities", "viewclades", -1) {
 		private static final long serialVersionUID = -1;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JDialog dlg = new JDialog();
 			dlg.setModal(true);
@@ -4638,6 +4669,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_help = new MyAction("Help", "DensiTree - Tree Set Visualization Help", "help", -1) {
 		private static final long serialVersionUID = -20389110859354L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			String sStatus = getStatus();
 			String sCmdLineOptions = "\n\nTo start with the same settings, use the following command:\njava -jar DensiTree.jar -c "
@@ -4657,6 +4689,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public Action a_about = new MyAction("About", "Help about", "about", -1) {
 		private static final long serialVersionUID = -20389110859353L;
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
 					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2014\n\n" +
@@ -4671,6 +4704,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_labelwidth = new MyAction("Label width", "Label width when root at left", "labelwidth", -1) {
 		private static final long serialVersionUID = -2L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			String sLabeWidth = JOptionPane.showInputDialog("Labe Width:", m_nLabelWidth + "");
 			if (sLabeWidth != null) {
@@ -4686,6 +4720,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_burnin = new MyAction("Burn in", "Burn in", "burnin", -1) {
 		private static final long serialVersionUID = -2L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			String sBurnIn = JOptionPane.showInputDialog("Burn in:", m_nBurnIn + "");
 			if (sBurnIn != null) {
@@ -4703,6 +4738,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_geolinewidth = new MyAction("Geo line width", "Geographical line width", "geolinewidth", -1) {
 		private static final long serialVersionUID = -2L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			String sGeoWidth = JOptionPane.showInputDialog("Geographical line width:", m_nGeoWidth + "");
 			if (sGeoWidth != null) {
@@ -4719,6 +4755,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_viewstatusbar = new MyAction("View statusbar", "View statusbar", "statusbar", -1) {
 		private static final long serialVersionUID = -20389330812354L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_jStatusBar.setVisible(!m_jStatusBar.isVisible());
 		} // actionPerformed
@@ -4727,6 +4764,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_viewtoolbar = new MyAction("View toolbar", "View toolbar", "toolbar", -1) {
 		private static final long serialVersionUID = -20389110812354L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_jTbTools.setVisible(!m_jTbTools.isVisible());
 		} // actionPerformed
@@ -4735,6 +4773,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_viewtoolbar2 = new MyAction("View Sidebar", "View Sidebar", "sidebar", -1) {
 		private static final long serialVersionUID = -20389110812354L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_jTbTools2.setVisible(!m_jTbTools2.isVisible());
 		} // actionPerformed
@@ -4743,11 +4782,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_viewcladetoolbar = new MyAction("View clade toolbar", "View clade toolbar", "cladetoolbar", -1) {
 		private static final long serialVersionUID = -1;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_jTbCladeTools.setVisible(!m_jTbCladeTools.isVisible());
 			if (m_jTbCladeTools.isVisible()) {
 				JSplitPane pane = (JSplitPane) m_Panel.getParent().getParent().getParent().getParent();
-				int loc = pane.getDividerLocation();
+				// int loc = pane.getDividerLocation();
 				// Set a proportional location
 				pane.setDividerLocation(0.8);
 			}
@@ -4758,6 +4798,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_EQUALS) {
 		private static final long serialVersionUID = -2038911085935515L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_fScale *= 1.2;
 			a_zoomout.setEnabled(true);
@@ -4769,6 +4810,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_zoomout = new MyAction("Zoom out", "Zoom out", "zoomout", KeyEvent.VK_MINUS) {
 		private static final long serialVersionUID = -203891108593551L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_fScale /= 1.2;
 			if (m_fScale <= 1.000001) {
@@ -4783,6 +4825,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", KeyEvent.VK_X) {
 		private static final long serialVersionUID = -1;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_fTreeScale *= 1.2;
 			m_fTreeOffset = m_fHeight - m_fHeight / m_fTreeScale;
@@ -4797,6 +4840,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", KeyEvent.VK_X | KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -1;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_fTreeScale /= 1.2;
 			if (m_fTreeScale <= 1.000001) {
@@ -4814,6 +4858,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	MyAction a_animateStart = new MyAction("Start", "Start Animation", "start", KeyEvent.VK_D|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (m_viewMode == ViewMode.ANIMATE) {
 				m_viewMode = ViewMode.BROWSE;
@@ -4832,6 +4877,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_drawtreeset = new MyAction("Draw Tree Set", "Draw Tree Set", "redraw", KeyEvent.VK_R) {
 		private static final long serialVersionUID = -4L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			setWaitCursor();
 			System.err.println("MODS=" + ae.getModifiers());
@@ -4856,6 +4902,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_selectAll = new MyAction("Select All", "Select All", "selectall", KeyEvent.VK_A) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			for (int i = 0; i < m_bSelection.length; i++) {
 				m_bSelection[i] = true;
@@ -4868,6 +4915,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_unselectAll = new MyAction("Unselect All", "Unselect All", "unselectall", KeyEvent.VK_U) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			for (int i = 0; i < m_bSelection.length; i++) {
 				m_bSelection[i] = false;
@@ -4878,6 +4926,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_del = new MyAction("Delete", "Delete selected", "del", -1) { //KeyEvent.VK_DELETE) {
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			int nDeleted = 0;
 			for (int i = m_bSelection.length - 1; i >= 0 && m_nNrOfLabels > 2; i--) {
@@ -5023,6 +5072,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_undo = new MyAction("Undo", "Undo", "udno", KeyEvent.VK_Z) {
 		private static final long serialVersionUID = -4L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (m_iUndo > 0) {
 				m_iUndo--;
@@ -5034,6 +5084,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_redo = new MyAction("Redo", "Redo", "reno", KeyEvent.VK_Y) {
 		private static final long serialVersionUID = -4L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (m_iUndo < m_doActions.size()) {
 				m_iUndo++;
@@ -5046,6 +5097,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_moveup = new MyAction("Move labels up", "Move selected labels up", "moveup", KeyEvent.VK_M) {
 		private static final long serialVersionUID = -4L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (!moveSanityChek()) {
 				return;
@@ -5060,6 +5112,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_movedown = new MyAction("Move labels down", "Move selected labels down", "movedown", KeyEvent.VK_M | KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = -4L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (!moveSanityChek()) {
 				return;
@@ -5074,6 +5127,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_browsefirst = new MyAction("Browse First", "Browse First", "browsefirst", -1) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
@@ -5085,6 +5139,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", KeyEvent.VK_P|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
@@ -5099,6 +5154,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", KeyEvent.VK_N|KeyEvent.ALT_DOWN_MASK) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
@@ -5113,6 +5169,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Action a_browselast = new MyAction("Browse Last", "Browse Last", "browselast", -1) {
 		private static final long serialVersionUID = 5L;
 
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
@@ -5125,6 +5182,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = 5L;
 
 		// @SuppressWarnings("deprecation")
+		@Override
 		public void actionPerformed(ActionEvent ae) {
 			JFontChooser fontChooser = new JFontChooser();
 			// fontChooser.setFont(m_font);
@@ -5206,6 +5264,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 		// Create an action with an icon
 		Action action = new AbstractAction("Button Label", getIcon("modedefault")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectMode(0);
@@ -5214,6 +5277,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 
 		Action action3 = new AbstractAction("", getIcon("modestar")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectMode(1);
@@ -5221,6 +5289,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		};
 
 		Action action4 = new AbstractAction("", getIcon("modecentralised")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectMode(2);
@@ -5228,6 +5301,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		};
 
 		Action action5 = new AbstractAction("", getIcon("modeanglecorrected")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectMode(3);
@@ -5258,24 +5336,44 @@ public class DensiTree extends JPanel implements ComponentListener {
 		toolPanel.add(panel, gbc);
 				
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setStyle(0);
 			}
 		};
 		Action action7 = new AbstractAction("", getIcon("styleblock")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setStyle(1);
 			}
 		};
 		Action action8 = new AbstractAction("", getIcon("stylearced")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setStyle(2);
 			}
 		};
 		Action action9 = new AbstractAction("", getIcon("stylesteep")) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setStyle(3);
@@ -5313,7 +5411,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 //			m_jTbTools2.add(Box.createVerticalGlue(), gbc);
 //		}
 
-		m_cladelist = new JList(m_cladelistmodel);
+		m_cladelist = new JList<String>(m_cladelistmodel);
 		m_cladelist.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
@@ -5395,6 +5493,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", m_bViewEditTree);
 		m_viewEditTree.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewEditTree.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent ae) {
 				boolean bPrev = m_bViewEditTree;
 				m_bViewEditTree = m_viewEditTree.getState();
@@ -5408,6 +5507,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewClades);
 		m_viewClades.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewClades.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent ae) {
 				boolean bPrev = m_bViewClades;
 				m_bViewClades = m_viewClades.getState();
@@ -5423,30 +5523,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 		shuffleMenu.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		shuffleMenu
 				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
-		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
 		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
-				"Use root canal tree, then optimise", "", KeyEvent.VK_O|KeyEvent.ALT_DOWN_MASK, NodeOrderer.OPTIMISE));
-		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1|KeyEvent.ALT_DOWN_MASK,
+				"Use root canal tree, then optimise", "", KeyEvent.VK_O|InputEvent.ALT_DOWN_MASK, NodeOrderer.OPTIMISE));
+		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_FIRST));
-		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.SINGLE));
-		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.COMPLETE));
-		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.AVERAGE));
-		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5|KeyEvent.ALT_DOWN_MASK, NodeOrderer.MEAN));
+		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5|InputEvent.ALT_DOWN_MASK, NodeOrderer.MEAN));
 		shuffleMenu.add(new ShuffleAction("Adjusted complete link", "Adjusted complete link hierarchical clusterer",
-				"", KeyEvent.VK_6|KeyEvent.ALT_DOWN_MASK, NodeOrderer.ADJCOMLPETE));
+				"", KeyEvent.VK_6|InputEvent.ALT_DOWN_MASK, NodeOrderer.ADJCOMLPETE));
 		// RRB: not for public release
 		shuffleMenu.addSeparator();
 		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", -1, NodeOrderer.MANUAL));
 		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", -1, NodeOrderer.GEOINFO));
-		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_ALL));
-		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_SUM));
-		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9|KeyEvent.ALT_DOWN_MASK,
+		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.META_AVERAGE));
 
 		editMenu.addSeparator();
@@ -5459,6 +5559,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_menuBar.add(drawallMenu);
 		final JCheckBoxMenuItem autoRefresh = new JCheckBoxMenuItem("Automatically refresh", m_bAutoRefresh);
 		autoRefresh.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent ae) {
 				m_bAutoRefresh = autoRefresh.getState();
 				if (m_bAutoRefresh && m_bIsDirty) {
@@ -5483,6 +5584,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		browseMenu.addSeparator();
 		final JCheckBoxMenuItem animateOverWrite = new JCheckBoxMenuItem("Over write", m_bAnimateOverwrite);
 		animateOverWrite.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent ae) {
 				m_bAnimateOverwrite = animateOverWrite.getState();
 			}
@@ -5611,7 +5713,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		
 		f.add(splitPane, BorderLayout.CENTER);
 		f.add(a.m_jStatusBar, BorderLayout.SOUTH);
-		f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		Dimension dim = a.getSize();
 		f.setSize(dim.width + 31, dim.height + 40 + 84);
 		f.setLocation(DensiTree.instances * 10 , DensiTree.instances * 10);

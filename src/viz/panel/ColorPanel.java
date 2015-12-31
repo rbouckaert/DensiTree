@@ -80,6 +80,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		comboBox.setPreferredSize(new Dimension(130,20));
 		comboBox.setMaximumSize(new Dimension(130,200));
 		comboBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {					
 					@Override
@@ -119,6 +120,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		chckbxShowLegend = new JCheckBox("Show legend");
 		chckbxShowLegend.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_showLegend = !m_dt.m_showLegend;
 				m_dt.makeDirty();
@@ -137,6 +139,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons-trees</html>");
 		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
@@ -152,6 +155,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		txtPattern = new JTextField(m_dt.m_sLineColorPattern);
 		txtPattern.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String oldPattern = m_dt.m_sLineColorPattern;
 				m_dt.m_sLineColorPattern = txtPattern.getText();
@@ -164,6 +168,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		chckbxCategorical = new JCheckBox("categorical");
 		chckbxCategorical.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.calcColors(true);
@@ -198,6 +203,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		btnLineColors = new RoundedButton("Line colors");
 		btnLineColors.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				new ColorDialog(m_dt);
 			}
@@ -265,6 +271,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			
 			JButton btnColors = new JButton("colors");
 			btnColors.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					new ColorDialog(m_dt);
 				}
@@ -298,6 +305,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 				m_colorID = colorID;
 				m_sName = name;
 			}
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.m_color[m_colorID]);
 				if (newColor != null && m_dt.m_color[m_colorID] != newColor) {

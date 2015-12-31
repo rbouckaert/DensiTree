@@ -190,6 +190,7 @@ public class Node {
 		buf.append(":" + m_fLength);
 		return buf.toString();
 	}
+	@Override
 	public String toString() {
 		return toNewick();
 	}

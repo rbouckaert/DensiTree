@@ -22,6 +22,7 @@ package viz.graphics;
 
 public class ArcBranchDrawer extends BranchDrawer {
 
+		@Override
 		void lineAA(BufferedImageF image, int x1, int y1, int x2, int y2, float fAlpha, int nRed, int nGreen, int nBlue, float fLineWidth) {
 			
 	    if (x2 < x1) {

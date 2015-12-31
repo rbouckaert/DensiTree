@@ -51,6 +51,7 @@ public class GeoPanel extends JPanel {
 		chckbxShowGeoInfo.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_GEO_INFO));
 		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bDrawGeo;
 				m_dt.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
@@ -104,6 +105,7 @@ public class GeoPanel extends JPanel {
 		btnLoadLocations.setToolTipText(Util.formatToolTipAsHtml(HELP_LOAD_LOCATIONS));
 		btnLoadLocations.setText("<html>Load locations</html>");
 		btnLoadLocations.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.a_loadkml.actionPerformed(e);
 			}
@@ -119,6 +121,7 @@ public class GeoPanel extends JPanel {
 		JButton btnLineColor = new RoundedButton("Color");
 		btnLineColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 		btnLineColor.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
 				if (newColor != null) {

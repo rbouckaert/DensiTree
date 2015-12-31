@@ -72,6 +72,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		chckbxSelectionOnly.setSelected(m_dt.m_cladeDrawer.m_bSelectedOnly);
 		chckbxSelectionOnly.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bSelectedOnly;
 				m_dt.m_cladeDrawer.m_bSelectedOnly = ((JCheckBox) e.getSource()).isSelected();
@@ -82,6 +83,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		
 		chckbxShowClades.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_bViewClades;
 				m_dt.m_bViewClades = ((JCheckBox) e.getSource()).isSelected();
@@ -133,6 +135,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(lblMean, gbc_lblMean);
 		
 		chckbxMean.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDrawMean;
 				m_dt.m_cladeDrawer.m_bDrawMean = ((JCheckBox) e.getSource()).isSelected();
@@ -150,6 +153,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		checkBox.setSelected(m_dt.m_cladeDrawer.m_bTextMean);
 		checkBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bTextMean;
 				m_dt.m_cladeDrawer.m_bTextMean = ((JCheckBox) e.getSource()).isSelected();
@@ -175,6 +179,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		chckbxhpd.setSelected(m_dt.m_cladeDrawer.m_bDraw95HPD);
 		chckbxhpd.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDraw95HPD;
 				m_dt.m_cladeDrawer.m_bDraw95HPD = ((JCheckBox) e.getSource()).isSelected();
@@ -192,6 +197,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		checkBox_1.setSelected(m_dt.m_cladeDrawer.m_bText95HPD);
 		checkBox_1.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bText95HPD;
 				m_dt.m_cladeDrawer.m_bText95HPD = ((JCheckBox) e.getSource()).isSelected();
@@ -218,6 +224,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		chckbxSupport.setSelected(m_dt.m_cladeDrawer.m_bDrawSupport);
 		chckbxSupport.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDrawSupport;
 				m_dt.m_cladeDrawer.m_bDrawSupport = ((JCheckBox) e.getSource()).isSelected();
@@ -234,6 +241,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		checkBox_2.setSelected(m_dt.m_cladeDrawer.m_bTextSupport);
 		checkBox_2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bTextSupport;
 				m_dt.m_cladeDrawer.m_bTextSupport = ((JCheckBox) e.getSource()).isSelected();
@@ -270,6 +278,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		significantDigitsModel = new SpinnerNumberModel(m_dt.m_cladeDrawer.m_nSignificantDigits, 0, 100, 1);
 		significantDigitsModel.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				m_dt.m_cladeDrawer.m_nSignificantDigits = (Integer) significantDigitsModel.getValue();
 				m_dt.makeDirty();
@@ -278,6 +287,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		btnFont = new RoundedButton("Font");
 		btnFont.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFontChooser fontChooser = new JFontChooser();
 				if (m_dt.m_cladeDrawer.m_font != null) {
@@ -306,6 +316,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		
 		btnColor = new RoundedButton("Color");
 		btnColor.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_cladeDrawer.m_color);
 				if (newColor != null) {

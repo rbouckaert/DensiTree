@@ -112,7 +112,7 @@ public class TreeDrawer {
 						float fWidth = fLineWidth[i] * LINE_WIDTH_SCALE;
 						float fTopWidth = fTopLineWidth[i] * LINE_WIDTH_SCALE;
 						Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-						((Graphics2D) g).setStroke(stroke);
+						g.setStroke(stroke);
 						if (m_bViewBlockTree) {
 							if (i % 4 == 0) {
 								m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fTopWidth/2.0f), fTopWidth, fWidth);
@@ -140,7 +140,7 @@ public class TreeDrawer {
 						}
 					} else if (i % 4 == 1 && m_bViewBlockTree) {
 						Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-						((Graphics2D) g).setStroke(stroke);
+						g.setStroke(stroke);
 						m_branchDrawer.draw(m_image, color[i], g, (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY), 0, 0);
 					}
 				}
@@ -157,11 +157,11 @@ public class TreeDrawer {
 				if (i % 4 == 0 || i % 4 == 2) {
 					float fWidth = fLineWidth[i] * LINE_WIDTH_SCALE;
 					Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
+					g.setStroke(stroke);
 					m_branchDrawer.draw(m_image, color[i], g, nXJ[i], (int) (nY[i] * fScaleY - fWidth/2.0f), nXJ[i + 1], (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, fTopLineWidth[i] * LINE_WIDTH_SCALE);
 				} else if (i % 4 == 1) {
 					Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
+					g.setStroke(stroke);
 					m_branchDrawer.draw(m_image, color[i], g, nXJ[i], (int) (nY[i] * fScaleY), nXJ[i + 1], (int) (nY[i + 1] * fScaleY), 0, 0);
 				}
 			}

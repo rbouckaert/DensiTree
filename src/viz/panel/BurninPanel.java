@@ -65,6 +65,7 @@ public class BurninPanel extends JPanel {
 		rdbtnPercentage.setSelected(true);
 		rdbtnPercentage.setToolTipText(Util.formatToolTipAsHtml(HELP_PERCENTAGE));
 		rdbtnPercentage.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bBurnInIsPercentage = true;
 			}
@@ -81,6 +82,7 @@ public class BurninPanel extends JPanel {
 		JRadioButton rdbtnTrees = new JRadioButton("#trees");
 		rdbtnTrees.setToolTipText(Util.formatToolTipAsHtml(HELP_NUMBER_OF_TREES));
 		rdbtnTrees.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				m_dt.m_bBurnInIsPercentage = false;
 			}

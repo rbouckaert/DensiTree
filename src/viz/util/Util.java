@@ -73,7 +73,8 @@ public class Util {
             try {
                 // set the System Look and Feel in the UIManager
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
+                    @Override
+					public void run() {
                     	try {
                     	if (isMac()) {
                     	    for (LookAndFeelInfo info : lafs) {
