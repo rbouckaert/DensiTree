@@ -37,7 +37,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	
 	DensiTree m_dt;
 	JCheckBox chckbxShowEditTree = new JCheckBox("Edit Tree");
-	JComboBox comboBox = new JComboBox();
+	JComboBox<String> comboBox = new JComboBox<>();
 	JCheckBox checkBoxShowRotoCanal;
 	RoundedButton btnImport;
 	
@@ -141,7 +141,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				ImportRootCanalDialog dlg = new ImportRootCanalDialog(m_dt);
 				if (dlg.showDialog(null)) {
-					DefaultComboBoxModel model = (DefaultComboBoxModel) comboBox.getModel();
+					DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
 					model.addElement((comboBox.getItemCount() + 1) + "");
 					// setting last added item, this should trigger an ActionEvent handled below
 					comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
@@ -157,7 +157,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		for (int i = 0; i < m_dt.m_summaryTree.size(); i++) {
 			labels.add("" + (i+1));
 		}		
-		comboBox = new JComboBox(labels.toArray());
+		comboBox = new JComboBox<>(labels.toArray(new String[0]));
 		comboBox.addActionListener(new ActionListener() {
 			
 			@Override
@@ -239,7 +239,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 	            }
 	        }
 	        if (comboBox.getItemCount() != m_dt.m_summaryTree.size()) {
-	        	DefaultComboBoxModel model = (DefaultComboBoxModel) comboBox.getModel();
+				DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
 				model.removeAllElements();
 				for (int i = 0; i < m_dt.m_summaryTree.size(); i++) {
 					model.addElement("" + (i+1));

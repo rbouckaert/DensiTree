@@ -67,8 +67,8 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 	JSpinner spinner_1;
 	SpinnerNumberModel topOfBranchModel;
 	SpinnerNumberModel bottomOfBranchModel;
-	JComboBox comboBoxBottom;
-	JComboBox comboBoxTop= new JComboBox();
+	JComboBox<String> comboBoxBottom;
+	JComboBox<String> comboBoxTop= new JComboBox<>();
 
 	final static String SAME_AS_BOTTOM = "Same as top";
 	final static String MAKE_FIT_BOTTOM = "Make fit to bottom";
@@ -87,7 +87,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		gridBagLayout.columnWeights = new double[]{1.0, 0.0};
 		setLayout(gridBagLayout);
 		
-		comboBoxBottom = new JComboBox();
+		comboBoxBottom = new JComboBox<>();
 		stateChanged(null);
 		comboBoxBottom.setPreferredSize(new Dimension(130,20));
 		comboBoxBottom.setMaximumSize(new Dimension(130,200));
@@ -427,10 +427,10 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				}
 			}
 		}
-		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
+		ComboBoxModel<String> model = new DefaultComboBoxModel<>(selection.toArray(new String[0]));
 		comboBoxBottom.setModel(model);
 		
-		model = new DefaultComboBoxModel(selectionTop.toArray(new String[0]));
+		model = new DefaultComboBoxModel<>(selectionTop.toArray(new String[0]));
 		comboBoxTop.setModel(model);
 		
 		if (m_dt.m_lineWidthMode == LineWidthMode.DEFAULT) {

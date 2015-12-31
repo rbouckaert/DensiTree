@@ -51,7 +51,7 @@ public class ImportRootCanalDialog extends JPanel {
 	JRadioButton b2 = new JRadioButton("Use summary_tree");
 	private JTextField txtNewick;
 	private final JSeparator separator = new JSeparator();
-	private final JComboBox comboBox = new JComboBox();
+	private final JComboBox<STOption> comboBox = new JComboBox<>();
 	private final JLabel lblTopTrees = new JLabel("# top trees");
 	private final JTextField textField = new JTextField();
 	private final JLabel lblTimeLimitseconds = new JLabel("time limit (seconds)");

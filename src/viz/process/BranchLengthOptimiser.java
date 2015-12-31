@@ -90,6 +90,7 @@ public class BranchLengthOptimiser {
 			try {
 				PrintStream out = new PrintStream(m_dt.m_sOptFile);
 				out.println(tree.toString(m_dt.m_sLabels, false));
+				out.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

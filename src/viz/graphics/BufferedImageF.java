@@ -173,10 +173,6 @@ public class BufferedImageF {
 		
 		// plot the pixel at (x, y) with brightness alpha (where 0 ≤ alpha ≤ 1)
 		void plot(int x, int y, float fAlpha, int nRed, int nGreen, int nBlue) {
-			if (x == 0) {
-				int h=4;
-				h++;
-			}
 			if (y>=m_nHeight || x >= m_nWidth || x < 0 || y < 0) {return;}
 //			m_nR[y][x] = (int)(m_nR[y][x]*(1-fAlpha) + nRed * fAlpha);
 //			m_nG[y][x] = (int)(m_nG[y][x]*(1-fAlpha) + nGreen * fAlpha);

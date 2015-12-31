@@ -36,8 +36,6 @@ public class CladeBranchInfo {
 			cumscore[i] += revcumscore[i];
 		}
 		
-		int h =3 ;
-		h++;
 	}
 	
 //	float score(float bottom, float top) {

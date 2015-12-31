@@ -30,9 +30,9 @@ public class ArcBranchDrawer extends BranchDrawer {
 	    	h = y1; y1 = y2; y2 = h;
 		}
 	    	fAlpha /= 2.0;
-			float dx = x2 - x1;
-			float dy = y2 - y1;
-	    float gradient = dy / dx;
+			//float dx = x2 - x1;
+			//float dy = y2 - y1;
+	    //float gradient = dy / dx;
 	    int xpxl1 = x1;//xend;  // this will be used in the main loop
 	    //int ypxl1 = y1;//(int)yend;
 	    float intery = y1;//+gradient;//yend + gradient; // first y-intersection for the main loop

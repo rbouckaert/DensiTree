@@ -91,12 +91,12 @@ public class PovRayExporter {
 			float fHeightL = exportNode(node.m_left, out, fScaleX, fScaleY, sLabels, fTotalHeight);
 			float fHeightR = exportNode(node.m_right, out, fScaleX, fScaleY, sLabels, fTotalHeight);
 			float fHeight = node.m_fLength + Math.max(fHeightL, fHeightR);
-			float fSkew = (node.m_fPosX - node.m_left.m_fPosX)/node.m_left.m_fLength;
+			//float fSkew = (node.m_fPosX - node.m_left.m_fPosX)/node.m_left.m_fLength;
 			float fEndThickness = (float)(fScaleX/2*fHeightL/fTotalHeight);
 			if (node.m_left.isLeaf()) {
 				fEndThickness = (float)(fScaleX/2*0.1);
 			}
-			fSkew *= fScaleX/fScaleY;
+			//fSkew *= fScaleX/fScaleY;
 //			out.println("cone {");
 //			out.println("   <0,0,0>,"+fScaleX/2*fHeight/fTotalHeight+",");
 //			out.println("   <-1,0,0>,"+fEndThickness);
@@ -113,8 +113,8 @@ public class PovRayExporter {
 			exportBranche(out, -node.m_fPosX* fScaleX, -fHeightL* fScaleY, fScaleX/2*fHeight/fTotalHeight
 					,-node.m_left.m_fPosX* fScaleX , -(fHeightL+node.m_left.m_fLength)*fScaleY, fEndThickness, 2);
 
-			fSkew = (node.m_fPosX - node.m_right.m_fPosX)/node.m_right.m_fLength;
-			fSkew *= fScaleX/fScaleY;
+			//fSkew = (node.m_fPosX - node.m_right.m_fPosX)/node.m_right.m_fLength;
+			//fSkew *= fScaleX/fScaleY;
 			fEndThickness = (float)(fScaleX/2*fHeightR/fTotalHeight);
 			if (node.m_right.isLeaf()) {
 				fEndThickness = (float)(fScaleX/2*0.1);

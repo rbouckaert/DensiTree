@@ -56,7 +56,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
-	JComboBox comboBox;
+	JComboBox<String> comboBox;
 	private JTextField txtPattern;
 	private JButton btnLineColors;
 	private JCheckBox chckbxShowLegend;
@@ -74,7 +74,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 
 		
 		
-		comboBox = new JComboBox(); 
+		comboBox = new JComboBox<>(); 
 		stateChanged(null);
 		comboBox.setSelectedItem(m_dt.m_lineColorMode);
 		comboBox.setPreferredSize(new Dimension(130,20));
@@ -335,7 +335,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 				}
 			}
 		}
-		ComboBoxModel model = new DefaultComboBoxModel(selection.toArray(new String[0]));
+		ComboBoxModel<String> model = new DefaultComboBoxModel<>(selection.toArray(new String[0]));
 		comboBox.setModel(model);
 		
 		if (m_dt.m_lineColorMode == LineColorMode.DEFAULT) {
