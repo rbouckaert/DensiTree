@@ -62,16 +62,13 @@ public class LabelPanel extends JPanel {
 		
 		textField = new JTextField();
 		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_LABEL_WIDTH));
-		textField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		textField.addActionListener(e-> {
 				try{
 				m_dt.m_nLabelWidth = Integer.parseInt(textField.getText());
 				} catch (Exception ex) {
 				}
 				m_dt.fitToScreen();
-			}
-		});
+			});
 		textField.setText(m_dt.m_nLabelWidth+"");
 		GridBagConstraints gbc_width = new GridBagConstraints();
 		gbc_width.anchor = GridBagConstraints.WEST;
@@ -83,14 +80,11 @@ public class LabelPanel extends JPanel {
 		
 		JCheckBox chckbxRotate = new JCheckBox("Rotate");
 		chckbxRotate.setToolTipText(Util.formatToolTipAsHtml(HELP_ROTATE));
-		chckbxRotate.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxRotate.addActionListener(e-> {
 				JCheckBox button = (JCheckBox) e.getSource();
 				m_dt.m_bRotateTextWhenRootAtTop = button.isSelected();
 				m_dt.fitToScreen();
-			}
-		});
+			});
 		
 		JLabel lblIndent = new JLabel("Indent");
 		GridBagConstraints gbc_lblIndent = new GridBagConstraints();
@@ -128,23 +122,18 @@ public class LabelPanel extends JPanel {
 		
 		JButton btnColor = new RoundedButton("Color");
 		btnColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
-		btnColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnColor.addActionListener(e-> {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.LABELCOLOR]);
 				if (newColor != null) {
 					m_dt.m_color[DensiTree.LABELCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();
-			}
-		});
+			});
 		
 		JButton btnFont = new RoundedButton("Font");
 		btnFont.setToolTipText(Util.formatToolTipAsHtml(HELP_FONT));
-		btnFont.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnFont.addActionListener(e-> {
 				JFontChooser fontChooser = new JFontChooser();
 				if (m_dt.m_font != null) {
 					fontChooser.setSelectedFont(m_dt.m_font);
@@ -155,19 +144,15 @@ public class LabelPanel extends JPanel {
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
-			}
-		});
+			});
 		
 		JCheckBox chckbxAlign = new JCheckBox("Align");
 		chckbxAlign.setToolTipText(Util.formatToolTipAsHtml(HELP_ALIGN));
 		chckbxAlign.setSelected(m_dt.m_bAlignLabels);
-		chckbxAlign.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxAlign.addActionListener(e-> {
 				m_dt.m_bAlignLabels = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxAlign = new GridBagConstraints();
 		gbc_chckbxAlign.anchor = GridBagConstraints.WEST;
 		gbc_chckbxAlign.insets = new Insets(0, 0, 5, 0);
@@ -177,13 +162,10 @@ public class LabelPanel extends JPanel {
 		
 		JCheckBox chckbxHide = new JCheckBox("Hide");
 		chckbxHide.setToolTipText(Util.formatToolTipAsHtml(HELP_HIDE));
-		chckbxHide.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxHide.addActionListener(e-> {
 				m_dt.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxHide = new GridBagConstraints();
 		gbc_chckbxHide.anchor = GridBagConstraints.WEST;
 		gbc_chckbxHide.insets = new Insets(0, 0, 5, 0);
@@ -222,12 +204,9 @@ public class LabelPanel extends JPanel {
 		
 		JButton btnLoad = new RoundedButton("Load image map");
 		btnLoad.setToolTipText(HELP_LOAD);
-		btnLoad.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnLoad.addActionListener(e-> {
 				m_dt.loadImages();
-			}
-		});
+			});
 		
 		
 		GridBagConstraints gbc_btnLoad = new GridBagConstraints();

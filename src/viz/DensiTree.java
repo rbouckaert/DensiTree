@@ -5423,8 +5423,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 					}
 					resetCladeSelection();
-					System.err.println(Arrays.toString(m_cladelist.getSelectedValues()));
-					System.err.println(m_cladelist.getSelectedValues().length + " items selected");
+					System.err.println(m_cladelist.getSelectedValuesList());
+					System.err.println(m_cladelist.getSelectedValuesList().size() + " items selected");
 					repaint();
 				}
 			}
@@ -5492,30 +5492,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", m_bViewEditTree);
 		m_viewEditTree.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		m_viewEditTree.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		m_viewEditTree.addActionListener(ae -> {
 				boolean bPrev = m_bViewEditTree;
 				m_bViewEditTree = m_viewEditTree.getState();
 				if (bPrev != m_bViewEditTree) {
 					makeDirty();
 				}
-			}
-		});
+			});
 		editMenu.add(m_viewEditTree);
 
 		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewClades);
 		m_viewClades.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		m_viewClades.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		m_viewClades.addActionListener(ae-> {
 				boolean bPrev = m_bViewClades;
 				m_bViewClades = m_viewClades.getState();
 				if (bPrev != m_bViewClades) {
 					makeDirty();
 				}
-			}
-		});
+			});
 		m_viewClades.setEnabled(false);
 		editMenu.add(m_viewClades);
 
@@ -5558,16 +5552,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		drawallMenu.setMnemonic('D');
 		m_menuBar.add(drawallMenu);
 		final JCheckBoxMenuItem autoRefresh = new JCheckBoxMenuItem("Automatically refresh", m_bAutoRefresh);
-		autoRefresh.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		autoRefresh.addActionListener(ae-> {
 				m_bAutoRefresh = autoRefresh.getState();
 				if (m_bAutoRefresh && m_bIsDirty) {
 					fitToScreen();
 					// makeDirty();
 				}
-			}
-		});
+			});
 		drawallMenu.add(autoRefresh);
 		drawallMenu.add(a_drawtreeset);
 
@@ -5583,12 +5574,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		browseMenu.add(a_browselast);
 		browseMenu.addSeparator();
 		final JCheckBoxMenuItem animateOverWrite = new JCheckBoxMenuItem("Over write", m_bAnimateOverwrite);
-		animateOverWrite.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		animateOverWrite.addActionListener(ae-> {
 				m_bAnimateOverwrite = animateOverWrite.getState();
-			}
-		});
+			});
 		browseMenu.add(animateOverWrite);
 
 		// ----------------------------------------------------------------------

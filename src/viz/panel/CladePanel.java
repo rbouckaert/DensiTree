@@ -24,8 +24,6 @@ import javax.swing.JSeparator;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class CladePanel extends JPanel implements ChangeListener {
 	public final static String HELP_SHOW_CLADES = "Show information for individual clades. This is only " +
@@ -71,27 +69,21 @@ public class CladePanel extends JPanel implements ChangeListener {
 		setLayout(gridBagLayout);
 		
 		chckbxSelectionOnly.setSelected(m_dt.m_cladeDrawer.m_bSelectedOnly);
-		chckbxSelectionOnly.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxSelectionOnly.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bSelectedOnly;
 				m_dt.m_cladeDrawer.m_bSelectedOnly = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bSelectedOnly) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		
-		chckbxShowClades.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxShowClades.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bViewClades;
 				m_dt.m_bViewClades = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bViewClades) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxShowClades = new GridBagConstraints();
 		gbc_chckbxShowClades.anchor = GridBagConstraints.WEST;
 		gbc_chckbxShowClades.gridwidth = 3;
@@ -134,16 +126,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		gbc_lblMean.gridy = 3;
 		add(lblMean, gbc_lblMean);
 		
-		chckbxMean.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxMean.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDrawMean;
 				m_dt.m_cladeDrawer.m_bDrawMean = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bDrawMean) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		chckbxMean.setSelected(m_dt.m_cladeDrawer.m_bDrawMean);
 		GridBagConstraints gbc_chckbxMean = new GridBagConstraints();
 		gbc_chckbxMean.insets = new Insets(0, 0, 5, 0);
@@ -152,16 +141,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(chckbxMean, gbc_chckbxMean);
 		
 		checkBox.setSelected(m_dt.m_cladeDrawer.m_bTextMean);
-		checkBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bTextMean;
 				m_dt.m_cladeDrawer.m_bTextMean = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bTextMean) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox = new GridBagConstraints();
 		gbc_checkBox.insets = new Insets(0, 0, 5, 0);
@@ -178,16 +164,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(lblhpd, gbc_lblhpd);
 		
 		chckbxhpd.setSelected(m_dt.m_cladeDrawer.m_bDraw95HPD);
-		chckbxhpd.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxhpd.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDraw95HPD;
 				m_dt.m_cladeDrawer.m_bDraw95HPD = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bDraw95HPD) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxhpd = new GridBagConstraints();
 		gbc_chckbxhpd.anchor = GridBagConstraints.NORTH;
 		gbc_chckbxhpd.insets = new Insets(0, 0, 5, 0);
@@ -196,16 +179,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(chckbxhpd, gbc_chckbxhpd);
 		
 		checkBox_1.setSelected(m_dt.m_cladeDrawer.m_bText95HPD);
-		checkBox_1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox_1.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bText95HPD;
 				m_dt.m_cladeDrawer.m_bText95HPD = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bText95HPD) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		checkBox_1.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox_1 = new GridBagConstraints();
 		gbc_checkBox_1.insets = new Insets(0, 0, 5, 0);
@@ -223,16 +203,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(lblSupport, gbc_lblSupport);
 		
 		chckbxSupport.setSelected(m_dt.m_cladeDrawer.m_bDrawSupport);
-		chckbxSupport.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxSupport.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bDrawSupport;
 				m_dt.m_cladeDrawer.m_bDrawSupport = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bDrawSupport) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxSupport = new GridBagConstraints();
 		gbc_chckbxSupport.insets = new Insets(0, 0, 5, 0);
 		gbc_chckbxSupport.gridx = 1;
@@ -240,16 +217,13 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(chckbxSupport, gbc_chckbxSupport);
 		
 		checkBox_2.setSelected(m_dt.m_cladeDrawer.m_bTextSupport);
-		checkBox_2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox_2.addActionListener(e-> {
 				boolean bPrev = m_dt.m_cladeDrawer.m_bTextSupport;
 				m_dt.m_cladeDrawer.m_bTextSupport = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_cladeDrawer.m_bTextSupport) {
 					m_dt.makeDirty();
 				}				
-			}
-		});
+			});
 		checkBox_2.setHorizontalAlignment(SwingConstants.RIGHT);
 		GridBagConstraints gbc_checkBox_2 = new GridBagConstraints();
 		gbc_checkBox_2.insets = new Insets(0, 0, 5, 0);
@@ -286,9 +260,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 		});
 		
 		btnFont = new RoundedButton("Font");
-		btnFont.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnFont.addActionListener(e-> {
 				JFontChooser fontChooser = new JFontChooser();
 				if (m_dt.m_cladeDrawer.m_font != null) {
 					fontChooser.setSelectedFont(m_dt.m_cladeDrawer.m_font);
@@ -299,8 +271,7 @@ public class CladePanel extends JPanel implements ChangeListener {
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
-			}
-		});
+			});
 		spinner = new JSpinner(significantDigitsModel);
 		GridBagConstraints gbc_spinner = new GridBagConstraints();
 		gbc_spinner.anchor = GridBagConstraints.WEST;
@@ -315,17 +286,14 @@ public class CladePanel extends JPanel implements ChangeListener {
 		add(btnFont, gbc_btnFont);
 		
 		btnColor = new RoundedButton("Color");
-		btnColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnColor.addActionListener(e-> {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_cladeDrawer.m_color);
 				if (newColor != null) {
 					m_dt.m_cladeDrawer.m_color = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();
-			}
-		});
+			});
 		GridBagConstraints gbc_btnColor = new GridBagConstraints();
 		gbc_btnColor.gridwidth = 2;
 		gbc_btnColor.insets = new Insets(0, 0, 5, 0);

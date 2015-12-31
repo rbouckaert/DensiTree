@@ -28,8 +28,6 @@ import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
 import viz.util.Util;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.JSpinner;
 import java.util.ArrayList;
 
@@ -93,9 +91,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		comboBoxBottom.setMaximumSize(new Dimension(130,200));
 		comboBoxBottom.setSelectedItem(m_dt.m_lineWidthMode);
 
-		comboBoxBottom.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		comboBoxBottom.addActionListener(e-> {
 				SwingUtilities.invokeLater(new Runnable() {
 					
 					@Override
@@ -126,8 +122,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 					}
 
 				});
-			}
-		});
+			});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.gridwidth = 2;
 		gbc_comboBox.insets = new Insets(0, 0, 5, 0);
@@ -146,10 +141,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		gbc_textField_1.gridwidth= 2;
 		add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);
-		textField_1.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		textField_1.addActionListener(e-> {
 				try {
 					m_dt.m_sLineWidthPattern = textField_1.getText();
 					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
@@ -157,8 +149,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
-			}
-		});
+			});
 		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom, 1, 100, 1);
 		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop, 0, 100, 1);
 		
@@ -227,9 +218,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 				comboBoxTop.setPreferredSize(new Dimension(130,20));
 				comboBoxTop.setMaximumSize(new Dimension(130,200));
 				comboBoxTop.setSelectedItem(m_dt.m_lineWidthMode);
-				comboBoxTop.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
+				comboBoxTop.addActionListener(ea-> {
 							SwingUtilities.invokeLater(new Runnable() {
 								
 								@Override
@@ -267,8 +256,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 
 								}
 						});
-					}
-				});
+					});
 		
 		textField = new JTextField(m_dt.m_sLineWidthPatternTop);
 		GridBagConstraints gbc_textField = new GridBagConstraints();
@@ -278,16 +266,13 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		gbc_textField.gridx = 0;
 		gbc_textField.gridy = 7;
 		add(textField, gbc_textField);
-		textField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		textField.addActionListener(ea-> {
 				try {
 					m_dt.m_sLineWidthPatternTop = textField.getText();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				} catch (Exception ex) {}
-			}
-		});
+			});
 		textField.setColumns(10);
 		
 		JLabel lblNumberOfItem = new JLabel("bottom");
@@ -308,17 +293,14 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		
 		chckbxZeroBased = new JCheckBox("Zero based");
 		chckbxZeroBased.setSelected(m_dt.m_bWidthsAreZeroBased);
-		chckbxZeroBased.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxZeroBased.addActionListener(ea-> {
 				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
-				m_dt.m_bWidthsAreZeroBased = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.m_bWidthsAreZeroBased = ((JCheckBox) ea.getSource()).isSelected();
 				if (bPrev != m_dt.m_bWidthsAreZeroBased) {
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		
 		separator = new JSeparator();
 		GridBagConstraints gbc_separator = new GridBagConstraints();
@@ -349,18 +331,14 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		textField_3 = new JTextField(m_dt.m_treeDrawer.LINE_WIDTH_SCALE + "");
 		add(textField_3, gbc_textField_3);
 		textField_3.setColumns(3);
-		textField_3.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		textField_3.addActionListener(ea-> {
 				try {
 					m_dt.m_treeDrawer.LINE_WIDTH_SCALE = Float.parseFloat(textField_3.getText());
 					if (m_dt.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
-			}
-		});
+			});
 		updateEnabled();
 
 //      layout debugging

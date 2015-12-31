@@ -79,9 +79,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		comboBox.setSelectedItem(m_dt.m_lineColorMode);
 		comboBox.setPreferredSize(new Dimension(130,20));
 		comboBox.setMaximumSize(new Dimension(130,200));
-		comboBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		comboBox.addActionListener(e-> {
 				SwingUtilities.invokeLater(new Runnable() {					
 					@Override
 					public void run() {
@@ -108,8 +106,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 						}
 					}
 				});
-			}
-		});
+			});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.gridwidth = 2;
 		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
@@ -119,13 +116,10 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		add(comboBox, gbc_comboBox);
 		
 		chckbxShowLegend = new JCheckBox("Show legend");
-		chckbxShowLegend.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxShowLegend.addActionListener(e-> {
 				m_dt.m_showLegend = !m_dt.m_showLegend;
 				m_dt.makeDirty();
-			}
-		});
+			});
 		chckbxShowLegend.setEnabled(false);
 		GridBagConstraints gbc_chckbxShowLegend = new GridBagConstraints();
 		gbc_chckbxShowLegend.anchor = GridBagConstraints.WEST;
@@ -138,13 +132,10 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		
 		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons-trees</html>");
-		chckbxMultiColorConsensus.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxMultiColorConsensus.addActionListener(e-> {
 				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxMultiColorConsensus = new GridBagConstraints();
 		gbc_chckbxMultiColorConsensus.anchor = GridBagConstraints.WEST;
 		gbc_chckbxMultiColorConsensus.gridwidth = 3;
@@ -154,27 +145,21 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		add(chckbxMultiColorConsensus, gbc_chckbxMultiColorConsensus);
 		
 		txtPattern = new JTextField(m_dt.m_sLineColorPattern);
-		txtPattern.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		txtPattern.addActionListener(e-> {
 				String oldPattern = m_dt.m_sLineColorPattern;
 				m_dt.m_sLineColorPattern = txtPattern.getText();
 				if (oldPattern.equals(m_dt.m_sLineColorPattern)) {
 					m_dt.calcColors(false);
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		
 		chckbxCategorical = new JCheckBox("categorical");
-		chckbxCategorical.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxCategorical.addActionListener(e-> {
 				m_dt.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.calcColors(true);
 				m_dt.makeDirty();
-			}
-		});
+			});
 		chckbxCategorical.setToolTipText("indicate that the meta data item shoud be interpreted as categorical");
 		chckbxCategorical.setEnabled(false);
 		GridBagConstraints gbc_chckbxNewCheckBox = new GridBagConstraints();
@@ -202,12 +187,9 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		txtPattern.setEnabled(false);
 		
 		btnLineColors = new RoundedButton("Line colors");
-		btnLineColors.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnLineColors.addActionListener(e-> {
 				new ColorDialog(m_dt);
-			}
-		});
+			});
 		GridBagConstraints gbc_btnLineColors = new GridBagConstraints();
 		gbc_btnLineColors.gridwidth = 2;
 		gbc_btnLineColors.fill = GridBagConstraints.HORIZONTAL;
@@ -248,12 +230,9 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			}
 			
 			JButton button = new RoundedButton("Close");
-			button.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
+			button.addActionListener(e-> {
 					dispose();
-				}
-			});
+				});
 			add(button);
 			
 			setPreferredSize(new Dimension(300,600));
@@ -270,12 +249,9 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			button.addActionListener(new ColorActionListener(colorID, tiptext));
 			
 			JButton btnColors = new JButton("colors");
-			btnColors.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
+			btnColors.addActionListener(e-> {
 					new ColorDialog(m_dt);
-				}
-			});
+				});
 			add(button);
 		}
 		

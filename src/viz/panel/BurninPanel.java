@@ -12,8 +12,6 @@ import viz.DensiTree;
 import viz.util.Util;
 
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JRadioButton;
 
 public class BurninPanel extends JPanel {
@@ -64,12 +62,9 @@ public class BurninPanel extends JPanel {
 		JRadioButton rdbtnPercentage = new JRadioButton("percentage");
 		rdbtnPercentage.setSelected(true);
 		rdbtnPercentage.setToolTipText(Util.formatToolTipAsHtml(HELP_PERCENTAGE));
-		rdbtnPercentage.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		rdbtnPercentage.addActionListener(e-> {
 				m_dt.m_bBurnInIsPercentage = true;
-			}
-		});
+			});
 		m_group.add(rdbtnPercentage);
 		GridBagConstraints gbc_rdbtnPercentage = new GridBagConstraints();
 		gbc_rdbtnPercentage.gridwidth = 2;
@@ -81,12 +76,9 @@ public class BurninPanel extends JPanel {
 		
 		JRadioButton rdbtnTrees = new JRadioButton("#trees");
 		rdbtnTrees.setToolTipText(Util.formatToolTipAsHtml(HELP_NUMBER_OF_TREES));
-		rdbtnTrees.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		rdbtnTrees.addActionListener(e-> {
 				m_dt.m_bBurnInIsPercentage = false;
-			}
-		});
+			});
 		m_group.add(rdbtnTrees);
 		GridBagConstraints gbc_rdbtntrees = new GridBagConstraints();
 		gbc_rdbtntrees.gridwidth = 2;
@@ -94,9 +86,7 @@ public class BurninPanel extends JPanel {
 		gbc_rdbtntrees.gridx = 0;
 		gbc_rdbtntrees.gridy = 2;
 		add(rdbtnTrees, gbc_rdbtntrees);
-		textField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		textField.addActionListener(e-> {
 				try {
 					m_dt.m_nBurnIn = Integer.parseInt(textField.getText());
 					m_dt.init(m_dt.m_sFileName);
@@ -105,8 +95,7 @@ public class BurninPanel extends JPanel {
 					// make sure the textfield is up to date
 					textField.setText(m_dt.m_nBurnIn + "");
 				} catch (Exception e2) {}
-			}
-		});
+			});
 
 	}
 }

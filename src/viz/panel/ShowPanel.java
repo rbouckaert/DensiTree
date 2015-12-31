@@ -13,8 +13,6 @@ import viz.util.Util;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,16 +53,13 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		
 		JCheckBox checkBox_1 = new JCheckBox("Consensus Trees");
 		checkBox_1.setSelected(m_dt.m_bViewCTrees);
-		checkBox_1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox_1.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bViewCTrees;
 				m_dt.m_bViewCTrees = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bViewCTrees) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_checkBox_1 = new GridBagConstraints();
 		gbc_checkBox_1.gridwidth = 2;
 		gbc_checkBox_1.insets = new Insets(0, 0, 5, 0);
@@ -75,16 +70,13 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		
 		JCheckBox checkBox = new JCheckBox("All Trees");
 		checkBox.setSelected(m_dt.m_bViewAllTrees);
-		checkBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bViewAllTrees;
 				m_dt.m_bViewAllTrees = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bViewAllTrees) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_checkBox = new GridBagConstraints();
 		gbc_checkBox.gridwidth = 2;
 		gbc_checkBox.insets = new Insets(0, 0, 5, 0);
@@ -95,16 +87,13 @@ public class ShowPanel extends JPanel implements ChangeListener {
 
 		checkBoxShowRotoCanal = new JCheckBox("Root Canal");
 		checkBoxShowRotoCanal.setSelected(m_dt.m_bShowRootCanalTopology);
-		checkBoxShowRotoCanal.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBoxShowRotoCanal.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bShowRootCanalTopology;
 				m_dt.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bShowRootCanalTopology) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		
 		JSeparator separator = new JSeparator();
 		GridBagConstraints gbc_separator = new GridBagConstraints();
@@ -124,21 +113,16 @@ public class ShowPanel extends JPanel implements ChangeListener {
 
 		JCheckBox checkBox_3 = new JCheckBox("Root At Top");
 		checkBox_3.setSelected(m_dt.m_treeDrawer.m_bRootAtTop);
-		checkBox_3.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		checkBox_3.addActionListener(e-> {
 				boolean bPrev = m_dt.m_treeDrawer.m_bRootAtTop;
 				m_dt.m_treeDrawer.m_bRootAtTop = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_treeDrawer.m_bRootAtTop) {
 					m_dt.fitToScreen();
 				}
-			}
-		});
+			});
 		
 		btnImport = new RoundedButton("import");
-		btnImport.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnImport.addActionListener(e-> {
 				ImportRootCanalDialog dlg = new ImportRootCanalDialog(m_dt);
 				if (dlg.showDialog(null)) {
 					DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
@@ -149,8 +133,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 					m_dt.calcLines();
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		
 		
 		List<String> labels = new ArrayList<String>();
@@ -158,10 +141,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 			labels.add("" + (i+1));
 		}		
 		comboBox = new JComboBox<>(labels.toArray(new String[0]));
-		comboBox.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		comboBox.addActionListener(e-> {
 				int i = comboBox.getSelectedIndex();
 				if (m_dt.m_summaryTree != null) {
 					if (i>= 0 && i < m_dt.m_summaryTree.size() - 1) {
@@ -170,8 +150,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 						m_dt.makeDirty();
 					}
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_comboBox = new GridBagConstraints();
 		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
 		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
@@ -200,16 +179,13 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		gbc_checkBox_3.gridy = 6;
 		add(checkBox_3, gbc_checkBox_3);
 		
-		chckbxShowEditTree.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxShowEditTree.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bViewEditTree;
 				m_dt.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bViewEditTree) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxShowEditTree = new GridBagConstraints();
 		gbc_chckbxShowEditTree.gridwidth = 2;
 		gbc_chckbxShowEditTree.anchor = GridBagConstraints.WEST;

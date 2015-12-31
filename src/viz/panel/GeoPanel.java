@@ -10,8 +10,6 @@ import viz.DensiTree;
 import viz.util.Util;
 
 import java.awt.GridBagConstraints;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.JButton;
 import java.awt.Insets;
 
@@ -50,16 +48,13 @@ public class GeoPanel extends JPanel {
 		JCheckBox chckbxShowGeoInfo = new JCheckBox("<html>Show geo info<br>(if any)</html>");
 		chckbxShowGeoInfo.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_GEO_INFO));
 		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
-		chckbxShowGeoInfo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxShowGeoInfo.addActionListener(e-> {
 				boolean bPrev = m_dt.m_bDrawGeo;
 				m_dt.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
 				if (bPrev != m_dt.m_bDrawGeo) {
 					m_dt.makeDirty();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxShowGeoInfo = new GridBagConstraints();
 		gbc_chckbxShowGeoInfo.gridwidth = 2;
 		gbc_chckbxShowGeoInfo.insets = new Insets(0, 0, 5, 0);
@@ -104,12 +99,9 @@ public class GeoPanel extends JPanel {
 		JButton btnLoadLocations = new RoundedButton("<html>Load<br>locations</html>");
 		btnLoadLocations.setToolTipText(Util.formatToolTipAsHtml(HELP_LOAD_LOCATIONS));
 		btnLoadLocations.setText("<html>Load locations</html>");
-		btnLoadLocations.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnLoadLocations.addActionListener(e-> {
 				m_dt.a_loadkml.actionPerformed(e);
-			}
-		});
+			});
 		GridBagConstraints gbc_btnLoadLocations = new GridBagConstraints();
 		gbc_btnLoadLocations.gridwidth = 2;
 		gbc_btnLoadLocations.fill = GridBagConstraints.HORIZONTAL;
@@ -120,17 +112,14 @@ public class GeoPanel extends JPanel {
 				
 		JButton btnLineColor = new RoundedButton("Color");
 		btnLineColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
-		btnLineColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		btnLineColor.addActionListener(e-> {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.GEOCOLOR]);
 				if (newColor != null) {
 					m_dt.m_color[DensiTree.GEOCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();
-			}
-		});
+			});
 		
 				
 		GridBagConstraints gbc_btnLineColor = new GridBagConstraints();

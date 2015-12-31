@@ -15,8 +15,6 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.RoundRectangle2D;
@@ -178,14 +176,11 @@ public class ExpandablePanel extends JPanel {
 		Dimension size = (viz.util.Util.isMac() ? new Dimension(200,20) : new Dimension(150,20));
 		editButton.setPreferredSize(size);
 		
-        editButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+        editButton.addActionListener(e-> {
 				boolean isVisible = m_panel.isVisible();
                 m_panel.setVisible(!isVisible);
                 editButton.setOpen(!isVisible);
-            }
-        });
+            });
         
         
         

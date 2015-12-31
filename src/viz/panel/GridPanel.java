@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -92,36 +90,27 @@ public class GridPanel extends JPanel {
 
 		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("No grid");
 		panel.add(rdbtnNewRadioButton_1);
-		rdbtnNewRadioButton_1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		rdbtnNewRadioButton_1.addActionListener(e-> {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.NONE;
 				m_dt.makeDirty();
-			}
-		});
+			});
 
 		m_modeGroup.add(rdbtnNewRadioButton_1);
 
 		JRadioButton rdbtnNewRadioButton = new JRadioButton("Short grid");
 		panel.add(rdbtnNewRadioButton);
-		rdbtnNewRadioButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		rdbtnNewRadioButton.addActionListener(e-> {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.SHORT;
 				m_dt.makeDirty();
-			}
 		});
 		m_modeGroup.add(rdbtnNewRadioButton);
 
 		JRadioButton radioButton_2 = new JRadioButton("Full grid");
 		panel.add(radioButton_2);
-		radioButton_2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		radioButton_2.addActionListener(e-> {
 				m_dt.m_gridDrawer.m_nGridMode = GridMode.FULL;
 				m_dt.makeDirty();
-			}
-		});
+			});
 		m_modeGroup.add(radioButton_2);
 		m_modeGroup.setSelected(rdbtnNewRadioButton_1.getModel(), true);
 		
@@ -166,15 +155,12 @@ public class GridPanel extends JPanel {
 		c5.gridwidth = 3;
 		c5.fill = GridBagConstraints.HORIZONTAL;
 		add(reverseGrid, c5);
-		reverseGrid.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		reverseGrid.addActionListener(e-> {
 				JCheckBox button = (JCheckBox) e.getSource();
 				m_dt.m_gridDrawer.m_bReverseGrid = button.isSelected();
 				m_dt.m_Panel.clearImage();
 				m_dt.repaint();
-			}
-		});
+			});
 
 		JButton btnGridFont = new RoundedButton("Font");
 		btnGridFont.setToolTipText(Util.formatToolTipAsHtml(HELP_FONT));
@@ -187,10 +173,7 @@ public class GridPanel extends JPanel {
 		//c7.insets = new Insets(3, 3, 5, 5);
 		c7.fill = GridBagConstraints.HORIZONTAL;
 		add(btnGridFont, c7);
-		btnGridFont.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		btnGridFont.addActionListener(ae-> {
 				JFontChooser fontChooser = new JFontChooser();
 				if (m_dt.m_gridDrawer.m_gridfont != null) {
 					fontChooser.setSelectedFont(m_dt.m_gridDrawer.m_gridfont);
@@ -201,8 +184,7 @@ public class GridPanel extends JPanel {
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
-			} // actionPerformed
-		});
+			}); // actionPerformed
 
 		JButton btnGridColor = new RoundedButton("Color");
 		btnGridColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
@@ -215,17 +197,14 @@ public class GridPanel extends JPanel {
 		//c6.insets = new Insets(3, 3, 5, 5);
 		c6.fill = GridBagConstraints.HORIZONTAL;
 		add(btnGridColor, c6);
-		btnGridColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
+		btnGridColor.addActionListener(ae-> {
 				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_color[DensiTree.HEIGHTCOLOR]);
 				if (newColor != null) {
 					m_dt.m_color[DensiTree.HEIGHTCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();
-			}
-		});
+			});
 
 		JLabel lblOffset = new JLabel("Origin");
 		lblOffset.setToolTipText(Util.formatToolTipAsHtml(HELP_ORIGIN));
@@ -253,9 +232,7 @@ public class GridPanel extends JPanel {
 		JCheckBox chckbxAutomatic = new JCheckBox("Automatic");
 		chckbxAutomatic.setToolTipText(Util.formatToolTipAsHtml(HELP_AUTOMATIC));
 		chckbxAutomatic.setSelected(m_dt.m_gridDrawer.m_bAutoGrid);
-		chckbxAutomatic.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		chckbxAutomatic.addActionListener(e-> {
 				boolean bPrev = m_dt.m_gridDrawer.m_bAutoGrid;
 				m_dt.m_gridDrawer.m_bAutoGrid = ((JCheckBox) e.getSource()).isSelected();
 				m_ticksTextField.setEnabled(!m_dt.m_gridDrawer.m_bAutoGrid);
@@ -264,8 +241,7 @@ public class GridPanel extends JPanel {
 					m_dt.makeDirty();
 					m_dt.repaint();
 				}
-			}
-		});
+			});
 		GridBagConstraints gbc_chckbxAutomatic = new GridBagConstraints();
 		gbc_chckbxAutomatic.gridwidth = 3;
 		gbc_chckbxAutomatic.anchor = GridBagConstraints.WEST;
@@ -424,9 +400,7 @@ public class GridPanel extends JPanel {
 		add(lblS, gbc_lblS);
 		
 		txtScale = new JTextField();
-		txtScale.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		txtScale.addActionListener(e-> {
 				try {
 					m_dt.m_fUserScale = Float.parseFloat(txtScale.getText());
 					m_dt.updateCladeModel();
@@ -434,8 +408,7 @@ public class GridPanel extends JPanel {
 					m_dt.repaint();
 				} catch (Exception ex) {
 				}
-			}
-		});
+			});
 		txtScale.setText(m_dt.m_fUserScale + "");
 		txtScale.setToolTipText(Util.formatToolTipAsHtml(HELP_SCALE));
 		GridBagConstraints gbc_txtScale2 = new GridBagConstraints();

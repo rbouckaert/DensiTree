@@ -61,10 +61,11 @@
     <!-- Compile the java code from ${src} into ${build} -->
     <!--javac srcdir="${src}" destdir="${build}" excludes="**/geo/**/*"/-->
     <javac srcdir="${src}" destdir="${build}" classpathref="compileclasspath" includeantruntime="false"
-		   source="1.7"
-  	       target="1.7"
+		   source="1.8"
+  	       target="1.8">
+<!--
 		   bootclasspath='/opt/jdk1.7/jre/lib/rt.jar'
-		   >
+		   -->
 <!--
 		   <compilerarg value="-Xlint:deprecation"/>
 -->
