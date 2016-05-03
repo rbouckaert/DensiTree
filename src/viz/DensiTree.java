@@ -243,6 +243,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
 	double m_cladeThreshold = 1e-4;
+	/** smallest support for it to be considered a clade, default 1% **/
+	public double m_smallestCladeSupport = 0.01;
 
 	/** flag to allow leafs to be draw and dragged around.
 	 * As a side effect, internal clades will not be positioned correctly,
@@ -407,6 +409,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** thread for processing meta data **/
 	Thread thread = null;
 	
+
 	/** constructors **/
 	public DensiTree() {
 		m_gridDrawer = new GridDrawer(this);
@@ -1616,19 +1619,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 		DecimalFormat format = new  DecimalFormat("###.##");
 		
 		for (int i = 0; i < m_cladePosition.length; i++) {
-			String sStr = "";
-			//if (m_clades.get(i).length > 1) {
-				sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
-				sStr += format.format((m_fHeight - m_cladeHeight95HPDup.get(i)) * m_fUserScale) + " ";
-				sStr += format.format((m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_fUserScale) + " ";
-				sStr += "[";
-				int j = 0;
-				for (j = 0; j < m_clades.get(i).length - 1; j++) {
-					sStr += (m_sLabels.get(m_clades.get(i)[j]) + ",");
-				}
-				sStr += (m_sLabels.get(m_clades.get(i)[j]) + "]\n");
-				list.add(sStr);
-			//}
+			if (m_cladeWeight.get(i) >= m_smallestCladeSupport) {
+				String sStr = "";
+				//if (m_clades.get(i).length > 1) {
+					sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
+					sStr += format.format((m_fHeight - m_cladeHeight95HPDup.get(i)) * m_fUserScale) + " ";
+					sStr += format.format((m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_fUserScale) + " ";
+					sStr += "[";
+					int j = 0;
+					for (j = 0; j < m_clades.get(i).length - 1; j++) {
+						sStr += (m_sLabels.get(m_clades.get(i)[j]) + ",");
+					}
+					sStr += (m_sLabels.get(m_clades.get(i)[j]) + "]\n");
+					list.add(sStr);
+				//}
+			}
 		}
 		return list;
 	}

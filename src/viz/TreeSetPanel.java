@@ -765,7 +765,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		for (int i = 0; i < m_dt.m_bSelection.length; i++) {
 			if (m_dt.m_bLabelRectangle[i].intersects(r)
 					|| (m_dt.m_bGeoRectangle[i] != null && m_dt.m_bGeoRectangle[i].intersects(r))) {
-				if (!m_dt.m_bSelection[i]) {
+				if (!m_dt.m_bSelection[i] && m_dt.m_cladeWeight.get(i) >= m_dt.m_smallestCladeSupport) {
 					m_dt.m_bSelection[i] = true;
 					m_dt.m_bSelectionChanged = true;
 				}
@@ -778,7 +778,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			for (int i = 0; i < m_rotationPoints.length; i++) {
 				rotationPoint.x = m_rotationPoints[i].m_nX;
 				rotationPoint.y = m_rotationPoints[i].m_nY;
-				if (r.intersects(rotationPoint)) { 
+				if (r.intersects(rotationPoint) && m_dt.m_cladeWeight.get(i) >= m_dt.m_smallestCladeSupport) { 
 					m_dt.m_cladeSelection.add(i);
 				}
 			}
@@ -983,4 +983,4 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		
 	}
 
-} // class TreeVizPanel
+} // class TreeSetPanel
