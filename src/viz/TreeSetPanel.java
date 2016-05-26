@@ -18,16 +18,21 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.io.File;
+import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import viz.DensiTree.LineColorMode;
 import viz.DensiTree.ViewMode;
+import viz.graphics.ArcBranchDrawer;
 import viz.graphics.BufferedImageBounded;
 import viz.graphics.BufferedImageF;
+import viz.graphics.SVGTreeDrawer;
+import viz.graphics.SteepArcBranchDrawer;
 import viz.graphics.TreeDrawer;
 
 /**
@@ -257,41 +262,44 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 	} // m_dt.drawLabelsSVG
 
-//	void toSVG(String sFileName) {
-//		try {
-//			if (m_dt.m_font == null) {
-//				m_dt.m_font = new Font("Monospaced", Font.PLAIN, 10);
-//			}
-//
-//			StringBuffer buf = new StringBuffer();
-//			SVGTreeDrawer treeDrawer = new SVGTreeDrawer(buf);
-//			treeDrawer.LINE_WIDTH_SCALE = m_dt.m_treeDrawer.LINE_WIDTH_SCALE;
-//			treeDrawer.m_bRootAtTop = m_dt.m_treeDrawer.m_bRootAtTop;
-//			treeDrawer.m_bViewBlockTree = m_dt.m_treeDrawer.m_bViewBlockTree;
-//			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof SteepArcBranchDrawer) {
-//				treeDrawer.m_bViewBlockTree = false;
-//				JOptionPane.showMessageDialog(this, "Steep arcs not implemented yet for SVG export, using straigh lines instead");
-//			}
-//			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof ArcBranchDrawer) {
-//				treeDrawer.m_branchStyle = 2;
-//			}
-//			DrawThread thread = new DrawThread("draw thread", 0, m_dt.m_trees.length, 1, treeDrawer);
-//			thread.start();
-//			drawLabelsSVG(m_dt.m_trees[0], buf);
-//			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
-//
-//			PrintStream out = new PrintStream(sFileName);
-//			out.println("<?xml version='1.0'?>\n" + "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'\n"
-//					+ "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>\n"
-//					+ "<svg xmlns='http://www.w3.org/2000/svg' version='1.1'\n" + "      width='" + getWidth()
-//					+ "' height='" + getHeight() + "' viewBox='0 0 " + getWidth() + " " + getHeight() + "'>\n"
-//					+ "<rect fill='#fff' width='" + getWidth() + "' height='" + getHeight() + "'/>");
-//			out.println(buf.toString());
-//			out.println("</svg>");
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	} // toSVG
+	void toSVG(String sFileName) {
+		try {
+			if (m_dt.m_font == null) {
+				m_dt.m_font = new Font("Monospaced", Font.PLAIN, 10);
+			}
+
+			StringBuffer buf = new StringBuffer();
+			SVGTreeDrawer treeDrawer = new SVGTreeDrawer(buf);
+			TreeDrawer t = m_dt.m_treeDrawer;
+			treeDrawer.LINE_WIDTH_SCALE = m_dt.m_treeDrawer.LINE_WIDTH_SCALE;
+			treeDrawer.m_bRootAtTop = m_dt.m_treeDrawer.m_bRootAtTop;
+			treeDrawer.m_bViewBlockTree = m_dt.m_treeDrawer.m_bViewBlockTree;
+			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof SteepArcBranchDrawer) {
+				treeDrawer.m_bViewBlockTree = false;
+				JOptionPane.showMessageDialog(this, "Steep arcs not implemented yet for SVG export, using straigh lines instead");
+			}
+			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof ArcBranchDrawer) {
+				treeDrawer.m_branchStyle = 2;
+			}
+			DrawThread thread = new DrawThread("draw thread", 0, m_dt.m_trees.length, 1, treeDrawer);
+			thread.run();
+			drawLabelsSVG(m_dt.m_trees[0], buf);
+			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
+
+			PrintStream out = new PrintStream(sFileName);
+			out.println("<?xml version='1.0'?>\n" + "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'\n"
+					+ "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>\n"
+					+ "<svg xmlns='http://www.w3.org/2000/svg' version='1.1'\n" + "      width='" + getWidth()
+					+ "' height='" + getHeight() + "' viewBox='0 0 " + getWidth() + " " + getHeight() + "'>\n"
+					+ "<rect fill='#fff' width='" + getWidth() + "' height='" + getHeight() + "'/>");
+			out.println(buf.toString());
+			out.println("</svg>");
+			// restore original tree drawer
+			m_dt.m_treeDrawer = t;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	} // toSVG
 
 	double calcImageEntropy() throws Exception {
 		if (m_image == null) {

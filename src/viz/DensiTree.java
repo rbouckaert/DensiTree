@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
- * @version $Revision: 2.2.3 $
+ * @version $Revision: 2.2.5 $
  */
 
 // the magic sentence to look for when releasing:
@@ -91,7 +91,7 @@ import viz.process.BranchLengthOptimiser;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.2.4";
+	final static String VERSION = "2.2.5";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -4189,15 +4189,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 					return "PDF files (*.pdf)";
 				}
 			});
-//			fc.addChoosableFileFilter(new MyFileFilter() {
-//				public String getExtention() {
-//					return ".svg";
-//				}
-//
-//				public String getDescription() {
-//					return "Standard Vector Graphics files";
-//				}
-//			});
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				public String getExtention() {
+					return ".svg";
+				}
+
+				public String getDescription() {
+					return "Standard Vector Graphics files";
+				}
+			});
 			fc.setDialogTitle("Export DensiTree As");
 			int rval = fc.showSaveDialog(m_Panel);
 			if (rval == JFileChooser.APPROVE_OPTION) {
@@ -4243,10 +4243,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 						return;
 					}
-//					if (sFileName.toLowerCase().endsWith(".svg")) {
-//						m_Panel.toSVG(sFileName);
-//						return;
-//					}
+					if (sFileName.toLowerCase().endsWith(".svg")) {
+						m_Panel.toSVG(sFileName);
+						return;
+					}
 					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
 							+ " not recognized as png,bmp,jpg or svg file");
 				}
