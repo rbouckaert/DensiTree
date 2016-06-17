@@ -367,6 +367,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_dt.m_sOutputFile != null && !isDrawing()) {
 			// wait a second for the drawing to be finished
 			try {
+				Graphics2D g2 = m_image.createGraphics();
+				m_dt.drawLabels(m_dt.m_trees[0], g2);
 				ImageIO.write(m_image.m_localImage, "png", new File(m_dt.m_sOutputFile));
 				System.exit(0);
 			} catch (Exception e) {
