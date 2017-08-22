@@ -232,9 +232,12 @@ public class GridDrawer {
 					}
 				}
 			} else {
+				int maxH = 0;
 				int nH = (int) (m_dt.getHeight() * m_dt.m_fScale);
+				int strPos = nH;
 				if (m_nGridMode == GridMode.SHORT) {
-					nH = 10;
+					maxH = nH;
+					nH = maxH - 10;
 				}
 				g.setColor(m_dt.m_color[DensiTree.HEIGHTCOLOR]);
 				
@@ -251,8 +254,8 @@ public class GridDrawer {
 								//)
 								;
 						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
-						g.drawString(sStr, x+2, m_gridfont.getSize());
-						g.drawLine(x, 0, x, nH);
+						g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						g.drawLine(x, maxH, x, nH);
 					}
 				} else {
 					float fHeight = m_fGridOffset;
@@ -263,8 +266,8 @@ public class GridDrawer {
 								//)
 								;
 						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / fUserScale - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
-						g.drawString(sStr, x+2, m_gridfont.getSize());
-						g.drawLine(x, 0, x, nH);
+						g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						g.drawLine(x, maxH, x, nH);
 						fHeight += Math.abs(m_fGridTicks);
 					}
 				}

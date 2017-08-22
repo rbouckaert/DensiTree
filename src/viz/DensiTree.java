@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
- * @version $Revision: 2.2.5 $
+ * @version $Revision: 2.2.6 $
  */
 
 // the magic sentence to look for when releasing:
@@ -91,7 +91,7 @@ import viz.process.BranchLengthOptimiser;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.2.5";
+	final static String VERSION = "2.2.6";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -749,7 +749,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** get status of internal settings **/
 	String getStatus() {
-		return "\n\nCurrent status:\n" + m_trees.length + " trees with " + m_cTrees.length + " topologies\n"
+		int nSelected = 0;
+		if (m_bSelection != null) {
+			for (boolean b : m_bSelection) {
+				if (b) {
+					nSelected++;
+				}
+			}
+		}
+		return "\n\nCurrent status:\n" + m_trees.length + " trees with " + m_cTrees.length + " topologies " +
+				m_sLabels.size() + " taxa " + nSelected + " selected \n"
 				+ "Tree intensity: " + m_fTreeIntensity + "\n" + "Consensus Tree intensity: " + m_fCTreeIntensity
 				+ "\n" + "Tree width: " + m_nTreeWidth + "\n" + "Consensus Tree width: " + m_nCTreeWidth + "\n"
 				+ "Jitter: " + m_nJitter + "\n" + "Animation delay: " + m_nAnimationDelay + "\n" + "Height: "
