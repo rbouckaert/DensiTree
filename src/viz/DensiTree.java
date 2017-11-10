@@ -113,6 +113,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** whether to optimise branch lengths on root canal tree or not **/
 	boolean m_bOptimiseRootCanalTree = false;
 
+	boolean m_bDrawReverse = false;
 	static int B = 1;
 	JFrame frame;
 	public void setWaitCursor() {
@@ -674,6 +675,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-cladeThreshold")) {
 						m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
+					} else if (args[i].equals("-r")) {
+						m_bDrawReverse = true;
+						i += 1;
 					}
 					
 					
@@ -3550,7 +3554,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			} else {
 				int y = (int) (node.m_fPosX * m_fScaleY/* m_fScale */) + g.getFontMetrics().getHeight() / 3;
 				int x = getPosX(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 1;
-				g.drawString(m_sLabels.elementAt(node.m_iLabel), x, y);
+				if (m_bDrawReverse) {
+					g.scale(-1.0, 1.0);
+					String text = m_sLabels.elementAt(node.m_iLabel);
+					g.drawString(text, -x-g.getFontMetrics().stringWidth(text), y);
+					g.scale(-1.0, 1.0);
+				} else {
+					g.drawString(m_sLabels.elementAt(node.m_iLabel), x, y);
+				}
 				Rectangle r = m_bLabelRectangle[node.m_iLabel];
 				r.x = x;
 				r.y = y - 10;

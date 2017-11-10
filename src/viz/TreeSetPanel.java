@@ -14,6 +14,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -344,7 +345,13 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g.setFont(m_dt.m_font);
 		switch (m_dt.m_viewMode) {
 		case DRAW:
+			if (m_dt.m_bDrawReverse && m_image != null) {
+				((Graphics2D)g).setTransform(new AffineTransform(-1,0,0,1,m_image.getWidth(), 0));
+			}
 			drawTreeSet((Graphics2D) g);
+			if (m_dt.m_bDrawReverse && m_image != null) {
+				((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1,0, 0));
+			}
 			break;
 		case ANIMATE:
 			drawFrame(g);
