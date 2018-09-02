@@ -736,7 +736,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "remco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2015\n\n\n"
+				+ "remco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2018\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -5703,7 +5703,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 						return null;
 					}
 				};
-				jam.mac.Utils.macOSXRegistration(application);
+                if (Util.getMajorJavaVersion() >= 9) {
+                	Util.macOSXRegistration(application);
+                } else {
+    				jam.mac.Utils.macOSXRegistration(application);
+                }
 
 			} catch (Exception e) {
 				// ignore

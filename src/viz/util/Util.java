@@ -1,9 +1,13 @@
 package viz.util;
 
+
 import java.awt.Font;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,6 +15,8 @@ import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import jam.framework.Application;
 
 public class Util {
 
@@ -232,4 +238,142 @@ public class Util {
         }
         return null;
     }
+    
+    /**
+     * parse a Java version string to an integer of major version like 7, 8, 9, 10, ...
+     */
+    public static int getMajorJavaVersion() {
+        String javaVersion = System.getProperty("java.version");
+        // javaVersion should be something like "1.7.0_25"
+        String[] version = javaVersion.split("\\.");
+        if (version.length > 2) {
+            int majorVersion = Integer.parseInt(version[0]);
+            if (majorVersion == 1) {
+                majorVersion = Integer.parseInt(version[1]);
+            }
+            return majorVersion;
+        }
+        try {
+            int majorVersion = Integer.parseInt(javaVersion);
+            return majorVersion;
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        return -1;
+    }
+
+    
+       
+    public static void macOSXRegistration(Application application) {
+        if (isMac()) {
+            NewOSXAdapter newOSXAdapter = new Util().new NewOSXAdapter(application);
+            try {
+                newOSXAdapter.registerMacOSXApplication(application);
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+                System.err.println("Exception while loading the OSXAdapter:");
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    
+    private static NewOSXAdapter theAdapter;
+    
+    /**
+     * Since Oracle Java 9, Mac OS specific <code>com.apple.eawt</code> was replaced
+     * by <code>java.awt.desktop</code>.
+     * This class based on Java 8 will load <code>java.awt.desktop</code>,
+     * if Java 9 is used in runtime.
+     * Then, <i>about</i> and <i>quit</i> menu item will work properly.
+     * The code is inspired from both source code of
+     * <a href="https://github.com/rambaut/jam-lib">jam</a> package
+     * and <a href="http://www.keystore-explorer.org">KeyStore Explorer</a>.
+     */
+    public class NewOSXAdapter implements InvocationHandler {
+        private Application application;
+
+        public NewOSXAdapter(Application var1) {
+            this.application = var1;
+        }
+
+        /**
+         * Use <code>reflect</code> to load <code>AboutHandler</code> and <code>QuitHandler</code>,
+         * to avoid Mac specific classes being required in Java 9 and later.
+         * @param var0
+         * @throws ClassNotFoundException
+         * @throws NoSuchMethodException
+         * @throws IllegalAccessException
+         * @throws InvocationTargetException
+         * @throws InstantiationException
+         */
+        public void registerMacOSXApplication(Application var0) throws ClassNotFoundException,
+                NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+
+            if (theAdapter == null) {
+                theAdapter = new NewOSXAdapter(var0);
+            }
+
+            // using reflection to avoid Mac specific classes being required for compiling KSE on other platforms
+            Class<?> applicationClass = Class.forName("com.apple.eawt.Application");
+            Class<?> quitHandlerClass;
+            Class<?> aboutHandlerClass;
+            Class<?> openFilesHandlerClass;
+            Class<?> preferencesHandlerClass;
+
+            if (getMajorJavaVersion() >= 9) {
+                quitHandlerClass = Class.forName("java.awt.desktop.QuitHandler");
+                aboutHandlerClass = Class.forName("java.awt.desktop.AboutHandler");
+//                openFilesHandlerClass = Class.forName("java.awt.desktop.OpenFilesHandler");
+//                preferencesHandlerClass = Class.forName("java.awt.desktop.PreferencesHandler");
+            } else {
+                quitHandlerClass = Class.forName("com.apple.eawt.QuitHandler");
+                aboutHandlerClass = Class.forName("com.apple.eawt.AboutHandler");
+//                openFilesHandlerClass = Class.forName("com.apple.eawt.OpenFilesHandler");
+//                preferencesHandlerClass = Class.forName("com.apple.eawt.PreferencesHandler");
+            }
+
+            Object application = applicationClass.getConstructor((Class[]) null).newInstance((Object[]) null);
+//            Object proxy = Proxy.newProxyInstance(NewOSXAdapter.class.getClassLoader(), new Class<?>[]{
+//                    quitHandlerClass, aboutHandlerClass, openFilesHandlerClass, preferencesHandlerClass}, this);
+            Object proxy = Proxy.newProxyInstance(NewOSXAdapter.class.getClassLoader(), new Class<?>[]{
+                    quitHandlerClass, aboutHandlerClass}, this);
+
+            applicationClass.getDeclaredMethod("setQuitHandler", quitHandlerClass).invoke(application, proxy);
+            applicationClass.getDeclaredMethod("setAboutHandler", aboutHandlerClass).invoke(application, proxy);
+//            applicationClass.getDeclaredMethod("setOpenFileHandler", openFilesHandlerClass).invoke(application, proxy);
+//            applicationClass.getDeclaredMethod("setPreferencesHandler", preferencesHandlerClass).invoke(application, proxy);
+
+        }
+
+
+        /**
+         * Only <i>about</i> and <i>quit</i> are implemented.
+         * @param proxy
+         * @param method
+         * @param args
+         * @return
+         * @throws Throwable
+         */
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if ("handleAbout".equals(method.getName())) {
+                if (this.application != null) {
+                    this.application.doAbout();
+                } else {
+                    throw new IllegalStateException("handleAbout: Application instance detached from listener");
+                }
+            } else if ("handleQuitRequestWith".equals(method.getName())) {
+                if (this.application != null) {
+                    this.application.doQuit();
+                } else {
+                    throw new IllegalStateException("handleQuit: Application instance detached from listener");
+                }
+            }
+            return null;
+        }
+
+
+    }
+
 }
