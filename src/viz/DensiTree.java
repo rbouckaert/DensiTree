@@ -51,6 +51,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -5709,7 +5710,7 @@ public class DensiTree extends JPanel implements ComponentListener {
     				jam.mac.Utils.macOSXRegistration(application);
                 }
 
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				// ignore
 			}
 		}
