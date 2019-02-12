@@ -201,6 +201,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	int[] m_nOrder;
 	/** reverse of m_nOrder, useful for reordering **/
 	int[] m_nRevOrder;
+	/** file containing order of taxa -- if specified, the order will 
+	 * be read from the file. If set, no other ordering is allowed **/
+	String m_sOrderFile = null;
 
 	/** Topology number of the tree, in order of appearance in tree set **/
 	int[] m_nTopology;
@@ -679,6 +682,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-r")) {
 						m_bDrawReverse = true;
 						i += 1;
+					} else if (args[i].equals("-order")) {
+						m_sOrderFile = args[i+1];
+						i += 2;
 					}
 					
 					
@@ -2129,6 +2135,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 		int [] oldOrder = m_nOrder.clone();
 		m_nShuffleMode = nMethod;
 		setWaitCursor();
+		
+		if (m_sOrderFile != null) {
+			if (new File(m_sOrderFile).exists()) {
+				nMethod = NodeOrderer.MANUAL;
+			} else {
+				JOptionPane.showMessageDialog(this, "Could not find file " + m_sOrderFile + " for reading");
+			}
+		}
+
+
 		//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		try {
 			switch (nMethod) {
@@ -2141,11 +2157,35 @@ public class DensiTree extends JPanel implements ComponentListener {
 				for (int i = 0; i < m_sLabels.size(); i++) {
 					System.out.print(m_sLabels.elementAt(i) + " ");
 				}
-				String sOrder = JOptionPane.showInputDialog("New node order:", "");
-				if (sOrder == null) {
-					return;
+				
+				String[] sIndex;
+				if (m_sOrderFile == null) {
+					String sOrder = JOptionPane.showInputDialog("New node order:", "");
+					if (sOrder == null) {
+						return;
+					}
+					sIndex = sOrder.split(" ");
+				} else {
+					List<String> labels = new ArrayList<>();
+					try {
+				        BufferedReader fin = new BufferedReader(new FileReader(m_sOrderFile));
+				        String str = null;
+				        while (fin.ready()) {
+				            str = fin.readLine();
+				            if (!str.startsWith("#") && str.trim().length() > 0) {
+				            	labels.add(str.trim());
+				            }
+				        }
+				        fin.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+						JOptionPane.showMessageDialog(this, "Something went wrong with file " + m_sOrderFile + ": " + e.getMessage());
+						
+					}
+					sIndex = labels.toArray(new String[]{});
+					//m_sOrderFile = null;
 				}
-				String[] sIndex = sOrder.split(" ");
+				
 				if (sIndex.length != m_nNrOfLabels) {
 					System.err.println("Number of labels/taxa differs from given labels");
 					return;
