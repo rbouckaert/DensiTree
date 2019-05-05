@@ -51,7 +51,6 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -4375,7 +4374,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Tree Set", true, new File(m_sDir), false, "Nexus trees files", "trees","tre","nex","t");
+			File [] files = Util.getFile("Load Tree Set", true, new File(m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
 			if (files != null && files.length > 0) {
 				doOpen(files[0].getPath());
 			}
@@ -5471,6 +5470,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
 		gbc.gridy++;
 		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
+		//JScrollPane toolPaneScroller = new JScrollPane(toolPanel);
 		m_jTbTools2.add(toolPanel);
 //		for (int i = 0; i < 100; i++) {
 //			gbc.gridy++;

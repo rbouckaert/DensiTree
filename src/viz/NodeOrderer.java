@@ -65,19 +65,19 @@ import java.util.ArrayList;
 
 public class NodeOrderer {
 	/** constants for ordering algorithms**/
-	public final static int GEOINFO = -5;
-	public final static int MANUAL = -4;
-	public final static int DEFAULT = -3;
+	public final static int GEOINFO = -5; // geography determines ordering
+	public final static int MANUAL = -4; // user provides ordering
+	public final static int DEFAULT = -3; // optimise
+	public final static int CLOSEST_OUTSIDE_FIRST = -2; // closest outside heuristic
+	public final static int CLOSEST_FIRST = -1; // closest first heuristic
 	/** the various link types */
-	public final static int CLOSEST_OUTSIDE_FIRST = -2;
-	public final static int CLOSEST_FIRST = -1;
-	public final static int SINGLE = 0;
-	public final static int COMPLETE = 1;
-	public final static int AVERAGE = 2;
-	public final static int MEAN = 3;
-	public final static int CENTROID = 4;
-	public final static int WARD = 5;
-	public final static int ADJCOMLPETE = 6;
+	public final static int SINGLE = 0; // hierarchical clustering
+	public final static int COMPLETE = 1; // hierarchical clustering
+	public final static int AVERAGE = 2; // hierarchical clustering
+	public final static int MEAN = 3; // hierarchical clustering
+	public final static int CENTROID = 4; // hierarchical clustering
+	public final static int WARD = 5; // hierarchical clustering
+	public final static int ADJCOMLPETE = 6; // hierarchical clustering
 	public final static int OPTIMISE = 7;
 	public final static int SORT_BY_ROOT_CANAL_LENGTH = 8;
 
