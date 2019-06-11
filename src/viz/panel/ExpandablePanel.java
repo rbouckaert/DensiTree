@@ -127,6 +127,10 @@ public class ExpandablePanel extends JPanel {
 	DropDownButton editButton;
 	
 	public ExpandablePanel(String sLabel, JPanel panel) {
+		this(sLabel, panel, false);
+	}
+	
+	public ExpandablePanel(String sLabel, JPanel panel, boolean visible) {
 //		addMouseListener(new MouseAdapter() {
 //			@Override
 //			public void mouseClicked(MouseEvent e) {
@@ -216,7 +220,7 @@ public class ExpandablePanel extends JPanel {
 //		box2.add(editButton);
 //		box2.add(panel);
 //		add(box2);
-		panel.setVisible(false);
+		panel.setVisible(visible);
 	}
 
 }

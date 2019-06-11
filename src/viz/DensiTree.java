@@ -5397,7 +5397,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		//m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
-		toolPanel.add(panel, gbc);
+		toolPanel.add(new ExpandablePanel("Type", panel, true), gbc);
+		//toolPanel.add(panel, gbc);
 				
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			/**
@@ -5452,7 +5453,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		panel.add(createToolBarButton(action9));
 		
 		gbc.gridy++;
-		toolPanel.add(panel, gbc);
+		toolPanel.add(new ExpandablePanel("Style", panel, true), gbc);
 		gbc.gridy++;
 		toolPanel.add(new ExpandablePanel("Show", new ShowPanel(this)), gbc);
 		gbc.gridy++;
