@@ -29,8 +29,8 @@ package viz;
  * 2. browsing through the set of trees/animate through trees in the set, drawing them one by one
  * Restriction: binary trees only
  * 
- * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.auckland.ac.nz, remco@cs.waikato.ac.nz)
- * @version $Revision: 2.2.6 $
+ * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
+ * @version $Revision: 2.2.7 $
  */
 
 // the magic sentence to look for when releasing:
@@ -91,7 +91,7 @@ import viz.process.BranchLengthOptimiser;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.2.6";
+	final static String VERSION = "2.2.7";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -742,7 +742,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "remco@cs.auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2018\n\n\n"
+				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2019\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -4756,9 +4756,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		private static final long serialVersionUID = -20389110859353L;
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			if (JOptionPane.showOptionDialog(null, "DensiTree - Tree Set Visualization\nVersion: " + VERSION
-					+ "\n\nRemco Bouckaert\nremco@cs.waikato.ac.nz\nremco@cs.auckland.ac.nz\n(c) 2010-2014\n\n" +
-							"Citation:\n" + CITATION,
+			if (JOptionPane.showOptionDialog(null, banner() +
+					"Citation:\n" + CITATION,
 					"About Message", JOptionPane.YES_NO_OPTION,
 					JOptionPane.PLAIN_MESSAGE, getIcon("DensiTree"), new String[]{"Copy citation to clipboard","Close"},"Close") == 0) {
 			    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(CITATION), null);			
