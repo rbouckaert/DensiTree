@@ -134,7 +134,7 @@ public class TreeFileParser {
 						m_nNrOfLabels = 0;
 						for (int i = 0; i < sLabels.length; i++) {
 							if (sLabels[i].length() > 0) {
-									m_sLabels.add(sLabels[i]);
+								m_sLabels.add(sLabels[i]);
 								m_nNrOfLabels++;
 							}
 						}
@@ -176,9 +176,24 @@ public class TreeFileParser {
 				}
 				sStr = sStr.replaceAll(",", "");
 				sStr = sStr.replaceAll("^\\s+", "");
-				String[] sStrs = sStr.split("\\s+");
-				int iLabel = new Integer(sStrs[0]).intValue();
-				String sLabel = sStrs[1];
+				//String[] sStrs = sStr.split("\\s+");
+				
+	        	// find first whitespace character in taxaTranslation
+	        	int k = 0;
+	        	while (k < sStr.length() && !Character.isWhitespace(sStr.charAt(k))) {
+	        		k++;
+	        	}
+	        	String sLabel = null;
+	        	if (k > 0) {
+					sLabel = sStr.substring(k).trim();
+					char s = sLabel.charAt(0);
+					char e = sLabel.charAt(sLabel.length() - 1);
+					if ((s == '\"' && e == '\"') || (s == '\'' && e == '\'')) {
+						sLabel = sLabel.substring(1, sLabel.length() - 1);
+					}
+	        	}
+				int iLabel = new Integer(sStr.substring(0, k)).intValue();
+				//String sLabel = sStrs[1];
 				if (m_sLabels.size() < iLabel) {
 					//m_sLabels.add("__dummy__");
 					m_nOffset = 1;
