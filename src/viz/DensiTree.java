@@ -742,7 +742,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2019\n\n\n"
+				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2020\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -4717,13 +4717,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			dlg.setSize(400, 400);
 			setWaitCursor();
 			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			String sCladeText = "";
+			StringBuilder b = new StringBuilder();
 			for (String s : cladesToString()) {
-				sCladeText += s;
+				b.append(s);
 			}
 			setDefaultCursor();
 			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			JTextArea textArea = new JTextArea(sCladeText);
+			JTextArea textArea = new JTextArea(b.toString());
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			dlg.add(scrollPane);
 			dlg.setTitle("Clades and their probabilities");
