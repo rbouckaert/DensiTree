@@ -59,6 +59,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Vector;
+
+import viz.process.spq.CladeConstrainor;
+import viz.process.spq.Util;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -80,7 +84,11 @@ public class NodeOrderer {
 	public final static int ADJCOMLPETE = 6; // hierarchical clustering
 	public final static int OPTIMISE = 7;
 	public final static int SORT_BY_ROOT_CANAL_LENGTH = 8;
+	public final static int SPQ = 9;
 
+	
+	
+	
 	/** calc y-coordinate by meta data info.
 	 * ALL = all paths from root to leafs
 	 * SUM = sum over all paths from root to leafs
@@ -112,6 +120,11 @@ public class NodeOrderer {
 	 */
 	public int [] calcOrder(int nNrOfLabels, Node [] trees, Node [] cTrees, Node rootCanalTree, float [] fTreeWeight, /*, int [] nOrder*/
 			List<int[]> clades, List<Double> cladeWeights) throws Exception {
+		if (m_nLinkType == SPQ) {
+			return orderBySPQTrees(trees);
+		}
+		
+		
 		double [][] fDist = new double[nNrOfLabels][nNrOfLabels];
 		for (int i = 0; i < cTrees.length; i++) {
 			calcDistance(cTrees[i]/*, nOrder*/, fDist, fTreeWeight[i], new Vector<Integer>(), new Vector<Float>());
@@ -188,6 +201,33 @@ public class NodeOrderer {
 			}
 		}
 		return i;
+	}
+
+	int [] orderBySPQTrees(Node [] trees) {
+		CladeConstrainor constrainor = new CladeConstrainor(trees);
+		//TreeConstrainor constrainor = new TreeConstrainor(trees2);
+		constrainor.run();
+	
+		String seq = constrainor.getPossibleSequence();
+		// System.out.println("Possible sequence:" + seq);
+		System.out.println("Possible sequences:" + constrainor.getPossibleSequences());
+		// System.out.print("Possible sequence:");
+		String [] strs = seq.split("\\s");
+		int n = Util.getLeafNodeCount(trees[0]);
+		int [] nRevOrder = new int[n];
+		for (int i = strs.length - 1; i >= 0; i--) {
+			String str = strs[i];
+			int j = Integer.parseInt(str);
+			//System.out.print(taxa[j] + " ");
+			nRevOrder[i] = j;
+		}
+		
+		int [] nOrder = new int[n];
+	    for (int i = 0; i < n ; i++) {
+	    	nOrder[nRevOrder[i]] = i;
+	    }
+
+		return nOrder;
 	}
 
 

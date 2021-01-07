@@ -5583,10 +5583,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		shuffleMenu.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		shuffleMenu
 				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
+		shuffleMenu.add(new ShuffleAction("SPQ", "Order by optimising SPQ trees", "", KeyEvent.VK_Q|InputEvent.ALT_DOWN_MASK,
+				NodeOrderer.SPQ));
 		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
 		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
 				"Use root canal tree, then optimise", "", KeyEvent.VK_O|InputEvent.ALT_DOWN_MASK, NodeOrderer.OPTIMISE));
+		shuffleMenu.add(new ShuffleAction("Sorted root canal tree",
+				"Sort by root canal tree length", "", KeyEvent.VK_W|InputEvent.ALT_DOWN_MASK, NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH));
 		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1|InputEvent.ALT_DOWN_MASK,
 				NodeOrderer.CLOSEST_FIRST));
 		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2|InputEvent.ALT_DOWN_MASK,
