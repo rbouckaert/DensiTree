@@ -18,6 +18,10 @@ public class PQVertex {
 	protected PQVertex parent;
 
 	private List<PQVertex> children = new ArrayList<PQVertex>();
+	
+	// mean height of the clade -- used in postprocessing
+	private double sumHeight = 0;
+	private int count = 0;
 
 	/*
 	 * Bit array to store at position i whether leaf i is descendant of this
@@ -290,14 +294,37 @@ public class PQVertex {
 		}
 	}
 
+	
+	public double getHeight() {
+		if (count == 0) {
+			return 1;
+		}
+		return sumHeight/count;
+	}
+
+	public void addHeight(double height) {		
+		this.sumHeight += height;
+		count++;
+	}
+
+	public double getLength() {
+		if (parent != null) {
+			return parent.getHeight() - getHeight();
+		}
+		return 0.0;
+	}
+	
+	
 	@Override
 	public String toString() {
 		String str = "";
 		if (this.isLeaf()) {
 			str += this.ID + ", ";
 		}
-		return this.vertexType + "(" + str + "Clade " + clade.toString() + ", degree "
-				+ this.getChildCount() + ")";
+//		return this.vertexType + "(" + str + "Clade " + clade.toString() + ", degree "
+//				+ this.getChildCount() + ", height " + getHeight() + ")";
+		return this.vertexType + "(" + str + ", degree "
+		+ this.getChildCount() + ", height " + getHeight() + ")";
 	}
 
 	public void printTree(String intend) {

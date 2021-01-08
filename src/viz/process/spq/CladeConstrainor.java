@@ -47,16 +47,58 @@ public class CladeConstrainor extends Constrainor {
 		constrainWithClades();
 		
 		// 4. optimise ...
-		sort(tree.getRoot());
+		optimise();
 	}
 
-	private void sort(PQVertex node) {
-//		if (node.isLeaf()) {
-//			List<PQVertex> nodes = node.getChildren();
-//			Collections.sort(nodes, (x,y) -> {
-//				return x.getLength() > y.getLength() ? 1 : -1;
-//			});
-//		}
+	private void optimise() {
+		// determine PQVertex node heights
+		Map<BitSet, PQVertex> vertexMap = new LinkedHashMap<BitSet, PQVertex>();
+		populateMap(tree.getRoot(), vertexMap);
+		
+		for (Node inputTree : trees) {
+			getHeights(inputTree, vertexMap);
+		}
+		
+		// sort children of nodes in tree by branch length
+		sort(tree.getRoot());
+	}
+			
+	private void populateMap(PQVertex node, Map<BitSet, PQVertex> vertexMap) {
+		vertexMap.put(node.getClade(), node);		
+		for (PQVertex child : node.getChildren()) {
+				populateMap(child, vertexMap);
+		}		
+	}
+
+	private BitSet getHeights(Node node, Map<BitSet, PQVertex> vertexMap) {
+		BitSet bits = new BitSet(numberOfLeaves);
+		PQVertex vertex = vertexMap.get(bits);
+		if (vertex != null) {
+			vertex.addHeight(node.m_fPosY);
+		}
+
+		if (node.isLeaf()) {
+			int index = node.getNr(); // mapTaxonIDToNr.get(node.getID());
+			bits.set(index);
+		} else {
+			BitSet left = getHeights(node.m_left, vertexMap);
+			BitSet right = getHeights(node.m_right, vertexMap);
+			bits.or(left);
+			bits.or(right);
+		}
+		return bits;
+	}
+
+	private void sort(PQVertex node) { 
+		List<PQVertex> nodes = node.getChildren();
+		
+		Collections.sort(nodes, (x,y) -> {
+			return x.getLength() < y.getLength() ? 1 : -1;
+		});
+		
+		for (PQVertex child : nodes) {
+			sort(child);
+		}
 	}
 
 	private void initClades() {
@@ -64,10 +106,10 @@ public class CladeConstrainor extends Constrainor {
 			extractClades();
 			sortClades();
 
-			int k = 0;
-			for (Clade clade : clades) {
+//			int k = 0;
+//			for (Clade clade : clades) {
 //				System.out.println(k++ + " " + clade.getCount() + " " + clade);
-			}
+//			}
 		}
 	}
 

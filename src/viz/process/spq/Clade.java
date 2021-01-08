@@ -7,6 +7,7 @@ public class Clade {
 	BitSet bits;
 	String[] taxa;
 	int count = 0;
+	double sumHeight = 0;
 	double credibility = 0.0;
 
 	public Clade(BitSet bits, String[] taxa) {
