@@ -318,31 +318,21 @@ public class Util {
             Class<?> applicationClass = Class.forName("com.apple.eawt.Application");
             Class<?> quitHandlerClass;
             Class<?> aboutHandlerClass;
-            Class<?> openFilesHandlerClass;
-            Class<?> preferencesHandlerClass;
 
             if (getMajorJavaVersion() >= 9) {
                 quitHandlerClass = Class.forName("java.awt.desktop.QuitHandler");
                 aboutHandlerClass = Class.forName("java.awt.desktop.AboutHandler");
-//                openFilesHandlerClass = Class.forName("java.awt.desktop.OpenFilesHandler");
-//                preferencesHandlerClass = Class.forName("java.awt.desktop.PreferencesHandler");
             } else {
                 quitHandlerClass = Class.forName("com.apple.eawt.QuitHandler");
                 aboutHandlerClass = Class.forName("com.apple.eawt.AboutHandler");
-//                openFilesHandlerClass = Class.forName("com.apple.eawt.OpenFilesHandler");
-//                preferencesHandlerClass = Class.forName("com.apple.eawt.PreferencesHandler");
             }
 
             Object application = applicationClass.getConstructor((Class[]) null).newInstance((Object[]) null);
-//            Object proxy = Proxy.newProxyInstance(NewOSXAdapter.class.getClassLoader(), new Class<?>[]{
-//                    quitHandlerClass, aboutHandlerClass, openFilesHandlerClass, preferencesHandlerClass}, this);
             Object proxy = Proxy.newProxyInstance(NewOSXAdapter.class.getClassLoader(), new Class<?>[]{
                     quitHandlerClass, aboutHandlerClass}, this);
 
             applicationClass.getDeclaredMethod("setQuitHandler", quitHandlerClass).invoke(application, proxy);
             applicationClass.getDeclaredMethod("setAboutHandler", aboutHandlerClass).invoke(application, proxy);
-//            applicationClass.getDeclaredMethod("setOpenFileHandler", openFilesHandlerClass).invoke(application, proxy);
-//            applicationClass.getDeclaredMethod("setPreferencesHandler", preferencesHandlerClass).invoke(application, proxy);
 
         }
 

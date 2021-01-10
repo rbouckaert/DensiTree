@@ -112,7 +112,8 @@ public class CreateBGImage {
 			m_nLabels = new ArrayList<Integer>();
 			m_contours = new ArrayList<List<Double>>();
 		    long nLength = new File(svgFile).length();
-		    MappedByteBuffer in = new FileInputStream(svgFile).getChannel().map(FileChannel.MapMode.READ_ONLY, 0, nLength);
+		    FileInputStream fin = new FileInputStream(svgFile);		    		
+		    MappedByteBuffer in = fin.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, nLength);
 		    int i = 0;
 		    while (i < nLength) {
 		    	char c = (char) in.get(i++);
@@ -198,6 +199,7 @@ public class CreateBGImage {
 		    		}
 		    	}
 		    }
+		    fin.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

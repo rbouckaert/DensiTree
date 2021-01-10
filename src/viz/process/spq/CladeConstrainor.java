@@ -3,7 +3,6 @@ package viz.process.spq;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -236,13 +235,13 @@ public class CladeConstrainor extends Constrainor {
 	}
 	
 	private void constrainWithClades() {
-		int fitted = 0;
+		//int fitted = 0;
 		fittedClade = new boolean[clades.length];
 
 		for (int i = 0; i < clades.length; i++) {
 			boolean fittedIn = tree.constrainByClade(clades[i].bits);
 			fittedClade[i] = fittedIn;
-			fitted += fittedIn ? 1 : 0;
+			//fitted += fittedIn ? 1 : 0;
 		}
 
 //		System.out.println(fitted + " of " + clades.length + " clades fitted.");

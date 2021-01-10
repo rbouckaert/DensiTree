@@ -295,6 +295,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					+ "<rect fill='#fff' width='" + getWidth() + "' height='" + getHeight() + "'/>");
 			out.println(buf.toString());
 			out.println("</svg>");
+			out.close();
 			// restore original tree drawer
 			m_dt.m_treeDrawer = t;
 		} catch (Exception e) {
