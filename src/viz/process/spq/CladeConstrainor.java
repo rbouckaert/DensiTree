@@ -17,8 +17,9 @@ import viz.Node;
  */
 public class CladeConstrainor extends Constrainor {
 
+	// list of clades sorted by occurrence count and size (high occurrence, small size first)
 	private Clade[] clades;
-	private BitSet cladesCovered;
+	//private BitSet cladesCovered;
 	//private String[] taxa;
 	private int numberOfLeaves;
 
@@ -32,7 +33,7 @@ public class CladeConstrainor extends Constrainor {
 	public CladeConstrainor(Clade[] clades) {
 		super();
 		this.clades = clades;
-		this.cladesCovered = new BitSet(clades.length);
+		//this.cladesCovered = new BitSet(clades.length);
 		this.numberOfLeaves = clades[0].bits.length();
 	}
 
@@ -41,7 +42,7 @@ public class CladeConstrainor extends Constrainor {
 		initClades();
 
 		// 2. create star tree
-		createBinaryStartTree();
+		tree = PQTree.createStarTree(numberOfLeaves);
 
 		// 3. constrain tree with clade after clade
 		constrainWithClades();
@@ -49,8 +50,23 @@ public class CladeConstrainor extends Constrainor {
 		// 4. optimise ...
 		optimise();
 	}
-
+	
 	private void optimise() {
+		sortByCladeSize(tree.getRoot());
+	}
+	
+	private void sortByCladeSize(PQVertex node) { 
+		List<PQVertex> nodes = node.getChildren();
+		
+		Collections.sort(nodes, (x,y) -> {
+			return x.clade.cardinality() < y.clade.cardinality() ? 1 : -1;
+		});
+		
+		for (PQVertex child : nodes) {
+			sortByCladeSize(child);
+		}
+	}
+	private void optimise1() {
 		// determine PQVertex node heights
 		Map<BitSet, PQVertex> vertexMap = new LinkedHashMap<BitSet, PQVertex>();
 		populateMap(tree.getRoot(), vertexMap);
@@ -114,40 +130,40 @@ public class CladeConstrainor extends Constrainor {
 	}
 
 	private void extractClades() {
-		Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap = new HashMap<BitSet, Map<BitSet, Clade>>();
+		// Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap = new HashMap<BitSet, Map<BitSet, Clade>>();
 		Map<BitSet, Clade> cladeMap = new LinkedHashMap<BitSet, Clade>();
 
 		Iterator<Node> iterator = Arrays.stream(trees).iterator();
 		Node currentBeastTree;
 		while (iterator.hasNext()) {
 			currentBeastTree = iterator.next();
-			addClades(currentBeastTree, cladeMap, conditionalCladeMap);
+			addClades(currentBeastTree, cladeMap); //, conditionalCladeMap);
 		}
 
 		clades = cladeMap.values().toArray(new Clade[] {});
 	}
 
-	private BitSet addClades(Node node, Map<BitSet, Clade> cladeMap,
-			Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap) {
+	private BitSet addClades(Node node, Map<BitSet, Clade> cladeMap) {
+			// Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap) {
 		BitSet bits = new BitSet(numberOfLeaves);
 
 		if (node.isLeaf()) {
 			int index = node.getNr(); // mapTaxonIDToNr.get(node.getID());
 			bits.set(index);
 		} else {
-			BitSet left = addClades(node.m_left, cladeMap, conditionalCladeMap);
-			BitSet right = addClades(node.m_right, cladeMap, conditionalCladeMap);
+			BitSet left = addClades(node.m_left, cladeMap);//, conditionalCladeMap);
+			BitSet right = addClades(node.m_right, cladeMap);//, conditionalCladeMap);
 			bits.or(left);
 			bits.or(right);
 
-			addClade(bits, left, right, cladeMap, conditionalCladeMap);
+			addClade(bits, left, right, cladeMap);//, conditionalCladeMap);
 		}
 
 		return bits;
 	}
 
-	private void addClade(BitSet bits, BitSet left, BitSet right, Map<BitSet, Clade> cladeMap,
-			Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap) {
+	private void addClade(BitSet bits, BitSet left, BitSet right, Map<BitSet, Clade> cladeMap) {
+			// Map<BitSet, Map<BitSet, Clade>> conditionalCladeMap) {
 		Clade clade = cladeMap.get(bits);
 
 		if (clade == null) {
@@ -156,25 +172,25 @@ public class CladeConstrainor extends Constrainor {
 		}
 		clade.incrementCount();
 
-		Map<BitSet, Clade> clades = conditionalCladeMap.get(bits);
-		if (clades == null) {
-			clades = new HashMap<>();
-			conditionalCladeMap.put(bits, clades);
-		}
-
-		clade = clades.get(left);
-		if (clade == null) {
-			clade = new Clade(left, taxa);
-			clades.put(left, clade);
-		}
-		clade.incrementCount();
-
-		clade = clades.get(right);
-		if (clade == null) {
-			clade = new Clade(right, taxa);
-			clades.put(right, clade);
-		}
-		clade.incrementCount();
+//		Map<BitSet, Clade> clades = conditionalCladeMap.get(bits);
+//		if (clades == null) {
+//			clades = new HashMap<>();
+//			conditionalCladeMap.put(bits, clades);
+//		}
+//
+//		clade = clades.get(left);
+//		if (clade == null) {
+//			clade = new Clade(left, taxa);
+//			clades.put(left, clade);
+//		}
+//		clade.incrementCount();
+//
+//		clade = clades.get(right);
+//		if (clade == null) {
+//			clade = new Clade(right, taxa);
+//			clades.put(right, clade);
+//		}
+//		clade.incrementCount();
 	}
 
 	private void sortClades() {
@@ -195,9 +211,6 @@ public class CladeConstrainor extends Constrainor {
 		});
 	}
 
-	private void createBinaryStartTree() {
-		tree = PQTree.createStarTree(numberOfLeaves);
-	}
 
 	boolean[] fittedClade;
 	
@@ -244,7 +257,7 @@ public class CladeConstrainor extends Constrainor {
 		return this.clades;
 	}
 
-	public BitSet getCladesCoveredIndicator() {
-		return cladesCovered;
-	}
+//	public BitSet getCladesCoveredIndicator() {
+//		return cladesCovered;
+//	}
 }

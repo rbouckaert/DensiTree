@@ -202,9 +202,14 @@ public class PQVertex {
 	 * @return whether given clade equals clade of this vertex
 	 */
 	public boolean hasClade(BitSet cladeToCheck) {
-		BitSet clone = (BitSet) this.clade.clone();
-		clone.xor(cladeToCheck);
-		return clone.isEmpty();
+		boolean b1 = cladeToCheck.equals(clade);
+//		BitSet clone = (BitSet) this.clade.clone();
+//		clone.xor(cladeToCheck);
+//		boolean b2 = clone.isEmpty();
+//		if (b1 != b2) {
+//			return b2;
+//		}
+		return b1;
 	}
 
 	/**
