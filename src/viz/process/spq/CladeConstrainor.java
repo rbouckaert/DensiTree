@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import viz.Node;
+import viz.process.spq.PQVertex.VertexType;
 
 /**
  * This class represents the process to find possible sequences (represented by
@@ -57,9 +58,11 @@ public class CladeConstrainor extends Constrainor {
 	private void sortByCladeSize(PQVertex node) { 
 		List<PQVertex> nodes = node.getChildren();
 		
-		Collections.sort(nodes, (x,y) -> {
-			return x.clade.cardinality() < y.clade.cardinality() ? 1 : -1;
-		});
+		if (node.getVertexType().equals(VertexType.P)) {
+			Collections.sort(nodes, (x,y) -> {
+				return x.clade.cardinality() < y.clade.cardinality() ? 1 : -1;
+			});
+		}
 		
 		for (PQVertex child : nodes) {
 			sortByCladeSize(child);

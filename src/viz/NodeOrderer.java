@@ -149,7 +149,11 @@ public class NodeOrderer {
 		}
 		if (m_nLinkType == OPTIMISE) {
 			nRevOrder = new int[fDist.length];
-			traverse(rootCanalTree, nRevOrder, 0);  
+			//traverse(rootCanalTree, nRevOrder, 0);
+			
+			int [] cladeCount = new int[fDist.length * 2];
+			countCladeSize(rootCanalTree, cladeCount);
+			traverse(rootCanalTree, nRevOrder, 0, cladeCount, 0);
 		}
 		if (m_nLinkType == SORT_BY_ROOT_CANAL_LENGTH) {
 			nRevOrder = new int[fDist.length];
@@ -187,12 +191,56 @@ public class NodeOrderer {
 		return i;
 	}
 
+	
+	private int countCladeSize(Node node, int [] cladeCount) {
+		if (node == null) {
+			return 0;
+		}
+		if (node.isLeaf()) {
+			cladeCount[node.m_iLabel] = 1;
+			return 1;
+		} else {
+			int count = countCladeSize(node.m_left, cladeCount) + 
+					countCladeSize(node.m_right, cladeCount) + 1;
+			cladeCount[node.m_iLabel] = count;
+			return count;
+		}
+		
+		
+	}
+	
+	private int traverse(Node node, int[] nOrder, int i, int [] cladeCount, int direction) {
+		if (node.isLeaf()) {
+			nOrder[i] = node.m_iLabel;
+			i++;
+		} else {
+			if (direction == 0) {
+				if (cladeCount[node.m_left.m_iLabel] > cladeCount[node.m_right.m_iLabel]) {
+					i = traverse(node.m_left, nOrder, i, cladeCount, 0);
+					i = traverse(node.m_right, nOrder, i, cladeCount, 1);
+				} else {
+					i = traverse(node.m_right, nOrder, i, cladeCount, 0);
+					i = traverse(node.m_left, nOrder, i, cladeCount, 1);
+				}
+			} else {
+				if (cladeCount[node.m_left.m_iLabel] > cladeCount[node.m_right.m_iLabel]) {
+					i = traverse(node.m_right, nOrder, i, cladeCount, 0);
+					i = traverse(node.m_left, nOrder, i, cladeCount, 1);
+				} else {
+					i = traverse(node.m_left, nOrder, i, cladeCount, 0);
+					i = traverse(node.m_right, nOrder, i, cladeCount, 1);
+				}
+			}
+		}
+		return i;
+	}
+
 	private int traverse2(Node node, int[] nOrder, int i) {
 		if (node.isLeaf()) {
 			nOrder[i] = node.m_iLabel;
 			i++;
 		} else {
-			if (node.m_left.m_fLength > node.m_right.m_fLength) {
+			if (node.m_left.m_fLength < node.m_right.m_fLength) {
 				i = traverse2(node.m_left, nOrder, i);
 				i = traverse2(node.m_right, nOrder, i);
 			} else {

@@ -307,7 +307,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_image == null) {
 			return 0;
 		}
-		Thread.sleep(100);
+		Thread.sleep(500);
 		int[] nAlpha = new int[256];
 		try {
 			for (int i = 0; i < m_image.getWidth() - m_dt.m_nLabelWidth; i++) {
