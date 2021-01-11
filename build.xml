@@ -117,7 +117,7 @@
   </target>
 
 	<!-- testing beauti gui-->
-	<target name="junit">
+	<target name="junit" depends="compile">
 		<mkdir dir="${report}" />
 		<junit printsummary="yes">
 			<!--showoutput='yes'-->

@@ -325,7 +325,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 		double fQ = 0;
 		for (int i = 1; i < 255; i++) {
-			fQ -= nAlpha[i] * Math.log(i / 255.0);
+			if (nAlpha[i] > 0) {
+				fQ -= nAlpha[i] * Math.log(nAlpha[i]);
+			}
 		}
 		return 100.0 * fQ / ((m_image.getWidth() - m_dt.m_nLabelWidth) * m_image.getHeight());
 	} // calcImageEntropy
