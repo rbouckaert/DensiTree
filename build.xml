@@ -119,7 +119,7 @@
 	<!-- testing beauti gui-->
 	<target name="junit" depends="compile">
 		<mkdir dir="${report}" />
-		<junit printsummary="yes">
+		<junit printsummary="yes" failureproperty="junitfailed">
 			<!--showoutput='yes'-->
 			<classpath>
 				<path refid="compileclasspath" />
@@ -135,6 +135,7 @@
 			</batchtest>
 		</junit>
 		<echo message="JUnit test finished." />
+		<fail if="junitfailed" message="One or more DensiTree tests failed."/>
 	</target>
 
 
