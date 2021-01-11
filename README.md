@@ -1,7 +1,7 @@
 DensiTree: making sense of sets of trees.
 
 
-[![Build Status](https://github.com/rbouckaert/DensiTree/workflows/Java CI/badge.svg)](https://github.com/rbouckaert/DensiTree/actions?query=workflow%3A%22Java%20CI%22)
+[![Build Status](https://github.com/rbouckaert/DensiTree/workflows/Java%20CI/badge.svg)](https://github.com/rbouckaert/DensiTree/actions?query=workflow%3A%22Java%20CI%22)
 
 To get the latest release, download DensiTree.v2.X.X.jar from
 https://github.com/rbouckaert/DensiTree/releases/
