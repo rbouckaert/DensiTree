@@ -178,7 +178,7 @@ public class PQTree {
 				System.out.println("some node has misdirected parent in the tree");
 			}
 		}
-		makeValid(vertex);
+		// makeValid(vertex);
 
 		if (vertex.isLeaf() || vertex.hasClade(clade)) {
 			return true;
@@ -230,8 +230,10 @@ public class PQTree {
 		} else { // Type P
 			if (intersectedChildren.size() == 0) {
 				if (side == Side.NONE) {
-					// there are at least two covered vertices
-					// and at least one disjoint vertex
+					// zero intersected children imples that
+					// there are at least two covered children 
+					// and at least one clade-disjoint child.
+					// only one covered child would have moved down automatically
 					PQVertex newCoveredParent = new PQVertex(VertexType.P);
 					moveCoveredChildren(vertex, coveredChildren, newCoveredParent);
 					newCoveredParent.setParent(vertex);
@@ -241,8 +243,8 @@ public class PQTree {
 					makeQVertexIfBinary(newCoveredParent);
 
 					if (vertex.getDegreeOut() == 1) {
-						throw new AssertionError("Vertex should have at least two children "
-								+ vertex + ",\n not just this child " + vertex.getChild(0));
+						throw new AssertionError("If vertex " + vertex + " has only one child it would have been fully covered" +
+								 ",\n but now has only this child " + vertex.getChild(0));
 					}
 				} else {
 					if (vertex == root) {
@@ -265,6 +267,7 @@ public class PQTree {
 					} else {
 						parent.addChildAt(coveredVertex, vertexIndex + 1);
 					}
+					coveredVertex.setParent(parent);
 
 					// fix tree depending on # of disjoint kids
 					if (vertex.getChildCount() == 1) {
@@ -389,12 +392,12 @@ public class PQTree {
 		parent.replaceChild(vertex, child);
 		child.setParent(parent);
 
-		if (child.getChildCount() == 1) {
-			suppressVertex(parent);
-		}
-		if (child.getChildCount() == 1) {
-			suppressVertex(parent);
-		}
+//		if (child.getChildCount() == 1) {
+//			suppressVertex(parent);
+//		}
+//		if (child.getChildCount() == 1) {
+//			suppressVertex(parent);
+//		}
 	}
 
 	private boolean constrainQVertex(PQVertex vertex, BitSet clade, Side side,
