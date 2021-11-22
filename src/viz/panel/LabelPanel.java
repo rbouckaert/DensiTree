@@ -239,7 +239,7 @@ public class LabelPanel extends JPanel {
 					Pattern pattern = Pattern.compile(sPattern);
 					for (int i = 0; i < m_dt.settings.m_sLabels.size(); i++) {
 						Matcher m = pattern.matcher(m_dt.settings.m_sLabels.get(i));
-						m_dt.m_bSelection[i] = m.find();
+						m_dt.treeData.m_bSelection[i] = m.find();
 					}
 					//m_dt.m_bSelectionChanged = true;
 					m_dt.m_Panel.repaint();

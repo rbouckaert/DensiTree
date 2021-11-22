@@ -302,7 +302,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		List<String> selection = new ArrayList<String>();
 		selection.add(LineColorMode.DEFAULT.toString());
-		if (m_dt.m_bMetaDataReady) {
+		if (m_dt.treeData.m_bMetaDataReady) {
 			selection.add(LineColorMode.COLOR_BY_CLADE.toString());
 			selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
 			for (int i = 0; i < m_dt.settings.m_metaDataTags.size(); i++) {

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import viz.DensiTree.LineColorMode;
 import viz.DensiTree.LineWidthMode;
@@ -160,7 +161,7 @@ public class Settings {
 	/** variables that deal with coloring of lines **/
 	public LineColorMode m_lineColorMode = LineColorMode.DEFAULT;
 	public LineColorMode m_prevLineColorMode = null;
-	public String m_sLineColorPattern =DensiTree.DEFAULT_PATTERN;
+	public String m_sLineColorPattern = DensiTree.DEFAULT_PATTERN;
 	String m_sPrevLineColorPattern = null;
 	//List<String> m_colorMetaDataCategories = new ArrayList<String>();
 	Map<String,Integer> m_colorMetaDataCategories = new HashMap<String, Integer>();
@@ -171,4 +172,17 @@ public class Settings {
 	public boolean m_showLegend = false;
 
 	public boolean m_bShowRootCanalTopology = false;
+
+	double m_cladeThreshold = 1e-4;
+
+	/** regular expression pattern for finding width information in metadata **/
+	public Pattern m_pattern;
+	public Pattern m_patternTop;
+	/** string containing reg exp for position matching **/
+	public String m_sPattern = DensiTree.DEFAULT_PATTERN;
+	public int m_iPatternForBottom = 1;
+	public int m_iPatternForTop = 0;
+	
+	
+	
 }

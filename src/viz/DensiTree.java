@@ -104,6 +104,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	static int instances = 1;
 	
 	public Settings settings = new Settings();
+	public TreeData treeData = new TreeData(this, settings);
+	
+	static float GEO_OFFSET = 3.0f;
 	
 	/** flag for testing summary tree optimisation **/
 	public String m_sOptFile = null;
@@ -113,18 +116,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
 
-	static int B = 1;
+	static int B = 1; // frame boundary -- should be 10 on OS X, 1 otherwise
 	JFrame frame;
-	public void setWaitCursor() {
-		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
-			frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-		}
-	}
-	public void setDefaultCursor() {
-		if (frame != null && frame.getCursor().getType() != Cursor.DEFAULT_CURSOR) {
-			frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-		}
-	}
 	
 	private static final long serialVersionUID = 1L;
 
@@ -136,66 +129,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 **/
 	final static double DEFAULT_LENGTH = 0.001f;
 	
-	/** same trees, but represented as Node data structure **/
-	public Node[] m_trees;
-	
-	public Node m_rootcanaltree;
-	
-	/** contains summary trees, root canal refers to one of those **/
-	public List<Node> m_summaryTree = new ArrayList<Node>();
 
-	/**
-	 * Trees represented as lines for drawing block trees Units are tree lengths
-	 * as represented in the Newick file The lines come in quartets
-	 * ((x1,y1)(x1,y2)(x3,y2),(x3,y3)) and are concatenated in a long array. The
-	 * final pair contains the line to the root.
-	 * **/
-	float[][] m_fLinesX;
-	float[][] m_fLinesY;
-	/**
-	 * Width of individual lines, determined by some info in the metadata (if
-	 * any) If specified, this only applies to block trees.
-	 * **/
-	public int[][] m_nLineColor;
-	public float[][] m_fLineWidth;
-	public float[][] m_fTopLineWidth;
-	
-	public int[][] m_nCLineColor;
-	public float[][] m_fCLineWidth;
-	public float[][] m_fTopCLineWidth;
-	
-	float[][] m_fRLinesX;
-	float[][] m_fRLinesY;
-	public int[][] m_nRLineColor;
-	public float[][] m_fRLineWidth;
-	public float[][] m_fRTopLineWidth;
-
-	
-	static float GEO_OFFSET = 3.0f;
-	
-
-	/** Topology number of the tree, in order of appearance in tree set **/
-	int[] m_nTopology;
-	/**
-	 * Topology number for particular tree in order of popularity (most popular
-	 * = 0, next most popular = 1, etc.) Useful for coloring trees.
-	 **/
-	int[] m_nTopologyByPopularity;
-	/** nr of distinct topologies **/
-	int m_nTopologies;
-	/**
-	 * relative weight of tree topology measured by its frequency of appearance
-	 * in the set. Adds to unity.
-	 */
-	float[] m_fTreeWeight;
-	/** as m_trees, but for consensus trees **/
-	Node[] m_cTrees;
-	/** as m_nLines, but for consensus trees **/
-	float[][] m_fCLinesX;
-	float[][] m_fCLinesY;
-	/** as m_nTLines, but for consensus trees **/
-	// float[][] m_fCTLinesX;
-	// float[][] m_fCTLinesY;
 
 
 	/** height of highest tree **/
@@ -216,7 +150,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
-	double m_cladeThreshold = 1e-4;
 
 	/** flag to allow leafs to be draw and dragged around.
 	 * As a side effect, internal clades will not be positioned correctly,
@@ -226,10 +159,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	boolean m_bInitializing;
 
 
-	/** flags whether a leaf node is selected **/
-	public boolean[] m_bSelection;
-	/** flag to indicate the selection was changed but image was not updated yet **/
-	public boolean m_bSelectionChanged;
 	/** rectangles with on screen coordinates of labels **/
 	Rectangle[] m_bLabelRectangle;
 	/** rectangles with geographic locations on screen **/
@@ -268,13 +197,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 
 
-	public Set<Integer> m_cladeSelection = new HashSet<Integer>();
 	
 	BufferedImage m_rotate;
 
-	/** regular expression pattern for finding width information in metadata **/
-	public Pattern m_pattern;
-	public Pattern m_patternTop;
 	/** default regular expression **/
 	//final static String DEFAULT_PATTERN = "theta=([0-9\\.Ee-]+)";
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),([0-9\\.Ee-]+)";
@@ -283,10 +208,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	// final static String DEFAULT_PATTERN = .*dmv=\{(.*),(.*)\}.*
 	// final static String DEFAULT_PATTERN = "s=([0-9\\.Ee-]+)";
 	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";
-	/** string containing reg exp for position matching **/
-	public String m_sPattern = DEFAULT_PATTERN;
-	public int m_iPatternForBottom = 1;
-	public int m_iPatternForTop = 0;
 
 
 	/** used to store name of tree file so that when burn-in changes, the tree set
@@ -303,6 +224,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 	Thread thread = null;
 	
 
+	public void setWaitCursor() {
+		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
+			frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		}
+	}
+	public void setDefaultCursor() {
+		if (frame != null && frame.getCursor().getType() != Cursor.DEFAULT_CURSOR) {
+			frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+	
 	/** constructors **/
 	public DensiTree() {
 		m_gridDrawer = new GridDrawer(this);
@@ -313,16 +245,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public DensiTree(String[] args) {
 		this();
 		System.out.println(banner());
-		m_bSelection = new boolean[0];
+		treeData.m_bSelection = new boolean[0];
 		settings.m_nRevOrder = new int[0];
-		m_cTrees = new Node[0];
-		m_trees = new Node[0];
+		treeData.m_cTrees = new Node[0];
+		treeData.m_trees = new Node[0];
 		initColors();
 
 		setSize(1000, 800);
 		m_Panel = new TreeSetPanel(this);
 		parseArgs(args);
-		m_pattern = createPattern();
+		settings.m_pattern = createPattern();
 		System.err.println(getSize().width + "x" + getSize().height);
 
 		m_jScrollPane = new JScrollPane(m_Panel);
@@ -351,13 +283,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public Pattern createPattern() {
 		String sPattern = "";
-		for (int i = 0; i < m_iPatternForBottom; i++) {
+		for (int i = 0; i < settings.m_iPatternForBottom; i++) {
 			sPattern += "[0-9\\.Ee-]+[^0-9]+";
 		}
 		sPattern += "([0-9\\.Ee-]+)";
-		if (m_iPatternForTop > m_iPatternForBottom) {
+		if (settings.m_iPatternForTop > settings.m_iPatternForBottom) {
 			//sPattern += "[^0-9]+";
-			for (int i = m_iPatternForBottom + 1; i < m_iPatternForTop; i++) {
+			for (int i = settings.m_iPatternForBottom + 1; i < settings.m_iPatternForTop; i++) {
 				sPattern += "[^0-9]+[0-9\\.Ee-]+";
 			}
 			sPattern += "[^0-9]+([0-9\\.Ee-]+)";
@@ -523,7 +455,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_treeDrawer.setBranchDrawer(bd);
 						i += 2;
 					} else if (args[i].equals("-pattern")) {
-						m_sPattern = args[i + 1];
+						settings.m_sPattern = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-colorpattern")) {
 						settings.m_sColorPattern = args[i + 1];
@@ -566,7 +498,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_asPDF = args[i+1];
 						i += 2;
 					} else if (args[i].equals("-cladeThreshold")) {
-						m_cladeThreshold = Double.parseDouble(args[i+1]);
+						settings.m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
 					} else if (args[i].equals("-r")) {
 						settings.m_bDrawReverse = true;
@@ -610,7 +542,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						while (!m_bMetaDataReady) {
+						while (!treeData.m_bMetaDataReady) {
 							try {
 								Thread.sleep(100);
 							} catch (Exception e) {
@@ -650,14 +582,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** get status of internal settings **/
 	String getStatus() {
 		int nSelected = 0;
-		if (m_bSelection != null) {
-			for (boolean b : m_bSelection) {
+		if (treeData.m_bSelection != null) {
+			for (boolean b : treeData.m_bSelection) {
 				if (b) {
 					nSelected++;
 				}
 			}
 		}
-		return "\n\nCurrent status:\n" + m_trees.length + " trees with " + m_cTrees.length + " topologies " +
+		return "\n\nCurrent status:\n" + treeData.m_trees.length + " trees with " + treeData.m_cTrees.length + " topologies " +
 				settings.m_sLabels.size() + " taxa " + nSelected + " selected \n"
 				+ "Tree intensity: " + settings.m_fTreeIntensity + "\n" + "Consensus Tree intensity: " + settings.m_fCTreeIntensity
 				+ "\n" + "Tree width: " + settings.m_nTreeWidth + "\n" + "Consensus Tree width: " + settings.m_nCTreeWidth + "\n"
@@ -708,9 +640,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		settings.m_random = new Random();
 		m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
 
-		//m_gridDrawer.m_bReverseGrid = false;
-		//m_gridDrawer.m_fGridOffset = 0;
-		m_rootcanaltree = null;
+		treeData.m_rootcanaltree = null;
 		
 		try {
 			if (thread != null) {
@@ -721,7 +651,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			/** contains strings with tree in Newick format **/
-			// Vector<String> sNewickTrees;
 			settings.m_sLabels = new Vector<String>();
 			settings.m_fLongitude = new Vector<Float>();
 			settings.m_fLatitude = new Vector<Float>();
@@ -731,16 +660,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			settings.m_fMaxLong = 0;
 			settings.m_nOrder = null;
 
-			// parseFile(sFile);
 			TreeFileParser parser = new TreeFileParser(this);
-			m_trees = parser.parseFile(sFile);
+			treeData.m_trees = parser.parseFile(sFile);
 			m_nBurnIn = parser.m_nBurnIn;
 			if (m_iOptTree >= 0) {
-				m_optTree = m_trees[m_iOptTree - m_nBurnIn];
+				m_optTree = treeData.m_trees[m_iOptTree - m_nBurnIn];
 			}
 
 			a_loadkml.setEnabled(true);
-			// m_nOffset = parser.m_nOffset;
 			float fOffset = GEO_OFFSET;
 			settings.m_fMaxLong = parser.m_fMaxLong + fOffset;
 			settings.m_fMaxLat = parser.m_fMaxLat + fOffset;
@@ -748,7 +675,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			settings.m_fMinLat = parser.m_fMinLat - fOffset;
 			settings.m_nNrOfLabels = parser.m_nNrOfLabels;
 
-			if (m_trees.length == 0) {
+			if (treeData.m_trees.length == 0) {
 				settings.m_sLabels = null;
 				JOptionPane.showMessageDialog(null, "No trees found in file\nMaybe burn in is too large?",
 						"Help Message", JOptionPane.PLAIN_MESSAGE);
@@ -756,71 +683,71 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 
 			// set up selection
-			m_bSelection = new boolean[settings.m_sLabels.size()];
+			treeData.m_bSelection = new boolean[settings.m_sLabels.size()];
 			m_bLabelRectangle = new Rectangle[settings.m_sLabels.size()];
 			m_bGeoRectangle = new Rectangle[settings.m_sLabels.size()];
-			for (int i = 0; i < m_bSelection.length; i++) {
-				m_bSelection[i] = true;
+			for (int i = 0; i < treeData.m_bSelection.length; i++) {
+				treeData.m_bSelection[i] = true;
 				m_bLabelRectangle[i] = new Rectangle();
 				m_bGeoRectangle[i] = new Rectangle();
 			}
-			m_bSelectionChanged = false;
+			treeData.m_bSelectionChanged = false;
 
 			// chop off root branch, if any
 			double fMinRootLength = Double.MAX_VALUE;
-			for (int i = 0; i < m_trees.length; i++) {
-				fMinRootLength = Math.min(fMinRootLength, m_trees[i].m_fLength);
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				fMinRootLength = Math.min(fMinRootLength, treeData.m_trees[i].m_fLength);
 			}
-			for (int i = 0; i < m_trees.length; i++) {
-				m_trees[i].m_fLength -= fMinRootLength;
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				treeData.m_trees[i].m_fLength -= fMinRootLength;
 			}
 
 			// reserve memory for nodes of m_trees
-			float[] fHeights = new float[m_trees.length];
-			for (int i = 0; i < m_trees.length; i++) {
-				fHeights[i] = positionHeight(m_trees[i], 0);
+			float[] fHeights = new float[treeData.m_trees.length];
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				fHeights[i] = positionHeight(treeData.m_trees[i], 0);
 				m_fHeight = Math.max(m_fHeight, fHeights[i]);
 			}
-			for (int i = 0; i < m_trees.length; i++) {
-				offsetHeight(m_trees[i], m_fHeight - fHeights[i]);
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				offsetHeight(treeData.m_trees[i], m_fHeight - fHeights[i]);
 			}
 
 			// count tree topologies
 			// first step is find how many different topologies are present
-			m_nTopology = new int[m_trees.length];
+			treeData.m_nTopology = new int[treeData.m_trees.length];
 			HashMap<String, Integer> map = new HashMap<String, Integer>();
-			for (int i = 0; i < m_trees.length; i++) {
-				Node tree = m_trees[i];
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				Node tree = treeData.m_trees[i];
 				String sNewick = tree.toShortNewick();
 				if (map.containsKey(sNewick)) {
-					m_nTopology[i] = map.get(sNewick).intValue();
+					treeData.m_nTopology[i] = map.get(sNewick).intValue();
 				} else {
-					m_nTopology[i] = map.size();
+					treeData.m_nTopology[i] = map.size();
 					map.put(sNewick, map.size());
 				}
 			}
 
 			// second step is find how many different tree have a particular
 			// topology
-			m_nTopologies = map.size();
-			int[] nTopologies = new int[m_nTopologies];
-			for (int i = 0; i < m_trees.length; i++) {
-				nTopologies[m_nTopology[i]]++;
+			treeData.m_nTopologies = map.size();
+			int[] nTopologies = new int[treeData.m_nTopologies];
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				nTopologies[treeData.m_nTopology[i]]++;
 			}
 
 			// sort the trees so that frequently occurring topologies go first
 			// in
 			// the ordering
-			for (int i = 0; i < m_trees.length; i++) {
-				for (int j = i + 1; j < m_trees.length; j++) {
-					if (nTopologies[m_nTopology[i]] < nTopologies[m_nTopology[j]]
-							|| (nTopologies[m_nTopology[i]] == nTopologies[m_nTopology[j]] && m_nTopology[i] > m_nTopology[j])) {
-						int h = m_nTopology[j];
-						m_nTopology[j] = m_nTopology[i];
-						m_nTopology[i] = h;
-						Node tree = m_trees[j];
-						m_trees[j] = m_trees[i];
-						m_trees[i] = tree;
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				for (int j = i + 1; j < treeData.m_trees.length; j++) {
+					if (nTopologies[treeData.m_nTopology[i]] < nTopologies[treeData.m_nTopology[j]]
+							|| (nTopologies[treeData.m_nTopology[i]] == nTopologies[treeData.m_nTopology[j]] && treeData.m_nTopology[i] > treeData.m_nTopology[j])) {
+						int h = treeData.m_nTopology[j];
+						treeData.m_nTopology[j] = treeData.m_nTopology[i];
+						treeData.m_nTopology[i] = h;
+						Node tree = treeData.m_trees[j];
+						treeData.m_trees[j] = treeData.m_trees[i];
+						treeData.m_trees[i] = tree;
 					}
 
 				}
@@ -828,7 +755,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 			// initialise drawing order of x-axis according to most prevalent
 			// tree
-			Node tree = m_trees[0];
+			Node tree = treeData.m_trees[0];
 			// over sized, too lazy to figure out exact number of labels
 			settings.m_nOrder = new int[settings.m_sLabels.size()];
 			settings.m_nRevOrder = new int[settings.m_sLabels.size()];
@@ -849,50 +776,50 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int i = 0;
 			int iOld = 0;
 			int iConsTree = 0;
-			m_fTreeWeight = new float[m_nTopologies];
-			m_cTrees = new Node[m_nTopologies];
-			while (i < m_trees.length) {
-				tree = m_trees[i].copy();
+			treeData.m_fTreeWeight = new float[treeData.m_nTopologies];
+			treeData.m_cTrees = new Node[treeData.m_nTopologies];
+			while (i < treeData.m_trees.length) {
+				tree = treeData.m_trees[i].copy();
 				Node consensusTree = tree;
 				i++;
-				while (i < m_trees.length && m_nTopology[i] == m_nTopology[i - 1]) {
-					tree = m_trees[i];
+				while (i < treeData.m_trees.length && treeData.m_nTopology[i] == treeData.m_nTopology[i - 1]) {
+					tree = treeData.m_trees[i];
 					addLength(tree, consensusTree);
 					i++;
 				}
 				divideLength(consensusTree, i - iOld);
-				m_fTreeWeight[iConsTree] = (float) (i - iOld + 0.0) / m_trees.length;
+				treeData.m_fTreeWeight[iConsTree] = (float) (i - iOld + 0.0) / treeData.m_trees.length;
 				// position nodes of consensus trees
 				// positionLeafs(consensusTree);
 				// positionRest(consensusTree);
 				float fHeight = positionHeight(consensusTree, 0);
 				offsetHeight(consensusTree, m_fHeight - fHeight);
-				m_cTrees[iConsTree] = consensusTree;
+				treeData.m_cTrees[iConsTree] = consensusTree;
 				iConsTree++;
 				iOld = i;
 			}
-			m_nTopologyByPopularity = new int[m_trees.length];
+			treeData.m_nTopologyByPopularity = new int[treeData.m_trees.length];
 			int nColor = 0;
-			m_nTopologyByPopularity[0] = 0;
-			for (i = 1; i < m_trees.length; i++) {
-				if (m_nTopology[i] != m_nTopology[i - 1]) {
+			treeData.m_nTopologyByPopularity[0] = 0;
+			for (i = 1; i < treeData.m_trees.length; i++) {
+				if (treeData.m_nTopology[i] != treeData.m_nTopology[i - 1]) {
 					nColor++;
 				}
-				m_nTopologyByPopularity[i] = nColor;
+				treeData.m_nTopologyByPopularity[i] = nColor;
 			}
 
 			// calculate lines for drawing trees & consensus trees
-			m_fLinesX = new float[m_trees.length][];
-			m_fLinesY = new float[m_trees.length][];
+			treeData.m_fLinesX = new float[treeData.m_trees.length][];
+			treeData.m_fLinesY = new float[treeData.m_trees.length][];
 			// m_fTLinesX = new float[m_trees.length][];
 			// m_fTLinesY = new float[m_trees.length][];
-			m_fCLinesX = new float[m_nTopologies][];
-			m_fCLinesY = new float[m_nTopologies][];
+			treeData.m_fCLinesX = new float[treeData.m_nTopologies][];
+			treeData.m_fCLinesY = new float[treeData.m_nTopologies][];
 			// m_fCTLinesX = new float[m_nTopologies][];
 			// m_fCTLinesY = new float[m_nTopologies][];
 			// calcLines();
 			
-			m_bCladesReady = false;
+			treeData.m_bCladesReady = false;
 //			new Thread() {
 //				public void run() {
 //					calcClades();
@@ -909,13 +836,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// calculate y-position for tree set
 			calcPositions();
 			
-			m_bMetaDataReady = false;			
+			treeData.m_bMetaDataReady = false;			
 			thread = new Thread() {
 				@Override
 				public void run() {
 					m_jStatusBar.setText("Calculating clades");
-					calcClades();
-					m_bCladesReady = true;
+					treeData.calcClades();
+					treeData.m_bCladesReady = true;
 					m_jStatusBar.setText("Optimising node order");
 					int [] oldOrder = settings.m_nOrder.clone();
 					if (!settings.m_bAllowSingleChild) {
@@ -929,8 +856,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 						}
 					}
 					String statusMsg = "Parsing metadata";
-					for (int k = 0; k < m_trees.length; k++) {
-						parseMetaData(m_trees[k]);
+					for (int k = 0; k < treeData.m_trees.length; k++) {
+						parseMetaData(treeData.m_trees[k]);
 						if (k % 100 == 0) {
 							statusMsg += ".";
 							m_jStatusBar.setText(statusMsg);
@@ -942,13 +869,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 					settings.m_metaDataTags = new ArrayList<String>();
 					settings.m_metaDataTypes = new ArrayList<MetaDataType>();
-					collectMetaDataTags(m_trees[0]);
+					collectMetaDataTags(treeData.m_trees[0]);
 					if (settings.m_metaDataTags.size() > 0) {
 						calcPositions();
 						calcLines();
 						makeDirty();
 					}
-					m_bMetaDataReady = true;			
+					treeData.m_bMetaDataReady = true;			
 					notifyChangeListeners();
 					m_jStatusBar.setText("Done parsing metadata");
 					
@@ -970,11 +897,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			
 			settings.m_metaDataTags = new ArrayList<String>();
 			settings.m_metaDataTypes = new ArrayList<MetaDataType>();
-			collectMetaDataTags(m_trees[0]);
+			collectMetaDataTags(treeData.m_trees[0]);
 			notifyChangeListeners();
 
 			if (orgLineColorMode != LineColorMode.DEFAULT) {
-				while (!m_bMetaDataReady) {
+				while (!treeData.m_bMetaDataReady) {
 					Thread.sleep(100);
 				}
 				settings.m_lineColorMode = orgLineColorMode;
@@ -1013,6 +940,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		System.err.println("Done");
 	} // init
 
+	public void calcPositions() {
+		treeData.calcPositions();
+	}
+	
+	float positionRest(Node node) {
+		return treeData.positionRest(node);
+	}
+	
 	void notifyChangeListeners() {
 		for (ChangeListener listener : m_changeListeners) {
 			listener.stateChanged(null);
@@ -1057,712 +992,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-
-	boolean m_bCladesReady;
-	public boolean m_bMetaDataReady;
-	/** represent clade as arrays of leaf indices **/
-	List<int[]> m_clades;
-	/** proportion of trees containing the clade **/
-	List<Double> m_cladeWeight;
-	/** average height of a clade **/
-	List<Double> m_cladeHeight;
-	List<Double> m_cladeHeight95HPDup;
-	List<Double> m_cladeHeight95HPDdown;
-	public List<List<Double>> m_cladeHeightSetBottom;
-	public List<List<Double>> m_cladeHeightSetTop;
-	/** UI component for manipulating clade selection **/
-	JList<String> m_cladelist;
-	DefaultListModel<String> m_cladelistmodel = new DefaultListModel<String>();
-
-	public Map<String, Integer> mapCladeToIndex;
-	public Integer [] reverseindex;
 	
-	Comparator<Float> floatComparator = new Comparator<Float>() {
-		@Override
-		public int compare(Float o1, Float o2) {
-			return Float.compare(Math.abs(o1), Math.abs(o2));
-		}
-	}; 
-	
-	/** represent clade as arrays of leaf indices **/
-	Map<Integer, Double> m_cladePairs;
-	
-	List<List<ChildClade>> m_cladeChildren;
-	/** X-position of the clade **/
-	float[] m_cladePosition;
-	/** index of consensus tree with highest product of clade probabilities **/
-	
-	/** Each clade has a list of pairs of child clades **/
-	class ChildClade {
-		int m_iLeft;
-		int m_iRight;
-		double m_fWeight;
 
-		@Override
-		public String toString() {
-			return "(" + m_iLeft + "," + m_iRight + ")" + m_fWeight + " ";
-		}
-	}
-
-	private void calcClades() {
-		if (settings.m_bAllowSingleChild) {
-			return;
-		}
-		m_clades = new ArrayList<int[]>();
-		m_cladeWeight = new ArrayList<Double>();
-		m_cladeHeight = new ArrayList<Double>();
-		
-		m_cladeHeight95HPDup = new ArrayList<Double>();
-		m_cladeHeight95HPDdown = new ArrayList<Double>();
-		
-		m_cladeHeightSetBottom = new ArrayList<List<Double>>();
-		m_cladeHeightSetTop = new ArrayList<List<Double>>();
-		m_cladeChildren = new ArrayList<List<ChildClade>>();
-		mapCladeToIndex = new HashMap<String, Integer>();
-
-		
-		// add leafs as clades
-		for (int i = 0; i < settings.m_nNrOfLabels; i++) {
-			int[] clade = new int[1];
-			clade[0] = i;
-			m_clades.add(clade);
-			m_cladeWeight.add(1.0);
-			m_cladeHeight.add(0.0);
-			m_cladeHeight95HPDup.add(0.0);
-			m_cladeHeight95HPDdown.add(0.0);
-			m_cladeHeightSetBottom.add(new ArrayList<Double>());
-			m_cladeHeightSetTop.add(new ArrayList<Double>());
-			m_cladeChildren.add(new ArrayList<ChildClade>());
-			mapCladeToIndex.put(Arrays.toString(clade), mapCladeToIndex.size());
-		}
-
-		// collect clades
-		for (int i = 0; i < m_cTrees.length; i++) {
-			calcCladeForNode(m_cTrees[i], mapCladeToIndex, m_fTreeWeight[i], m_cTrees[i].m_fPosY);
-		}
-		for (int i = 0; i < m_trees.length; i++) {
-			calcCladeForNode2(m_trees[i], mapCladeToIndex, 1.0 / m_trees.length, m_trees[i].m_fPosY);
-		}
-
-		// normalise clade heights, so m_cladeHeight represent average clade
-		// height
-		for (int i = 0; i < m_cladeHeight.size(); i++) {
-			m_cladeHeight.set(i, m_cladeHeight.get(i) / m_cladeWeight.get(i));
-		}
-
-		for (int i = 0; i < m_cladeHeight.size(); i++) {
-			List<Double> heights = new ArrayList<Double>();
-			heights.addAll(m_cladeHeightSetBottom.get(i));
-			Collections.sort(heights);
-			int upIndex = heights.size() * 190 / 200;
-			int downIndex = heights.size() * 5 / 200;
-			m_cladeHeight95HPDup.set(i, heights.get(upIndex));
-			m_cladeHeight95HPDdown.set(i, heights.get(downIndex));
-		}
-		
-		double fHeight0 = m_fHeight;
-		for (int i = 0; i < m_cladeHeight.size(); i++) {
-			fHeight0 = Math.min(fHeight0, m_cladeHeight.get(i));
-		}
-		// for (int i = 0; i < m_cladeHeight.size(); i++) {
-		// m_cladeHeight.set(i, m_cladeHeight.get(i) + fHeight0);
-		// }
-
-		m_cladePosition = new float[m_clades.size()];
-		// sort clades by weight
-		Integer [] index = new Integer[m_cladePosition.length];
-		for (int i = 0; i < m_cladePosition.length; i++) {
-			index[i] = i;
-		}
-		
-		
-		Arrays.sort(index, new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				if (Math.abs(m_cladeWeight.get(o1) - m_cladeWeight.get(o2)) < m_cladeThreshold) {
-					return (int) Math.signum(m_clades.get(o1).length- m_clades.get(o2).length);
-				}
-				return -Double.compare(m_cladeWeight.get(o1), m_cladeWeight.get(o2));
-			}
-		});
-		
-		List<int[]> clades = new ArrayList<int[]>();
-		List<Double> cladeWeight = new ArrayList<Double>();
-		List<Double> cladeHeight = new ArrayList<Double>();
-		List<Double> cladeHeight95HPDup = new ArrayList<Double>();
-		List<Double> cladeHeight95HPDdown = new ArrayList<Double>();
-		List<List<Double>> cladeHeightSetBottom = new ArrayList<List<Double>>();
-		List<List<Double>> cladeHeightSetTop = new ArrayList<List<Double>>();
-		List<List<ChildClade>> cladeChildren = new ArrayList<List<ChildClade>>();
-		for (int i = 0; i < m_cladePosition.length; i++) {
-			clades.add(m_clades.get(index[i]));
-			cladeWeight.add(m_cladeWeight.get(index[i]));
-			cladeHeight.add(m_cladeHeight.get(index[i]));
-			cladeHeight95HPDdown.add(m_cladeHeight95HPDdown.get(index[i]));
-			cladeHeight95HPDup.add(m_cladeHeight95HPDup.get(index[i]));
-			cladeChildren.add(m_cladeChildren.get(index[i]));
-			cladeHeightSetBottom.add(m_cladeHeightSetBottom.get(index[i]));
-			cladeHeightSetTop.add(m_cladeHeightSetTop.get(index[i]));
-			
-		}
-		m_clades = clades;
-		m_cladeWeight = cladeWeight;
-		m_cladeHeight = cladeHeight;
-		m_cladeHeight95HPDdown = cladeHeight95HPDdown;
-		m_cladeHeight95HPDup = cladeHeight95HPDup;
-		m_cladeChildren = cladeChildren;
-		m_cladeHeightSetBottom = cladeHeightSetBottom;
-		m_cladeHeightSetTop = cladeHeightSetTop;
-
-
-		reverseindex = new Integer[m_cladePosition.length];
-		for (int i = 0; i < m_cladePosition.length; i++) {
-			reverseindex[index[i]] = i;
-		}
-		for (int i = 0; i < m_cladePosition.length; i++) {
-			List<ChildClade> list = m_cladeChildren.get(i);
-			for (ChildClade childClade : list) {
-				childClade.m_iLeft = reverseindex[childClade.m_iLeft];
-				childClade.m_iRight = reverseindex[childClade.m_iRight];
-			}
-		}		
-
-		// reassign clade nr (after sorting) in consensus trees
-		for (int i = 0; i < m_cTrees.length; i++) {
-			resetCladeNr(m_cTrees[i], reverseindex);
-		}
-
-		// set clade nr for all trees, from clade nr in topology
-		for (int i = 0; i < m_trees.length; i++) {
-			setCladeNr(m_trees[i], m_cTrees[m_nTopologyByPopularity[i]]);
-		}
-
-		
-		m_cladePairs = new HashMap<Integer, Double>();
-		for (int i = 0; i < m_cTrees.length; i++) {
-			calcCladePairs(m_cTrees[i], m_fTreeWeight[i]);
-		}
-		
-		
-		// find tree topology with highest product of clade support of all its clades
-		int iMaxCladeProbTopology = 0;
-		//int iMaxMinCladeProbTopology = 0;
-		double fMaxCladeProb = cladeProb(m_cTrees[0], true);
-		double fMaxMinCladeProb = cladeProb(m_cTrees[0], false);
-		//int iMaxCCDProbTopology = 0;
-		double fMaxCCDProb = CCDProb(m_cTrees[0]);//, index);
-		for (int i = 1; i < m_cTrees.length; i++) {
-			double fCladeProb = cladeProb(m_cTrees[i], true);
-			if (fCladeProb > fMaxCladeProb) {
-				iMaxCladeProbTopology = i;
-				fMaxCladeProb = fCladeProb;
-			}
-		}
-		for (int i = 1; i < m_cTrees.length; i++) {
-			double fMinCladeProb = cladeProb(m_cTrees[i], false);
-			if (fMinCladeProb > fMaxMinCladeProb) {
-				//iMaxMinCladeProbTopology = i;
-				fMaxMinCladeProb = fMinCladeProb;
-			}
-		}
-		for (int i = 1; i < m_cTrees.length; i++) {
-			double fCCDProb = CCDProb(m_cTrees[i]);//, index);
-			if (fCCDProb > fMaxCCDProb) {
-				//iMaxCCDProbTopology = i;
-				fMaxCCDProb = fCCDProb;
-			}
-		}
-		
-		m_summaryTree = new ArrayList<Node>();
-		m_summaryTree.add(m_cTrees[iMaxCladeProbTopology].copy());
-		cleanUpSummaryTree(m_summaryTree.get(0));
-
-		if (settings.m_bOptimiseRootCanalTree) {
-			BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
-			optimiser.optimiseScore(m_summaryTree.get(0));
-		}
-		float fHeight = positionHeight(m_summaryTree.get(0), 0);
-		offsetHeight(m_summaryTree.get(0), m_fHeight - fHeight);
-		
-//		m_summaryTree.add(m_cTrees[iMaxMinCladeProbTopology].copy());
-//		cleanUpSummaryTree(m_summaryTree.get(1));
-//
-//		m_summaryTree.add(m_cTrees[iMaxCCDProbTopology].copy());
-//		cleanUpSummaryTree(m_summaryTree.get(2));
-//
-//		// construct max. clade weight tree
-//		List<Node> nodes = new ArrayList<Node>();
-//		List<int[]> cladeIDs = new ArrayList<int[]>();
-//		for (int i = 0; i < settings.m_sLabels.size(); i++) {
-//			int [] cladeID = new int[1];
-//			cladeID[0] = i;
-//			cladeIDs.add(cladeID);
-//			Node node = new Node();
-//			node.m_iLabel = i;
-//			node.m_iClade = i;
-//			nodes.add(node);
-//		}
-//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, false));
-//		m_summaryTree.get(3).sort();
-//		resetCladeNr(m_summaryTree.get(3), reverseindex);
-//		m_summaryTree.add(m_summaryTree.get(3).copy());
-//		cleanUpSummaryTree(m_summaryTree.get(4));		
-//
-//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, true));
-//		m_summaryTree.get(5).sort();
-//		resetCladeNr(m_summaryTree.get(5), reverseindex);
-//		cleanUpSummaryTree(m_summaryTree.get(5));		
-//		setHeightByClade(m_summaryTree.get(5));
-						
-		// add clades to GUI component
-		updateCladeModel();
-
-//		m_summaryTree[5] = m_cTrees[iMaxCladeProbTopology].copy();
-		
-		if (m_sOptTree != null) {
-			TreeFileParser parser = new TreeFileParser(settings.m_sLabels, null, null, 0);
-			try {
-				Node tree = parser.parseNewick(m_sOptTree);
-				tree.sort();
-				tree.labelInternalNodes(settings.m_nNrOfLabels);
-				float fTreeHeight = positionHeight(tree, 0);
-				offsetHeight(tree, m_fHeight - fTreeHeight);
-				calcCladeIDForNode(tree, mapCladeToIndex);
-				resetCladeNr(tree, reverseindex);
-				m_summaryTree.add(tree);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		if (m_optTree != null) {
-			m_summaryTree.add(m_optTree.copy());
-		}
-
-		m_rootcanaltree = m_summaryTree.get(0);
-		
-		// save memory
-		m_cladeHeightSetBottom = null;
-		m_cladeHeightSetTop = null;
-	}
-
-	
 	public void updateCladeModel() {
-		m_cladelistmodel.clear();
-		List<String> list = cladesToString();
-		for (int i = 0; i < list.size(); i++) {
-			m_cladelistmodel.add(i, list.get(i));
-		}
+		treeData.updateCladeModel();
 	}
-	
-	private void calcCladePairs(Node node, double fWeight) {
-		if (!node.isLeaf()) {
-			calcCladePairs(node.m_left, fWeight);
-			calcCladePairs(node.m_right, fWeight);
-			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
-			Integer i = (iCladeRight << 16) + iCladeLeft;
-			if (!m_cladePairs.containsKey(i)) {
-				m_cladePairs.put(i, fWeight);
-			} else {
-				m_cladePairs.put(i, m_cladePairs.get(i) + fWeight);
-			}
-		}
-	}
-	
-/*
-	private void removeNegBranches(Node node) {
-		if (!node.isLeaf()) {
-			removeNegBranches(node.m_left);
-			removeNegBranches(node.m_right);
-			if (node.m_left.m_fLength < 0) {
-				node.m_right.m_fLength += -node.m_left.m_fLength;
-				node.m_fLength -= -node.m_left.m_fLength;
-				node.m_left.m_fLength = 0;
-			}
-			if (node.m_right.m_fLength < 0) {
-				node.m_left.m_fLength += -node.m_right.m_fLength;
-				node.m_fLength -= -node.m_right.m_fLength;
-				node.m_right.m_fLength = 0;
-			}
-		}		
-	}
-*/
-	private void cleanUpSummaryTree(Node summaryTree) {
-		setHeightByClade(summaryTree);
-		summaryTree.m_fLength = (float) (m_fHeight - m_cladeHeight.get(summaryTree.m_iClade));
-		float fHeight = positionHeight(summaryTree, 0);
-		offsetHeight(summaryTree, m_fHeight - fHeight);
-	}
-
-/*
-	private Node constructMaxCladeTree(List<int[]> cladeIDs, Map<String, Integer> mapCladeToIndex, 
-			List<Node> nodes, boolean useCCD) {
-		int k = nodes.size();
-		while (cladeIDs.size() > 1) {
-			double maxWeight = -1;
-			int maxLeft = -1;
-			int maxRight = -1;
-			for (int i = 0; i < cladeIDs.size(); i++) {
-				int [] cladeLeft = cladeIDs.get(i);
-				for (int j = i+1; j < cladeIDs.size(); j++) {
-					int [] cladeRight = cladeIDs.get(j);
-					int [] clade = mergeClades(cladeLeft, cladeRight);
-					String sClade = Arrays.toString(clade);
-					if (mapCladeToIndex.containsKey(sClade)) {
-						int iClade = mapCladeToIndex.get(sClade);
-						double weight = 0;
-						if (useCCD) {
-							String sCladeLeft = Arrays.toString(cladeLeft);
-							String sCladeRight = Arrays.toString(cladeRight);
-							int iClade1 = mapCladeToIndex.get(sCladeLeft);
-							int iClade2 = mapCladeToIndex.get(sCladeRight);
-							int iCladeLeft = Math.min(iClade1, iClade2);
-							int iCladeRight = Math.max(iClade1, iClade2);
-							Integer hash = (iCladeRight << 16) + iCladeLeft;
-							weight = m_cladePairs.get(hash);
-						} else {
-							weight = m_cladeWeight.get(iClade);
-						}
-						if (weight > maxWeight) {
-							maxWeight = weight;
-							maxLeft = i;
-							maxRight = j;
-						}
-					}
-				}
-			}
-			// update clades
-			int [] cladeLeft = cladeIDs.get(maxLeft);
-			int [] cladeRight = cladeIDs.get(maxRight);
-			int [] clade = mergeClades(cladeLeft, cladeRight);
-			cladeIDs.remove(maxRight);
-			cladeIDs.remove(maxLeft);
-			cladeIDs.add(clade);
-			// create new Node
-			Node node = new Node();
-			node.m_iLabel = k++;
-			node.m_iClade = mapCladeToIndex.get(Arrays.toString(clade));
-			node.m_left = nodes.get(maxLeft);
-			nodes.get(maxLeft).m_Parent = node;
-			node.m_right = nodes.get(maxRight);
-			nodes.get(maxRight).m_Parent = node;
-			nodes.remove(maxRight);
-			nodes.remove(maxLeft);
-			nodes.add(node);
-		}		
-		return nodes.get(0);
-	}
-*/
-	
-	// merge clades, keep in sorted order
-	private int[] mergeClades(int[] cladeLeft, int[] cladeRight) {
-		int [] clade = new int[cladeLeft.length + cladeRight.length];
-		int iLeft = 0;
-		int iRight = 0;
-		for (int i = 0; i < clade.length; i++) {
-			if (iLeft == cladeLeft.length) {
-				clade[i] = cladeRight[iRight++];
-			} else if (iRight == cladeRight.length) {
-				clade[i] = cladeLeft[iLeft++];
-			} else if (cladeRight[iRight] > cladeLeft[iLeft]) {
-				clade[i] = cladeLeft[iLeft++];
-			} else {
-				clade[i] = cladeRight[iRight++];
-			}
-		}
-		return clade;
-	}
-
-
-
-	
-	private void setHeightByClade(Node node) {
-		if (!node.isRoot()) {
-			//node.m_fLength = (float)Math.abs(m_cladeHeight.get(node.getParent().m_iClade) - m_cladeHeight.get(node.m_iClade));
-			node.m_fLength = (float)(m_cladeHeight.get(node.m_iClade) - m_cladeHeight.get(node.getParent().m_iClade));
-		}
-		if (!node.isLeaf()) {
-			setHeightByClade(node.m_left);
-			setHeightByClade(node.m_right);
-		}
-	}
-
-	boolean m_bAllowCladeSelection = true;
 
 	void resetCladeSelection() {
-		m_bAllowCladeSelection = false;
-		m_cladelist.clearSelection();
-		for (int i : m_cladeSelection) {
-			m_cladelist.addSelectionInterval(i, i);
-			if (m_cladeSelection.size() == 1) {
-				m_cladelist.ensureIndexIsVisible(i);
-			}
-		}
-
-		if (m_cladeSelection.size() > 0) {
-		Arrays.fill(m_bSelection, false);
-			for (int i : m_cladeSelection) {
-				for (int j = 0; j < m_clades.get(i).length; j++) {
-					m_bSelection[m_clades.get(i)[j]] = true;
-				}
-		}
-		}
-		m_bAllowCladeSelection = true;
-	}
-
-	
-	public void resetCladeNr(Node node, Integer[] reverseindex) {
-		node.m_iClade = reverseindex[node.m_iClade];
-		if (!node.isLeaf()) {
-			resetCladeNr(node.m_left, reverseindex);
-			resetCladeNr(node.m_right, reverseindex);
-		}
-	}
-
-	List<String> cladesToString() {
-		List<String> list = new ArrayList<String>();
-		DecimalFormat format = new  DecimalFormat("###.##");
-		
-		for (int i = 0; i < m_cladePosition.length; i++) {
-			if (m_cladeWeight.get(i) >= settings.m_smallestCladeSupport) {
-				String sStr = "";
-				//if (m_clades.get(i).length > 1) {
-					sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
-					sStr += format.format((m_fHeight - m_cladeHeight95HPDup.get(i)) * m_fUserScale) + " ";
-					sStr += format.format((m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_fUserScale) + " ";
-					sStr += "[";
-					int j = 0;
-					for (j = 0; j < m_clades.get(i).length - 1; j++) {
-						sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + ",");
-					}
-					sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + "]\n");
-					list.add(sStr);
-				//}
-			}
-		}
-		return list;
+		treeData.resetCladeSelection();
 	}
 	
-	private double cladeProb(Node node, final boolean useProduct) {
-		if (node.isLeaf()) {
-			return 1.0;
-		} else {
-			double fCladeProb = m_cladeWeight.get(node.m_iClade);
-			if (useProduct) {
-				fCladeProb *= cladeProb(node.m_left, useProduct);
-				fCladeProb *= cladeProb(node.m_right, useProduct);
-			} else {
-				fCladeProb = Math.min(fCladeProb, cladeProb(node.m_left, useProduct));
-				fCladeProb = Math.min(fCladeProb, cladeProb(node.m_right, useProduct));
-			}
-			return fCladeProb;
-		}
-	}
-
-	private double CCDProb(Node node) { //, Integer [] index) {
-		if (node.isLeaf()) {
-			return 1.0;
-		} else {
-//			int iClade = node.m_iClade;
-//			iClade = index[iClade];
-//			int iCladeLeft = Math.min(index[node.m_left.m_iClade], index[node.m_right.m_iClade]);
-//			iCladeLeft = index[iCladeLeft];
-			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
-
-			Integer i = (iCladeRight << 16) + iCladeLeft;
-			Double f = m_cladePairs.get(i);
-			if (f == null) {
-				f = m_cladePairs.get(i);
-			}
-			
-			double fCladeProb = f;// / m_cladeWeight.get(node.m_iClade);
-			fCladeProb *= CCDProb(node.m_left);//, index);
-			fCladeProb *= CCDProb(node.m_right);//, index);
-			return fCladeProb;
-		}
+	public void calcCladeIDForNode(Node tree, Map<String, Integer> mapCladeToIndex) {
+		treeData.calcCladeIDForNode(tree, mapCladeToIndex);
 		
-	}			
-
-
-	private void setCladeNr(Node node, Node node2) {
-		if (node2 == null) {
-			throw new RuntimeException("node2 cannot be null");
-		}
-		if (!node.isLeaf()) {
-			node.m_iClade = node2.m_iClade;
-			setCladeNr(node.m_left, node2.m_left);
-			setCladeNr(node.m_right, node2.m_right);
-		}
-
+	}
+	
+	public void resetCladeNr(Node tree, Integer[] reverseindex) {
+		treeData.resetCladeNr(tree, reverseindex);
 	}
 
-	private int[] calcCladeForNode(Node node, Map<String, Integer> mapCladeToIndex, double fWeight, double fHeight) {
-		if (node.isLeaf()) {
-			int[] clade = new int[1];
-			clade[0] = node.getNr();
-			node.m_iClade = node.getNr();
-			m_cladeHeight.set(node.m_iClade, m_cladeHeight.get(node.m_iClade) + fWeight * fHeight);
-			//m_cladeHeightSet.get(node.m_iClade).add(fHeight);
-			return clade;
-		} else {
-			int[] cladeLeft = calcCladeForNode(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
-			int[] cladeRight = calcCladeForNode(node.m_right, mapCladeToIndex, fWeight, fHeight
-					+ node.m_right.m_fLength);
-			int[] clade = mergeClades(cladeLeft, cladeRight);
-			
-						
-			// merge clades, keep in sorted order
-//			int[] clade = new int[cladeLeft.length + cladeRight.length];
-//			int iLeft = 0;
-//			int iRight = 0;
-//			for (int i = 0; i < clade.length; i++) {
-//				if (iLeft == cladeLeft.length) {
-//					clade[i] = cladeRight[iRight++];
-//				} else if (iRight == cladeRight.length) {
-//					clade[i] = cladeLeft[iLeft++];
-//				} else if (cladeRight[iRight] > cladeLeft[iLeft]) {
-//					clade[i] = cladeLeft[iLeft++];
-//				} else {
-//					clade[i] = cladeRight[iRight++];
-//				}
-//			}
-
-			// update clade weights
-			String sClade = Arrays.toString(clade);
-			if (!mapCladeToIndex.containsKey(sClade)) {
-				mapCladeToIndex.put(sClade, mapCladeToIndex.size());
-				m_clades.add(clade);
-				m_cladeWeight.add(0.0);
-				m_cladeHeight.add(0.0);
-				m_cladeHeight95HPDup.add(0.0);
-				m_cladeHeight95HPDdown.add(0.0);
-				m_cladeHeightSetBottom.add(new ArrayList<Double>());
-				m_cladeHeightSetTop.add(new ArrayList<Double>());
-				m_cladeChildren.add(new ArrayList<ChildClade>());
-			}
-			int iClade = mapCladeToIndex.get(sClade);
-			m_cladeWeight.set(iClade, m_cladeWeight.get(iClade) + fWeight);
-			m_cladeHeight.set(iClade, m_cladeHeight.get(iClade) + fWeight * fHeight);
-			//m_cladeHeightSet.get(iClade).add(fHeight);
-			node.m_iClade = iClade;
-
-			// update child clades
-			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);
-			List<ChildClade> children = m_cladeChildren.get(iClade);
-			boolean bFound = false;
-			for (ChildClade child : children) {
-				if (child.m_iLeft == iCladeLeft && child.m_iRight == iCladeRight) {
-					child.m_fWeight += fWeight;
-					bFound = true;
-					break;
-				}
-			}
-			if (!bFound) {
-				ChildClade child = new ChildClade();
-				child.m_iLeft = iCladeLeft;
-				child.m_iRight = iCladeRight;
-				child.m_fWeight = fWeight;
-				m_cladeChildren.get(iClade).add(child);
-			}
-
-//			Integer [] cladePair = new Integer[2];
-//			cladePair[0] = iClade;
-//			cladePair[1] = iCladeLeft;
-			return clade;
-		}
-
-	}
-
-	private int[] calcCladeForNode2(Node node, Map<String, Integer> mapCladeToIndex, double fWeight, double fHeight) {
-		if (node.isLeaf()) {
-			int[] clade = new int[1];
-			clade[0] = node.getNr();
-			node.m_iClade = node.getNr();
-			m_cladeHeightSetBottom.get(node.m_iClade).add(fHeight);
-			m_cladeHeightSetTop.get(node.m_iClade).add(fHeight - node.m_fLength);
-			return clade;
-		} else {
-			int[] cladeLeft = calcCladeForNode2(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
-			int[] cladeRight = calcCladeForNode2(node.m_right, mapCladeToIndex, fWeight, fHeight
-					+ node.m_right.m_fLength);
-			// merge clades, keep in sorted order
-			int[] clade = new int[cladeLeft.length + cladeRight.length];
-			int iLeft = 0;
-			int iRight = 0;
-			for (int i = 0; i < clade.length; i++) {
-				if (iLeft == cladeLeft.length) {
-					clade[i] = cladeRight[iRight++];
-				} else if (iRight == cladeRight.length) {
-					clade[i] = cladeLeft[iLeft++];
-				} else if (cladeRight[iRight] > cladeLeft[iLeft]) {
-					clade[i] = cladeLeft[iLeft++];
-				} else {
-					clade[i] = cladeRight[iRight++];
-				}
-			}
-
-			// update clade weights
-			String sClade = Arrays.toString(clade);
-//			if (!mapCladeToIndex.containsKey(sClade)) {
-//				mapCladeToIndex.put(sClade, mapCladeToIndex.size());
-//				m_cladeHeight95HPDup.add(0.0);
-//				m_cladeHeight95HPDdown.add(0.0);
-//				m_cladeHeightSet.add(new ArrayList<Double>());
-//			}
-			int iClade = mapCladeToIndex.get(sClade);
-			m_cladeHeightSetBottom.get(iClade).add(fHeight);
-			m_cladeHeightSetTop.get(iClade).add(fHeight - node.m_fLength);
-			node.m_iClade = iClade;
-
-			// update child clades
-			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
-			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);
-			List<ChildClade> children = m_cladeChildren.get(iClade);
-			boolean bFound = false;
-			for (ChildClade child : children) {
-				if (child.m_iLeft == iCladeLeft && child.m_iRight == iCladeRight) {
-					child.m_fWeight += fWeight;
-					bFound = true;
-					break;
-				}
-			}
-			if (!bFound) {
-				ChildClade child = new ChildClade();
-				child.m_iLeft = iCladeLeft;
-				child.m_iRight = iCladeRight;
-				child.m_fWeight = fWeight;
-				m_cladeChildren.get(iClade).add(child);
-			}
-
-			return clade;
-		}
-	}
-
-	public int[] calcCladeIDForNode(Node node, Map<String, Integer> mapCladeToIndex) {
-		if (node.isLeaf()) {
-			int[] clade = new int[1];
-			clade[0] = node.getNr();
-			node.m_iClade = node.getNr();
-			return clade;
-		} else {
-			int[] cladeLeft = calcCladeIDForNode(node.m_left, mapCladeToIndex);
-			int[] cladeRight = calcCladeIDForNode(node.m_right, mapCladeToIndex);
-			int[] clade = mergeClades(cladeLeft, cladeRight);
-			String sClade = Arrays.toString(clade);
-			try {
-				int iClade = mapCladeToIndex.get(sClade);
-				node.m_iClade = iClade;
-			} catch (Exception e) {
-				// ignore
-				node.m_iClade = 0;
-			}
-			return clade;
-		}
-	}
 	
 	
 	void calcColorPattern() {
@@ -2001,14 +1249,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/* remove all data from memory */
 	void clear() {
-		m_trees = new Node[0];
-		m_cTrees = new Node[0];
-		m_fLinesX = null;
-		m_fLinesY = null;
+		treeData.m_trees = new Node[0];
+		treeData.m_cTrees = new Node[0];
+		treeData.m_fLinesX = null;
+		treeData.m_fLinesY = null;
 		// m_fTLinesX = null;
 		// m_fTLinesY = null;
-		m_fCLinesX = null;
-		m_fCLinesY = null;
+		treeData.m_fCLinesX = null;
+		treeData.m_fCLinesY = null;
 		// m_fCTLinesX = null;
 		// m_fCTLinesY = null;
 		m_bInitializing = false;
@@ -2037,7 +1285,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			switch (nMethod) {
 			case NodeOrderer.DEFAULT:
 				// use order of most frequently occurring tree
-				initOrder(m_trees[0], 0);
+				initOrder(treeData.m_trees[0], 0);
 				break;
 			case NodeOrderer.MANUAL: {
 				// use order given by user
@@ -2107,10 +1355,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 			default:
 				// otherwise, use one of the distance based methods
 				NodeOrderer h = new NodeOrderer(nMethod);
-				int[] nOrder = h.calcOrder(settings.m_nNrOfLabels, m_trees, m_cTrees, m_rootcanaltree, m_fTreeWeight/*
+				int[] nOrder = h.calcOrder(settings.m_nNrOfLabels, treeData.m_trees, treeData.m_cTrees, treeData.m_rootcanaltree, treeData.m_fTreeWeight/*
 																						 * ,
 																						 * m_nOrder
-																						 */, m_clades, m_cladeWeight);
+																						 */, treeData.m_clades, treeData.m_cladeWeight);
 				settings.m_nOrder = nOrder;
 				for (int i = 0; i < settings.m_nNrOfLabels; i++) {
 					settings.m_nRevOrder[settings.m_nOrder[i]] = i;
@@ -2124,7 +1372,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		int nNodes = getNrOfNodes(m_trees[0]);
+		int nNodes = getNrOfNodes(treeData.m_trees[0]);
 		if (nMethod < NodeOrderer.META_ALL) {
 			settings.m_bShowBounds = false;
 			calcPositions();
@@ -2133,101 +1381,101 @@ public class DensiTree extends JPanel implements ComponentListener {
 			addAction(new DoAction());
 		} else {
 			settings.m_bShowBounds = true;
-			m_pattern = Pattern.compile(m_sPattern);
+			settings.m_pattern = Pattern.compile(settings.m_sPattern);
 			switch (nMethod) {
 			case NodeOrderer.META_ALL: {
 				double fMaxX = 0;
-				for (int i = 0; i < m_trees.length; i++) {
-					double fX = positionMetaAll(m_trees[i]);
+				for (int i = 0; i < treeData.m_trees.length; i++) {
+					double fX = positionMetaAll(treeData.m_trees[i]);
 					fMaxX = Math.max(fMaxX, fX);
 				}
-				for (int i = 0; i < m_cTrees.length; i++) {
-					double fX = positionMetaAll(m_cTrees[i]);
+				for (int i = 0; i < treeData.m_cTrees.length; i++) {
+					double fX = positionMetaAll(treeData.m_cTrees[i]);
 					fMaxX = Math.max(fMaxX, fX);
 				}
 				fMaxX = settings.m_nNrOfLabels / fMaxX;
-				for (int i = 0; i < m_trees.length; i++) {
-					scaleX(m_trees[i], fMaxX);
+				for (int i = 0; i < treeData.m_trees.length; i++) {
+					scaleX(treeData.m_trees[i], fMaxX);
 				}
-				for (int i = 0; i < m_cTrees.length; i++) {
-					scaleX(m_cTrees[i], fMaxX);
+				for (int i = 0; i < treeData.m_cTrees.length; i++) {
+					scaleX(treeData.m_cTrees[i], fMaxX);
 				}
 				calcLines();
 			}
 				break;
 			case NodeOrderer.META_SUM:
 			case NodeOrderer.META_AVERAGE: {
-				for (int i = 0; i < m_trees.length; i++) {
+				for (int i = 0; i < treeData.m_trees.length; i++) {
 					float[] fHeights = new float[settings.m_nNrOfLabels * 2 - 1];
 					float[] fMetas = new float[settings.m_nNrOfLabels * 2 - 1];
 					int[] nCounts = new int[settings.m_nNrOfLabels * 2 - 1];
-					collectHeights(m_trees[i], fHeights, 0);
+					collectHeights(treeData.m_trees[i], fHeights, 0);
 					Arrays.sort(fHeights);
-					collectMetaData(m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_fLinesX[i] = new float[nNodes * 2 + 2];
-					m_fLinesY[i] = new float[nNodes * 2 + 2];
+					collectMetaData(treeData.m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
+					treeData.m_fLinesX[i] = new float[nNodes * 2 + 2];
+					treeData.m_fLinesY[i] = new float[nNodes * 2 + 2];
 					for (int j = 0; j < fMetas.length - 1; j++) {
-						m_fLinesX[i][j * 2] = fMetas[j];
-						m_fLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
-						m_fLinesX[i][j * 2 + 1] = fMetas[j + 1];
-						m_fLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
+						treeData.m_fLinesX[i][j * 2] = fMetas[j];
+						treeData.m_fLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
+						treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1];
+						treeData.m_fLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
 					}
 					if (nMethod == NodeOrderer.META_AVERAGE) {
 						for (int j = 0; j < fMetas.length - 1; j++) {
 							if (nCounts[j] > 0) {
-								m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
+								treeData.m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
 							}
 							if (nCounts[j + 1] > 0) {
-								m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
+								treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
 							}
 						}
 					}
 				}
-				for (int i = 0; i < m_cTrees.length; i++) {
+				for (int i = 0; i < treeData.m_cTrees.length; i++) {
 					float[] fHeights = new float[settings.m_nNrOfLabels * 2 - 1];
 					float[] fMetas = new float[settings.m_nNrOfLabels * 2 - 1];
 					int[] nCounts = new int[settings.m_nNrOfLabels * 2 - 1];
-					collectHeights(m_cTrees[i], fHeights, 0);
+					collectHeights(treeData.m_cTrees[i], fHeights, 0);
 					Arrays.sort(fHeights);
-					collectMetaData(m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_fCLinesX[i] = new float[nNodes * 2 + 2];
-					m_fCLinesY[i] = new float[nNodes * 2 + 2];
+					collectMetaData(treeData.m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
+					treeData.m_fCLinesX[i] = new float[nNodes * 2 + 2];
+					treeData.m_fCLinesY[i] = new float[nNodes * 2 + 2];
 					for (int j = 0; j < fMetas.length - 1; j++) {
-						m_fCLinesX[i][j * 2] = fMetas[j];
-						m_fCLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
-						m_fCLinesX[i][j * 2 + 1] = fMetas[j + 1];
-						m_fCLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
+						treeData.m_fCLinesX[i][j * 2] = fMetas[j];
+						treeData.m_fCLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
+						treeData.m_fCLinesX[i][j * 2 + 1] = fMetas[j + 1];
+						treeData.m_fCLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
 					}
 					if (nMethod == NodeOrderer.META_AVERAGE) {
 						for (int j = 0; j < fMetas.length - 1; j++) {
 							if (nCounts[j] > 0) {
-								m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
+								treeData.m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
 							}
 							if (nCounts[j + 1] > 0) {
-								m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
+								treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
 							}
 						}
 					}
 				}
 				// determine scale
 				float fMaxX = 0;
-				for (float[] fXs : m_fLinesX) {
+				for (float[] fXs : treeData.m_fLinesX) {
 					for (float f : fXs) {
 						fMaxX = Math.max(f, fMaxX);
 					}
 				}
-				for (float[] fXs : m_fCLinesX) {
+				for (float[] fXs : treeData.m_fCLinesX) {
 					for (float f : fXs) {
 						fMaxX = Math.max(f, fMaxX);
 					}
 				}
 				float fScale = settings.m_nNrOfLabels / fMaxX;
-				for (float[] fXs : m_fCLinesX) {
+				for (float[] fXs : treeData.m_fCLinesX) {
 					for (int i = 0; i < fXs.length; i++) {
 						fXs[i] *= fScale;
 					}
 				}
-				for (float[] fXs : m_fLinesX) {
+				for (float[] fXs : treeData.m_fLinesX) {
 					for (int i = 0; i < fXs.length; i++) {
 						fXs[i] *= fScale;
 					}
@@ -2249,7 +1497,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void rotateAround(int iRotationPoint) {
 
 		Vector<Integer> iLeafs = new Vector<Integer>();
-		getRotationLeafs(m_cTrees[0], -1, iLeafs, iRotationPoint);
+		getRotationLeafs(treeData.m_cTrees[0], -1, iLeafs, iRotationPoint);
 
 		System.err.println("Rotating " + iRotationPoint + " " + iLeafs);
 		// find rotation range
@@ -2278,27 +1526,27 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	void moveRotationPoint(int iRotationPoint, float fdH) {
 		Vector<Integer> iLeafs = new Vector<Integer>();
-		getRotationLeafs(m_cTrees[0], -1, iLeafs, iRotationPoint);
-		boolean[] bSelection = m_bSelection;
-		m_bSelection = new boolean[settings.m_sLabels.size()];
+		getRotationLeafs(treeData.m_cTrees[0], -1, iLeafs, iRotationPoint);
+		boolean[] bSelection = treeData.m_bSelection;
+		treeData.m_bSelection = new boolean[settings.m_sLabels.size()];
 		for (int i : iLeafs) {
-			m_bSelection[i] = true;
+			treeData.m_bSelection[i] = true;
 		}
 
-		for (int i = 0; i < m_trees.length; i++) {
-			moveInternalNode(fdH, m_trees[i], iLeafs.size());
+		for (int i = 0; i < treeData.m_trees.length; i++) {
+			moveInternalNode(fdH, treeData.m_trees[i], iLeafs.size());
 		}
-		for (int i = 0; i < m_cTrees.length; i++) {
-			moveInternalNode(fdH, m_cTrees[i], iLeafs.size());
+		for (int i = 0; i < treeData.m_cTrees.length; i++) {
+			moveInternalNode(fdH, treeData.m_cTrees[i], iLeafs.size());
 		}
-		m_bSelection = bSelection;
+		treeData.m_bSelection = bSelection;
 		calcLines();
 		makeDirty();
 	}
 
 	int moveInternalNode(float fdH, Node node, int nSelected) {
 		if (node.isLeaf()) {
-			return (m_bSelection[node.getNr()] ? 1 : 0);
+			return (treeData.m_bSelection[node.getNr()] ? 1 : 0);
 		} else {
 			int i = moveInternalNode(fdH, node.m_left, nSelected);
 			i += moveInternalNode(fdH, node.m_right, nSelected);
@@ -2358,75 +1606,75 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 **/
 	public void calcLines() {
 		checkSelection();
-		if (m_trees.length == 0) {
+		if (treeData.m_trees.length == 0) {
 			return;
 		}
 		setWaitCursor();
 		
 		// calculate coordinates of lines for drawing trees
-		int nNodes = getNrOfNodes(m_trees[0]);
+		int nNodes = getNrOfNodes(treeData.m_trees[0]);
 
 		boolean[] b = new boolean[1];
-		for (int i = 0; i < m_trees.length; i++) {
+		for (int i = 0; i < treeData.m_trees.length; i++) {
 			// m_fLinesX[i] = new float[nNodes * 2 + 2];
 			// m_fLinesY[i] = new float[nNodes * 2 + 2];
 			if (settings.m_bAllowSingleChild) {
-				nNodes = getNrOfNodes(m_trees[i]);
-				m_fLinesX[i] = new float[nNodes * 2 + 2];
-				m_fLinesY[i] = new float[nNodes * 2 + 2];
-				m_trees[i].drawDryWithSingleChild(m_fLinesX[i], m_fLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
+				nNodes = getNrOfNodes(treeData.m_trees[i]);
+				treeData.m_fLinesX[i] = new float[nNodes * 2 + 2];
+				treeData.m_fLinesY[i] = new float[nNodes * 2 + 2];
+				treeData.m_trees[i].drawDryWithSingleChild(treeData.m_fLinesX[i], treeData.m_fLinesY[i], 0, b, treeData.m_bSelection, m_fTreeOffset,
 						m_fTreeScale);
 			} else {
-				m_fLinesX[i] = new float[nNodes * 2 + 2];
-				m_fLinesY[i] = new float[nNodes * 2 + 2];
-				calcLinesForNode(m_trees[i], m_fLinesX[i], m_fLinesY[i]);
+				treeData.m_fLinesX[i] = new float[nNodes * 2 + 2];
+				treeData.m_fLinesY[i] = new float[nNodes * 2 + 2];
+				calcLinesForNode(treeData.m_trees[i], treeData.m_fLinesX[i], treeData.m_fLinesY[i]);
 			}
 		}
 		// calculate coordinates of lines for drawing consensus trees
-		for (int i = 0; i < m_cTrees.length; i++) {
+		for (int i = 0; i < treeData.m_cTrees.length; i++) {
 			// m_fCLinesX[i] = new float[nNodes * 2 + 2];
 			// m_fCLinesY[i] = new float[nNodes * 2 + 2];
 			if (settings.m_bAllowSingleChild) {
-				nNodes = getNrOfNodes(m_cTrees[i]);
-				m_fCLinesX[i] = new float[nNodes * 2 + 2];
-				m_fCLinesY[i] = new float[nNodes * 2 + 2];
-				m_cTrees[i].drawDryWithSingleChild(m_fCLinesX[i], m_fCLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
+				nNodes = getNrOfNodes(treeData.m_cTrees[i]);
+				treeData.m_fCLinesX[i] = new float[nNodes * 2 + 2];
+				treeData.m_fCLinesY[i] = new float[nNodes * 2 + 2];
+				treeData.m_cTrees[i].drawDryWithSingleChild(treeData.m_fCLinesX[i], treeData.m_fCLinesY[i], 0, b, treeData.m_bSelection, m_fTreeOffset,
 						m_fTreeScale);
 			} else {
-				m_fCLinesX[i] = new float[nNodes * 2 + 2];
-				m_fCLinesY[i] = new float[nNodes * 2 + 2];
-				calcLinesForNode(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i]);
+				treeData.m_fCLinesX[i] = new float[nNodes * 2 + 2];
+				treeData.m_fCLinesY[i] = new float[nNodes * 2 + 2];
+				calcLinesForNode(treeData.m_cTrees[i], treeData.m_fCLinesX[i], treeData.m_fCLinesY[i]);
 			}
 		}
 
-		m_fRLinesX = new float[1][nNodes * 2 + 2];
-		m_fRLinesY = new float[1][nNodes * 2 + 2];
-		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
-			calcLinesForNode(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0]);
+		treeData.m_fRLinesX = new float[1][nNodes * 2 + 2];
+		treeData.m_fRLinesY = new float[1][nNodes * 2 + 2];
+		if (!settings.m_bAllowSingleChild && treeData.m_bCladesReady) {
+			calcLinesForNode(treeData.m_rootcanaltree, treeData.m_fRLinesX[0], treeData.m_fRLinesY[0]);
 		}
 		
 		if (m_bUseLogScale) {
 			System.err.println("Use log scaling");
 			//float f = (float) Math.log(m_fHeight + 1.0);
 			float fNormaliser = (float) (m_fHeight / Math.pow(m_fHeight, m_fExponent));
-			for (int i = 0; i < m_trees.length; i++) {
-				for (int j = 0; j < m_fLinesY[i].length; j++) {
-					m_fLinesY[i][j] = ((float) Math.pow(m_fHeight - m_fLinesY[i][j], m_fExponent)/fNormaliser);
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				for (int j = 0; j < treeData.m_fLinesY[i].length; j++) {
+					treeData.m_fLinesY[i][j] = ((float) Math.pow(m_fHeight - treeData.m_fLinesY[i][j], m_fExponent)/fNormaliser);
 				}
 			}
-			for (int i = 0; i < m_cTrees.length; i++) {
-				for (int j = 0; j < m_fCLinesY[i].length; j++) {
-					m_fCLinesY[i][j] = (float) Math.pow(m_fHeight - m_fCLinesY[i][j], m_fExponent)/fNormaliser;
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
+				for (int j = 0; j < treeData.m_fCLinesY[i].length; j++) {
+					treeData.m_fCLinesY[i][j] = (float) Math.pow(m_fHeight - treeData.m_fCLinesY[i][j], m_fExponent)/fNormaliser;
 				}
 			}
-			for (int j = 0; j < m_fRLinesY[0].length; j++) {
-				m_fRLinesY[0][j] = (float) Math.pow(m_fHeight - m_fRLinesY[0][j], m_fExponent)/fNormaliser;
+			for (int j = 0; j < treeData.m_fRLinesY[0].length; j++) {
+				treeData.m_fRLinesY[0][j] = (float) Math.pow(m_fHeight - treeData.m_fRLinesY[0][j], m_fExponent)/fNormaliser;
 			}
 		}
 		m_w = 0;
-		for (int i = 0; i < m_cTrees.length; i++) {
-			float[] fCLines = m_fCLinesX[i];
-			float fWeight = m_fTreeWeight[i];
+		for (int i = 0; i < treeData.m_cTrees.length; i++) {
+			float[] fCLines = treeData.m_fCLinesX[i];
+			float fWeight = treeData.m_fTreeWeight[i];
 			for (int j = 0; j < fCLines.length - 3; j += 4) {
 				m_w += Math.abs(fCLines[j + 1] - fCLines[j + 2]) * fWeight;
 			}
@@ -2439,26 +1687,26 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void calcLinesForNode(Node node, float [] fLinesX, float [] fLinesY) {
 		boolean[] b = new boolean[1];
 		if (settings.m_bAllowSingleChild) {
-			node.drawDryWithSingleChild(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
+			node.drawDryWithSingleChild(fLinesX, fLinesY, 0, b, treeData.m_bSelection, m_fTreeOffset,
 					m_fTreeScale);
 		} else {
 			switch (settings.m_Xmode) {
 			case 0:
-				node.drawDry(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset, m_fTreeScale);
+				node.drawDry(fLinesX, fLinesY, 0, b, treeData.m_bSelection, m_fTreeOffset, m_fTreeScale);
 				break;
 			case 1:
-				node.drawDryCentralised(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
+				node.drawDryCentralised(fLinesX, fLinesY, 0, b, treeData.m_bSelection, m_fTreeOffset,
 						m_fTreeScale, new float[2], new float[settings.m_nNrOfLabels * 2 - 1],
-						new float[settings.m_nNrOfLabels * 2 - 1], m_cladePosition);
+						new float[settings.m_nNrOfLabels * 2 - 1], treeData.m_cladePosition);
 				break;
 			case 2:
 				float[] fCladeCenterX = new float[settings.m_nNrOfLabels * 2 - 1];
 				float[] fCladeCenterY = new float[settings.m_nNrOfLabels * 2 - 1];
 				float[] fPosX = new float[settings.m_nNrOfLabels * 2 - 1];
 				float[] fPosY = new float[settings.m_nNrOfLabels * 2 - 1];
-				node.getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition, settings.m_sLabels.size());
+				node.getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, treeData.m_cladePosition, settings.m_sLabels.size());
 				node.drawStarTree(fLinesX, fLinesY, fPosX, fPosY, fCladeCenterX, fCladeCenterY,
-						m_bSelection, m_fTreeOffset, m_fTreeScale);
+						treeData.m_bSelection, m_fTreeOffset, m_fTreeScale);
 				break;
 			}
 		}
@@ -2491,28 +1739,28 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		
 		if (settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
-			m_fLineWidth = null;
-			m_fCLineWidth = null;
-			m_fTopLineWidth = null;
-			m_fTopCLineWidth = null;
-			m_fRLineWidth = null;
-			m_fRTopLineWidth = null;
+			treeData.m_fLineWidth = null;
+			treeData.m_fCLineWidth = null;
+			treeData.m_fTopLineWidth = null;
+			treeData.m_fTopCLineWidth = null;
+			treeData.m_fRLineWidth = null;
+			treeData.m_fRTopLineWidth = null;
 			return;
 		}
-		m_fLineWidth = new float[m_trees.length][];
-		m_fCLineWidth = new float[m_cTrees.length][];
-		m_fTopLineWidth = new float[m_trees.length][];
-		m_fTopCLineWidth = new float[m_cTrees.length][];
-		m_fRLineWidth = new float[1][];
-		m_fRTopLineWidth = new float[1][];
+		treeData.m_fLineWidth = new float[treeData.m_trees.length][];
+		treeData.m_fCLineWidth = new float[treeData.m_cTrees.length][];
+		treeData.m_fTopLineWidth = new float[treeData.m_trees.length][];
+		treeData.m_fTopCLineWidth = new float[treeData.m_cTrees.length][];
+		treeData.m_fRLineWidth = new float[1][];
+		treeData.m_fRTopLineWidth = new float[1][];
 		checkSelection();
-		int nNodes = getNrOfNodes(m_trees[0]);
+		int nNodes = getNrOfNodes(treeData.m_trees[0]);
 
 		if (settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
-			m_pattern = Pattern.compile(settings.m_sLineWidthPattern);
+			settings.m_pattern = Pattern.compile(settings.m_sLineWidthPattern);
 		}
 		if (settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
-			m_patternTop = Pattern.compile(settings.m_sLineWidthPatternTop);
+			settings.m_patternTop = Pattern.compile(settings.m_sLineWidthPatternTop);
 		}
 //		if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
 //			m_pattern = createPattern();
@@ -2520,29 +1768,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		// calculate coordinates of lines for drawing trees
 		boolean[] b = new boolean[1];
-		for (int i = 0; i < m_trees.length; i++) {
+		for (int i = 0; i < treeData.m_trees.length; i++) {
 			//m_fLinesX[i] = new float[nNodes * 2 + 2];
 			//m_fLinesY[i] = new float[nNodes * 2 + 2];
-			m_fLineWidth[i] = new float[nNodes * 2 + 2];
-			m_fTopLineWidth[i] = new float[nNodes * 2 + 2];
-			drawTreeS(m_trees[i], m_fLinesX[i], m_fLinesY[i], m_fLineWidth[i], m_fTopLineWidth[i], 0, b);
+			treeData.m_fLineWidth[i] = new float[nNodes * 2 + 2];
+			treeData.m_fTopLineWidth[i] = new float[nNodes * 2 + 2];
+			drawTreeS(treeData.m_trees[i], treeData.m_fLinesX[i], treeData.m_fLinesY[i], treeData.m_fLineWidth[i], treeData.m_fTopLineWidth[i], 0, b);
 		}
 
 		// calculate coordinates of lines for drawing consensus trees
-		for (int i = 0; i < m_cTrees.length; i++) {
+		for (int i = 0; i < treeData.m_cTrees.length; i++) {
 			//m_fCLinesX[i] = new float[nNodes * 2 + 2];
 			//m_fCLinesY[i] = new float[nNodes * 2 + 2];
-			m_fCLineWidth[i] = new float[nNodes * 2 + 2];
-			m_fTopCLineWidth[i] = new float[nNodes * 2 + 2];
-			drawTreeS(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i], m_fCLineWidth[i], m_fTopCLineWidth[i], 0, b);
+			treeData.m_fCLineWidth[i] = new float[nNodes * 2 + 2];
+			treeData.m_fTopCLineWidth[i] = new float[nNodes * 2 + 2];
+			drawTreeS(treeData.m_cTrees[i], treeData.m_fCLinesX[i], treeData.m_fCLinesY[i], treeData.m_fCLineWidth[i], treeData.m_fTopCLineWidth[i], 0, b);
 			int nTopologies = 0;
 			float [] fCLineWidth = new float[nNodes * 2 + 2];
 			float [] fTopCLineWidth = new float[nNodes * 2 + 2];
-			for (int j = 0; j < m_trees.length; j++) {
-				if (m_nTopologyByPopularity[j] == i) {
+			for (int j = 0; j < treeData.m_trees.length; j++) {
+				if (treeData.m_nTopologyByPopularity[j] == i) {
 					for (int k = 0; k < fCLineWidth.length; k++) {
-						fCLineWidth[k] += m_fLineWidth[j][k];
-						fTopCLineWidth[k] += m_fTopLineWidth[j][k];
+						fCLineWidth[k] += treeData.m_fLineWidth[j][k];
+						fTopCLineWidth[k] += treeData.m_fTopLineWidth[j][k];
 					}
 					nTopologies++;
 				}
@@ -2552,16 +1800,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fCLineWidth[k] /= nTopologies;
 				fTopCLineWidth[k] /= nTopologies;
 			}
-			m_fCLineWidth[i] = fCLineWidth;
-			m_fTopCLineWidth[i] = fTopCLineWidth;
+			treeData.m_fCLineWidth[i] = fCLineWidth;
+			treeData.m_fTopCLineWidth[i] = fTopCLineWidth;
 		}
 
 		// TODO: don't know how to set line width of root canal tree, so keep it unspecified
-		m_fRLineWidth[0] = new float[nNodes * 2 + 2];
-		m_fRTopLineWidth[0] = new float[nNodes * 2 + 2];
-		drawTreeS(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0], m_fRLineWidth[0], m_fRTopLineWidth[0], 0, b);
-		m_fRLineWidth = null;
-		m_fRTopLineWidth = null;
+		treeData.m_fRLineWidth[0] = new float[nNodes * 2 + 2];
+		treeData.m_fRTopLineWidth[0] = new float[nNodes * 2 + 2];
+		drawTreeS(treeData.m_rootcanaltree, treeData.m_fRLinesX[0], treeData.m_fRLinesY[0], treeData.m_fRLineWidth[0], treeData.m_fRTopLineWidth[0], 0, b);
+		treeData.m_fRLineWidth = null;
+		treeData.m_fRTopLineWidth = null;
 
 	} // calcLinesWidths
 
@@ -2588,33 +1836,33 @@ public class DensiTree extends JPanel implements ComponentListener {
 		settings.m_prevLineColorMode = settings.m_lineColorMode; 
 		settings.m_prevLineColorTag = settings.m_lineColorTag;
 		settings.m_sPrevLineColorPattern = settings.m_sLineColorPattern;
-		int nNodes = getNrOfNodes(m_trees[0]);
+		int nNodes = getNrOfNodes(treeData.m_trees[0]);
 		switch (settings.m_lineColorMode) {
 		case COLOR_BY_CLADE:
-			m_nLineColor = new int[m_trees.length][];
-			m_nCLineColor = new int[m_cTrees.length][];
-			m_nRLineColor = new int[1][];
-			for (int i = 0; i < m_trees.length; i++) {
+			treeData.m_nLineColor = new int[treeData.m_trees.length][];
+			treeData.m_nCLineColor = new int[treeData.m_cTrees.length][];
+			treeData.m_nRLineColor = new int[1][];
+			for (int i = 0; i < treeData.m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_trees[i]);
+					nNodes = getNrOfNodes(treeData.m_trees[i]);
 				}
-				m_nLineColor[i] = new int[nNodes * 2 + 2];
-				colorTree(m_trees[i], m_nLineColor[i], 0);
+				treeData.m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTree(treeData.m_trees[i], treeData.m_nLineColor[i], 0);
 			}
 			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
-			for (int i = 0; i < m_cTrees.length; i++) {
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
 				int nTopologies = 0;
 				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
-				m_nCLineColor[i] = new int[nNodes * 2 + 2];
-				int [] nCLineColor = m_nCLineColor[i]; 
-				for (int j = 0; j < m_trees.length; j++) {
+				treeData.m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = treeData.m_nCLineColor[i]; 
+				for (int j = 0; j < treeData.m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
-							nCLineColor[k] += m_nLineColor[j][k];
+							nCLineColor[k] += treeData.m_nLineColor[j][k];
 						}
 						nTopologies++;
 				}
@@ -2625,37 +1873,37 @@ public class DensiTree extends JPanel implements ComponentListener {
 			//if (settings.m_bAllowSingleChild) {
 			//	break;
 			//}
-			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
+			treeData.m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(treeData.m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case BY_METADATA_PATTERN:
-			m_pattern = Pattern.compile(settings.m_sLineColorPattern);
-			m_nLineColor = new int[m_trees.length][];
-			m_nCLineColor = new int[m_cTrees.length][];
-			m_nRLineColor = new int[1][];
+			settings.m_pattern = Pattern.compile(settings.m_sLineColorPattern);
+			treeData.m_nLineColor = new int[treeData.m_trees.length][];
+			treeData.m_nCLineColor = new int[treeData.m_cTrees.length][];
+			treeData.m_nRLineColor = new int[1][];
 			//m_colorMetaDataCategories = new ArrayList<String>();
 			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
-			for (int i = 0; i < m_trees.length; i++) {
+			for (int i = 0; i < treeData.m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_trees[i]);
+					nNodes = getNrOfNodes(treeData.m_trees[i]);
 				}
-				m_nLineColor[i] = new int[nNodes * 2 + 2];
-				colorTreeByMetaData(m_trees[i], m_nLineColor[i], 0);
+				treeData.m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTreeByMetaData(treeData.m_trees[i], treeData.m_nLineColor[i], 0);
 			}
 			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
-			for (int i = 0; i < m_cTrees.length; i++) {
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
 				int nTopologies = 0;
 				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
-				m_nCLineColor[i] = new int[nNodes * 2 + 2];
-				int [] nCLineColor = m_nCLineColor[i]; 
-				for (int j = 0; j < m_trees.length; j++) {
+				treeData.m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = treeData.m_nCLineColor[i]; 
+				for (int j = 0; j < treeData.m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
-							nCLineColor[k] += m_nLineColor[j][k];
+							nCLineColor[k] += treeData.m_nLineColor[j][k];
 						}
 						nTopologies++;
 				}
@@ -2666,14 +1914,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			//if (settings.m_bAllowSingleChild) {
 			//	break;
 			//}
-			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
+			treeData.m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(treeData.m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case COLOR_BY_METADATA_TAG:
-			m_pattern = Pattern.compile(m_sPattern);
-			m_nLineColor = new int[m_trees.length][];
-			m_nCLineColor = new int[m_cTrees.length][];
-			m_nRLineColor = new int[1][];
+			settings.m_pattern = Pattern.compile(settings.m_sPattern);
+			treeData.m_nLineColor = new int[treeData.m_trees.length][];
+			treeData.m_nCLineColor = new int[treeData.m_cTrees.length][];
+			treeData.m_nRLineColor = new int[1][];
 			//m_colorMetaDataCategories = new ArrayList<String>();
 			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
 			boolean colorByCategory = false;
@@ -2685,28 +1933,28 @@ public class DensiTree extends JPanel implements ComponentListener {
 					break;
 				}
 			}
-			for (int i = 0; i < m_trees.length; i++) {
+			for (int i = 0; i < treeData.m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_trees[i]);
+					nNodes = getNrOfNodes(treeData.m_trees[i]);
 				}
-				m_nLineColor[i] = new int[nNodes * 2 + 2];
-				colorTreeByMetaDataTag(m_trees[i], m_nLineColor[i], 0, colorByCategory);
+				treeData.m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTreeByMetaDataTag(treeData.m_trees[i], treeData.m_nLineColor[i], 0, colorByCategory);
 			}
 			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
-			for (int i = 0; i < m_cTrees.length; i++) {
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
 				int nTopologies = 0;
 				// it is known settings.m_bAllowSingleChild = false at this point
 				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
-				m_nCLineColor[i] = new int[nNodes * 2 + 2];
-				int [] nCLineColor = m_nCLineColor[i]; 
-				for (int j = 0; j < m_trees.length; j++) {
+				treeData.m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = treeData.m_nCLineColor[i]; 
+				for (int j = 0; j < treeData.m_trees.length; j++) {
 						for (int k = 0; k < nCLineColor.length; k++) {
-							nCLineColor[k] += m_nLineColor[j][k];
+							nCLineColor[k] += treeData.m_nLineColor[j][k];
 						}
 						nTopologies++;
 				}
@@ -2714,20 +1962,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
+			treeData.m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(treeData.m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case DEFAULT:
-			m_nLineColor = new int[m_trees.length][];
-			m_nCLineColor = new int[m_cTrees.length][];
-			m_nRLineColor = new int[1][];
-			for (int i = 0; i < m_trees.length; i++) {
+			treeData.m_nLineColor = new int[treeData.m_trees.length][];
+			treeData.m_nCLineColor = new int[treeData.m_cTrees.length][];
+			treeData.m_nRLineColor = new int[1][];
+			for (int i = 0; i < treeData.m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_trees[i]);
+					nNodes = getNrOfNodes(treeData.m_trees[i]);
 				}
-				m_nLineColor[i] = new int[nNodes * 2 + 2];
+				treeData.m_nLineColor[i] = new int[nNodes * 2 + 2];
 				int color = 0;
-				switch (m_nTopologyByPopularity[i]) {
+				switch (treeData.m_nTopologyByPopularity[i]) {
 				case 0:
 					color = settings.m_color[0].getRGB();
 					break;
@@ -2740,24 +1988,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 				default:
 					color = settings.m_color[3].getRGB();
 				}
-				Arrays.fill(m_nLineColor[i], color);
+				Arrays.fill(treeData.m_nLineColor[i], color);
 			}
-			for (int i = 0; i < m_cTrees.length; i++) {
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
 				int color = settings.m_color[CONSCOLOR].getRGB();
 				if (m_bViewMultiColor) {
 					color = settings.m_color[9 + (i % (settings.m_color.length - 9))].getRGB();
 				}
 				if (settings.m_bAllowSingleChild) {
-					nNodes = getNrOfNodes(m_cTrees[i]);
+					nNodes = getNrOfNodes(treeData.m_cTrees[i]);
 				}
-				m_nCLineColor[i] = new int[nNodes * 2 + 2];
-				Arrays.fill(m_nCLineColor[i], color);
+				treeData.m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				Arrays.fill(treeData.m_nCLineColor[i], color);
 			}
 			if (settings.m_bAllowSingleChild) {
 				break;
 			}
-			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
+			treeData.m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(treeData.m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		}
 	} // calcColors
@@ -2863,7 +2111,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 */
 	int drawTreeS(Node node, float[] nX, float[] nY, float[] fWidth, float[] fWidthTop, int iPos, boolean[] bNeedsDrawing) {
 		if (node.isLeaf()) {
-			bNeedsDrawing[0] = m_bSelection[node.m_iLabel];
+			bNeedsDrawing[0] = treeData.m_bSelection[node.m_iLabel];
 		} else {
 			boolean[] bChildNeedsDrawing = new boolean[2];
 			iPos = drawTreeS(node.m_left, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
@@ -2878,11 +2126,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (bChildNeedsDrawing[0]) {
 //					nX[iPos] = node.m_left.m_fPosX;
 //					nY[iPos] = node.m_left.m_fPosY;
-					fWidth[iPos] = getGamma(node.m_left, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
+					fWidth[iPos] = getGamma(node.m_left, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
 					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
 					} else {
-						fWidthTop[iPos] = getGamma(node.m_left, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, m_patternTop);						
+						fWidthTop[iPos] = getGamma(node.m_left, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);						
 					}
 					iPos++;
 //					nX[iPos] = nX[iPos - 1];
@@ -2902,11 +2150,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (bChildNeedsDrawing[1]) {
 //					nX[iPos] = node.m_right.m_fPosX;
 //					nY[iPos] = nY[iPos - 1];
-					fWidth[iPos] = getGamma(node.m_right, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
+					fWidth[iPos] = getGamma(node.m_right, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
 					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
 					} else {
-						fWidthTop[iPos] = getGamma(node.m_right, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, m_patternTop);
+						fWidthTop[iPos] = getGamma(node.m_right, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);
 					}
 					iPos++;
 //					nX[iPos] = nX[iPos - 1];
@@ -2924,7 +2172,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
 				iPos++;
 				if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT && settings.m_bCorrectTopOfBranch) {
-					float fCurrentWidth = getGamma(node, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
+					float fCurrentWidth = getGamma(node, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
 					float fSumWidth = fWidth[iPos-2] + fWidth[iPos-4];
 					fWidthTop[iPos-2] = fCurrentWidth * fWidth[iPos-2]/fSumWidth;
 					fWidthTop[iPos-4] = fCurrentWidth * fWidth[iPos-4]/fSumWidth;
@@ -2964,11 +2212,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			} else if (mode == LineWidthMode.BY_METADATA_NUMBER) {
 				int index = 0;
 				if (nGroup == 1) {
-					index = m_iPatternForBottom - 1;
+					index = settings.m_iPatternForBottom - 1;
 				} else {
-					index = m_iPatternForTop - 1;
+					index = settings.m_iPatternForTop - 1;
 					if (index < 0) {
-						index = m_iPatternForBottom - 1;
+						index = settings.m_iPatternForBottom - 1;
 					}
 				}
 				if (index < 0) {
@@ -3022,7 +2270,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	int selectionSize() {
 		int nSelected = 0;
 		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
-			if (m_bSelection[settings.m_nRevOrder[i]]) {
+			if (treeData.m_bSelection[settings.m_nRevOrder[i]]) {
 				nSelected++;
 			}
 		}
@@ -3031,9 +2279,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** check the selection is empty, and ask user whether this is desirable **/
 	void checkSelection() {
-		if (m_bSelection.length > 0 && selectionSize() == 0) {
-			for (int i = 0; i < m_bSelection.length; i++) {
-				m_bSelection[i] = true;
+		if (treeData.m_bSelection.length > 0 && selectionSize() == 0) {
+			for (int i = 0; i < treeData.m_bSelection.length; i++) {
+				treeData.m_bSelection[i] = true;
 			}
 		}
 	}
@@ -3052,7 +2300,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** move labels in selection down in ordering **/
 	void moveSelectedLabelsDown() {
 		for (int i = 1; i < settings.m_nRevOrder.length; i++) {
-			if (m_bSelection[settings.m_nRevOrder[i]] && !m_bSelection[settings.m_nRevOrder[i - 1]]) {
+			if (treeData.m_bSelection[settings.m_nRevOrder[i]] && !treeData.m_bSelection[settings.m_nRevOrder[i - 1]]) {
 				int h = settings.m_nRevOrder[i];
 				settings.m_nRevOrder[i] = settings.m_nRevOrder[i - 1];
 				settings.m_nRevOrder[i - 1] = h;
@@ -3068,7 +2316,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** move labels in selection up in ordering **/
 	void moveSelectedLabelsUp() {
 		for (int i = settings.m_nRevOrder.length - 2; i >= 0; i--) {
-			if (m_bSelection[settings.m_nRevOrder[i]] && !m_bSelection[settings.m_nRevOrder[i + 1]]) {
+			if (treeData.m_bSelection[settings.m_nRevOrder[i]] && !treeData.m_bSelection[settings.m_nRevOrder[i + 1]]) {
 				int h = settings.m_nRevOrder[i];
 				settings.m_nRevOrder[i] = settings.m_nRevOrder[i + 1];
 				settings.m_nRevOrder[i + 1] = h;
@@ -3081,138 +2329,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		addAction(new DoAction());
 	}
 
-	public void calcPositions() {
-		if (settings.m_sLabels == null) {
-			// no trees loaded yet
-			return;
-		}
-		setWaitCursor();
-
-		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
-			Arrays.fill(m_cladePosition, -1);
-			boolean bProgress = true;
-			do {
-				bProgress = false;
-				for (int i = 0; i < m_clades.size(); i++) {
-					if (m_cladePosition[i] < 0) {
-						m_cladePosition[i] = positionClades(i);
-						if (m_cladePosition[i] >= 0) {
-							bProgress = true;
-						}
-					}
-				}
-			} while (bProgress);
-	
-			if (settings.m_bUseAngleCorrection) {
-				for (int i = 0; i < m_clades.size(); i++) {
-					if (m_cladeWeight.get(i) > settings.m_fAngleCorrectionThresHold) {
-						for (ChildClade child : m_cladeChildren.get(i)) {
-							if (m_cladeWeight.get(child.m_iLeft) < settings.m_fAngleCorrectionThresHold) {
-								m_cladePosition[child.m_iLeft] = m_cladePosition[i];
-							}
-							if (m_cladeWeight.get(child.m_iRight) < settings.m_fAngleCorrectionThresHold) {
-								m_cladePosition[child.m_iRight] = m_cladePosition[i];
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < m_trees.length; i++) {
-			if (settings.m_nShuffleMode == NodeOrderer.GEOINFO) {
-				positionLeafsGeo(m_trees[i]);
-			} else {
-				positionLeafs(m_trees[i]);
-			}
-			positionRest(m_trees[i]);
-		}
-		for (int i = 0; i < m_cTrees.length; i++) {
-			if (settings.m_nShuffleMode == NodeOrderer.GEOINFO) {
-				positionLeafsGeo(m_cTrees[i]);
-			} else {
-				positionLeafs(m_cTrees[i]);
-			}
-			positionRest(m_cTrees[i]);
-		}
-		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
-			for (Node tree : m_summaryTree) {
-				positionLeafs(tree);
-				positionRest(tree);
-			}
-		}
-	}
-
-	private float positionClades(int iClade) {
-		float fMin = settings.m_nNrOfLabels;
-		float fMax = 0;
-		for (int i : m_clades.get(iClade)) {
-			fMin = Math.min(fMin, settings.m_nOrder[i]);
-			fMax = Math.max(fMax, settings.m_nOrder[i]);
-		}
-		return (fMin + fMax) / 2.0f + 0.5f;
-	}
-
-	/**
-	 * Position leafs in a tree so that x-coordinate of the leafs is fixed for
-	 * all trees in the set
-	 * **/
-	void positionLeafs(Node node) {
-		if (node.isLeaf()) {
-			node.m_fPosX = settings.m_nOrder[node.m_iLabel] + 0.5f;
-			if (m_cladePosition != null) {
-				//node.m_fPosX += m_cladePosition[node.m_iLabel];
-			}
-			// node.m_fPosX = _posX[m_nOrder[node.m_iLabel]] + 0.5f;
-		} else {
-			positionLeafs(node.m_left);
-			if (node.m_right != null) {
-				positionLeafs(node.m_right);
-			}
-		}
-	}
-
-	/**
-	 * Position leafs in a tree so that x-coordinate of the leafs coincides with
-	 * the geographical position associated with the node
-	 * **/
-	void positionLeafsGeo(Node node) {
-		if (node.isLeaf()) {
-			if (m_treeDrawer.m_bRootAtTop) {
-				node.m_fPosX = settings.m_nNrOfLabels * (settings.m_fLongitude.elementAt(node.m_iLabel) - settings.m_fMinLong)
-						/ (settings.m_fMaxLong - settings.m_fMinLong);
-			} else {
-				node.m_fPosX = settings.m_nNrOfLabels * (settings.m_fMaxLat - settings.m_fLatitude.elementAt(node.m_iLabel))
-						/ (settings.m_fMaxLat - settings.m_fMinLat);
-			}
-		} else {
-			positionLeafsGeo(node.m_left);
-			positionLeafsGeo(node.m_right);
-		}
-	}
-
-	/**
-	 * Position internal nodes to take position in between child nodes Should be
-	 * called after positionLeafs to ensure leaf positions are initialized
-	 * 
-	 * @param node
-	 * @return
-	 */
-	float positionRest(Node node) {
-		if (node.isLeaf()) {
-			return node.m_fPosX;
-		} else {
-			// node.m_fPosX = m_cladePosition[node.m_iClade];
-			float fPosX = 0;
-			fPosX += positionRest(node.m_left);
-			if (node.m_right != null) {
-				fPosX += positionRest(node.m_right);
-				fPosX /= 2.0;
-			}
-			node.m_fPosX = fPosX;
-			return fPosX;
-		}
-	}
 
 	/**
 	 * return meta data value of a node as defined by the pattern (m_sPattern &
@@ -3221,7 +2337,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	// int [] m_nCurrentPosition;
 	float getMetaData(Node node) {
 		try {
-			Matcher matcher = m_pattern.matcher(node.getMetaData());
+			Matcher matcher = settings.m_pattern.matcher(node.getMetaData());
 			matcher.find();
 			int nGroup = 1;
 			int nGroups = matcher.groupCount();
@@ -3236,7 +2352,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	int getMetaDataCategory(Node node) {
 		try {
-			Matcher matcher = m_pattern.matcher(node.getMetaData());
+			Matcher matcher = settings.m_pattern.matcher(node.getMetaData());
 			matcher.find();
 			int nGroup = 1;
 			int nGroups = matcher.groupCount();
@@ -3419,7 +2535,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		if (node.isLeaf()) {
-			if (m_bSelection[node.m_iLabel]) {
+			if (treeData.m_bSelection[node.m_iLabel]) {
 				if (settings.m_iColor == null) {
 					g.setColor(settings.m_color[LABELCOLOR]);
 				} else {
@@ -3493,7 +2609,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** draw lines from labels of a tree to corresponding geographic point **/
 	void drawGeo(Node node, Graphics g) {
 		if (node.isLeaf()) {
-			if (m_bSelection[node.m_iLabel]) {
+			if (treeData.m_bSelection[node.m_iLabel]) {
 				if (settings.m_fLongitude.elementAt(node.m_iLabel) == 0 && settings.m_fLatitude.elementAt(node.m_iLabel) == 0) {
 					return;
 				}
@@ -4420,9 +3536,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 					buf.append(";\n");
 					outfile.write(buf.toString());
-					for (int i = 0; i < m_trees.length; i++) {
-						outfile.write("tree STATE_" + i + " = " + m_trees[i].toString() + ";\n");
-						System.out.println(m_trees[i].toString(settings.m_sLabels, false));
+					for (int i = 0; i < treeData.m_trees.length; i++) {
+						outfile.write("tree STATE_" + i + " = " + treeData.m_trees[i].toString() + ";\n");
+						System.out.println(treeData.m_trees[i].toString(settings.m_sLabels, false));
 					}
 					outfile.write("End;\n");
 					outfile.close();
@@ -4584,7 +3700,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			setWaitCursor();
 			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			StringBuilder b = new StringBuilder();
-			for (String s : cladesToString()) {
+			for (String s : treeData.cladesToString()) {
 				b.append(s);
 			}
 			setDefaultCursor();
@@ -4834,8 +3950,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			for (int i = 0; i < m_bSelection.length; i++) {
-				m_bSelection[i] = true;
+			for (int i = 0; i < treeData.m_bSelection.length; i++) {
+				treeData.m_bSelection[i] = true;
 				// m_bSelection[i] = m_fLatitude.get(i)==0 &&
 				// m_fLongitude.get(i)==0;
 			}
@@ -4847,8 +3963,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			for (int i = 0; i < m_bSelection.length; i++) {
-				m_bSelection[i] = false;
+			for (int i = 0; i < treeData.m_bSelection.length; i++) {
+				treeData.m_bSelection[i] = false;
 			}
 			repaint();
 		} // actionPerformed
@@ -4859,18 +3975,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
 			int nDeleted = 0;
-			for (int i = m_bSelection.length - 1; i >= 0 && settings.m_nNrOfLabels > 2; i--) {
-				if (m_bSelection[i]) {
+			for (int i = treeData.m_bSelection.length - 1; i >= 0 && settings.m_nNrOfLabels > 2; i--) {
+				if (treeData.m_bSelection[i]) {
 					// delete node with nr i
-					for (int j = 0; j < m_trees.length; j++) {
-						m_trees[j] = deleteLeaf(m_trees[j], i);
-						renumber(m_trees[j], i);
-						m_trees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
+					for (int j = 0; j < treeData.m_trees.length; j++) {
+						treeData.m_trees[j] = deleteLeaf(treeData.m_trees[j], i);
+						renumber(treeData.m_trees[j], i);
+						treeData.m_trees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
 					}
-					for (int j = 0; j < m_cTrees.length; j++) {
-						m_cTrees[j] = deleteLeaf(m_cTrees[j], i);
-						renumber(m_cTrees[j], i);
-						m_cTrees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
+					for (int j = 0; j < treeData.m_cTrees.length; j++) {
+						treeData.m_cTrees[j] = deleteLeaf(treeData.m_cTrees[j], i);
+						renumber(treeData.m_cTrees[j], i);
+						treeData.m_cTrees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
 					}
 					settings.m_sLabels.remove(i);
 					settings.m_nNrOfLabels--;
@@ -4903,9 +4019,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			System.err.println("ORDER:" + Arrays.toString(settings.m_nOrder));
 			System.err.println("REVOR:" + Arrays.toString(settings.m_nRevOrder));
-			m_bSelection = new boolean[m_bSelection.length - nDeleted];
-			for (int i = 0; i < m_bSelection.length; i++) {
-				m_bSelection[i] = true;
+			treeData.m_bSelection = new boolean[treeData.m_bSelection.length - nDeleted];
+			for (int i = 0; i < treeData.m_bSelection.length; i++) {
+				treeData.m_bSelection[i] = true;
 			}
 			fitToScreen();
 			calcPositions();
@@ -4972,19 +4088,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nOrder2 = settings.m_nOrder.clone();
 			m_nRevOrder2 = settings.m_nRevOrder.clone();
 			m_fPosX = new float[settings.m_sLabels.size()];
-			getPosition(m_trees[0], m_fPosX);
+			getPosition(treeData.m_trees[0], m_fPosX);
 		}
 
 		void doThisAction() {
 			settings.m_nOrder = m_nOrder2.clone();
 			settings.m_nRevOrder = m_nRevOrder2.clone();
-			for (int i = 0; i < m_trees.length; i++) {
-				setPosition(m_trees[i], m_fPosX);
-				positionRest(m_trees[i]);
+			for (int i = 0; i < treeData.m_trees.length; i++) {
+				setPosition(treeData.m_trees[i], m_fPosX);
+				positionRest(treeData.m_trees[i]);
 			}
-			for (int i = 0; i < m_cTrees.length; i++) {
-				setPosition(m_cTrees[i], m_fPosX);
-				positionRest(m_cTrees[i]);
+			for (int i = 0; i < treeData.m_cTrees.length; i++) {
+				setPosition(treeData.m_cTrees[i], m_fPosX);
+				positionRest(treeData.m_cTrees[i]);
 			}
 			calcLines();
 			makeDirty();
@@ -5089,8 +4205,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
 			m_iAnimateTree++;
-			if (m_iAnimateTree == m_nTopologies) {
-				m_iAnimateTree = m_nTopologies - 1;
+			if (m_iAnimateTree == treeData.m_nTopologies) {
+				m_iAnimateTree = treeData.m_nTopologies - 1;
 			}
 			repaint();
 		} // actionPerformed
@@ -5103,7 +4219,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		public void actionPerformed(ActionEvent ae) {
 			m_viewMode = ViewMode.BROWSE;
 			a_animateStart.setIcon("start");
-			m_iAnimateTree = m_nTopologies - 1;
+			m_iAnimateTree = treeData.m_nTopologies - 1;
 			repaint();
 		} // actionPerformed
 	}; // class ActionBrowse
@@ -5343,25 +4459,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 //			m_jTbTools2.add(Box.createVerticalGlue(), gbc);
 //		}
 
-		m_cladelist = new JList<String>(m_cladelistmodel);
-		m_cladelist.addListSelectionListener(new ListSelectionListener() {
+		treeData.m_cladelist = new JList<String>(treeData.m_cladelistmodel);
+		treeData.m_cladelist.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				if (m_bAllowCladeSelection) {
-	 				m_cladeSelection.clear();
-					for (int i : m_cladelist.getSelectedIndices()) {
-						if (m_cladeWeight.get(i) > 0.01 && ((settings.m_Xmode == 1 && m_clades.get(i).length > 1) || (settings.m_Xmode == 2 && m_clades.get(i).length == 1))) {
-							m_cladeSelection.add(i);
+				if (treeData.m_bAllowCladeSelection) {
+	 				treeData.m_cladeSelection.clear();
+					for (int i : treeData.m_cladelist.getSelectedIndices()) {
+						if (treeData.m_cladeWeight.get(i) > 0.01 && ((settings.m_Xmode == 1 && treeData.m_clades.get(i).length > 1) || (settings.m_Xmode == 2 && treeData.m_clades.get(i).length == 1))) {
+							treeData.m_cladeSelection.add(i);
 						}
 					}
 					resetCladeSelection();
-					System.err.println(m_cladelist.getSelectedValuesList());
-					System.err.println(m_cladelist.getSelectedValuesList().size() + " items selected");
+					System.err.println(treeData.m_cladelist.getSelectedValuesList());
+					System.err.println(treeData.m_cladelist.getSelectedValuesList().size() + " items selected");
 					repaint();
 				}
 			}
 		});
-		JScrollPane scrollingList = new JScrollPane(m_cladelist);
+		JScrollPane scrollingList = new JScrollPane(treeData.m_cladelist);
 		//scrollingList.setPreferredSize(new Dimension(1200,600));
 		//scrollingList.setMinimumSize(scrollingList.getPreferredSize());
 		m_jTbCladeTools.setLayout(new BorderLayout());

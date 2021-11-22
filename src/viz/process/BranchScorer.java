@@ -40,7 +40,7 @@ public class BranchScorer {// implements DifferentiableMultivariateRealFunction 
 				CladeBranchInfo info = null;
 				if (!m_cladeBranchInfo.containsKey(node.m_iClade)) {
 					info = new CladeBranchInfo();
-					info.initialise(m_dt.m_cladeHeightSetBottom.get(iClade), m_dt.m_cladeHeightSetTop.get(iClade), m_dt.m_trees.length);
+					info.initialise(m_dt.treeData.m_cladeHeightSetBottom.get(iClade), m_dt.treeData.m_cladeHeightSetTop.get(iClade), m_dt.treeData.m_trees.length);
 					m_cladeBranchInfo.put(iClade, info);
 				} else {
 					info = m_cladeBranchInfo.get(iClade);
@@ -56,10 +56,10 @@ public class BranchScorer {// implements DifferentiableMultivariateRealFunction 
 		if (nonCladeScore < 0) {
 			// count contributions of all clades not in root canal tree 
 			nonCladeScore = 0;
-			for (int i = 0; i < m_dt.m_cladeHeightSetBottom.size(); i++) {
+			for (int i = 0; i < m_dt.treeData.m_cladeHeightSetBottom.size(); i++) {
 				if (!clades.contains(i)) {
-					List<Double> bottom = m_dt.m_cladeHeightSetBottom.get(i);
-					List<Double> top = m_dt.m_cladeHeightSetTop.get(i);
+					List<Double> bottom = m_dt.treeData.m_cladeHeightSetBottom.get(i);
+					List<Double> top = m_dt.treeData.m_cladeHeightSetTop.get(i);
 					double sum = 0;
 					for (int j = 0; j < bottom.size(); j++) {
 						sum += bottom.get(j) - top.get(j);

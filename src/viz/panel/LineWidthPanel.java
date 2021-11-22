@@ -150,19 +150,19 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 					}
 				} catch (Exception ex) {}
 			});
-		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForBottom, 1, 100, 1);
-		topOfBranchModel = new SpinnerNumberModel(m_dt.m_iPatternForTop, 0, 100, 1);
+		bottomOfBranchModel = new SpinnerNumberModel(m_dt.settings.m_iPatternForBottom, 1, 100, 1);
+		topOfBranchModel = new SpinnerNumberModel(m_dt.settings.m_iPatternForTop, 0, 100, 1);
 		
 		bottomOfBranchModel.addChangeListener(new ChangeListener() {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				m_dt.m_iPatternForBottom = (Integer) bottomOfBranchModel.getValue();
-				if (m_dt.m_iPatternForBottom < 1) {
-					m_dt.m_iPatternForBottom = 1;
+				m_dt.settings.m_iPatternForBottom = (Integer) bottomOfBranchModel.getValue();
+				if (m_dt.settings.m_iPatternForBottom < 1) {
+					m_dt.settings.m_iPatternForBottom = 1;
 				}
 				if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-					m_dt.m_pattern = m_dt.createPattern();
+					m_dt.settings.m_pattern = m_dt.createPattern();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -173,12 +173,12 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				m_dt.m_iPatternForTop = (Integer) topOfBranchModel.getValue();
-				if (m_dt.m_iPatternForTop < 0) {
-					m_dt.m_iPatternForTop = 0;
+				m_dt.settings.m_iPatternForTop = (Integer) topOfBranchModel.getValue();
+				if (m_dt.settings.m_iPatternForTop < 0) {
+					m_dt.settings.m_iPatternForTop = 0;
 				}
 				if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-					m_dt.m_pattern = m_dt.createPattern();
+					m_dt.settings.m_pattern = m_dt.createPattern();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -393,7 +393,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		selection.add(LineWidthMode.DEFAULT.toString());
 		selectionTop.add(SAME_AS_BOTTOM);
 		selectionTop.add(MAKE_FIT_BOTTOM);
-		if (m_dt.m_bMetaDataReady) {
+		if (m_dt.treeData.m_bMetaDataReady) {
 			selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
 			selectionTop.add(LineWidthMode.BY_METADATA_PATTERN.toString());
 			selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
