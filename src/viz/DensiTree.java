@@ -103,6 +103,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			"http://dx.doi.org/10.1101/012401\n";
 	static int instances = 1;
 	
+	public Settings settings = new Settings();
+	
 	/** flag for testing summary tree optimisation **/
 	public String m_sOptFile = null;
 	/** number of tree in tree set to use as root canal tree **/
@@ -110,10 +112,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public Node m_optTree = null;
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
-	/** whether to optimise branch lengths on root canal tree or not **/
-	boolean m_bOptimiseRootCanalTree = false;
 
-	boolean m_bDrawReverse = false;
 	static int B = 1;
 	JFrame frame;
 	public void setWaitCursor() {
@@ -128,6 +127,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 	
 	private static final long serialVersionUID = 1L;
+
 	/** path for icons */
 	public static final String ICONPATH = "viz/icons/";
 
@@ -135,11 +135,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * default tree branch length, used when that info is not in the Newick tree
 	 **/
 	final static double DEFAULT_LENGTH = 0.001f;
+	
 	/** same trees, but represented as Node data structure **/
 	public Node[] m_trees;
 	
 	public Node m_rootcanaltree;
-	// contains summary trees, root canal refers to one of those
+	
+	/** contains summary trees, root canal refers to one of those **/
 	public List<Node> m_summaryTree = new ArrayList<Node>();
 
 	/**
@@ -150,14 +152,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * **/
 	float[][] m_fLinesX;
 	float[][] m_fLinesY;
-	/**
-	 * Trees represented as lines for drawing triangular trees Units are tree
-	 * lengths as represented in the Newick file The lines come in triplets
-	 * ((x1,y1)(x2,y2)(x3,y3)) and are concatenated in a long array. The final
-	 * pair contains the line to the root.
-	 * **/
-	// float[][] m_fTLinesX;
-	// float[][] m_fTLinesY;
 	/**
 	 * Width of individual lines, determined by some info in the metadata (if
 	 * any) If specified, this only applies to block trees.
@@ -176,33 +170,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public float[][] m_fRLineWidth;
 	public float[][] m_fRTopLineWidth;
 
-	/** flag indicating the attribute should be interpreted as categorial **/
-	public boolean m_bColorByCategory = false;
 	
-	public Vector<String> m_sLabels;
-	public BufferedImage[] m_LabelImages;
-	public int m_nImageSize = 20;
-	public boolean m_bHideLabels = false;
-	/** labels of leafs **/
-	/** nr of labels in dataset **/
-	public int m_nNrOfLabels = 0;
-	/** position information for the leafs (if available) **/
-	public Vector<Float> m_fLongitude;
-	public Vector<Float> m_fLatitude;
-	boolean m_bInvertLongitude = false;
-	/** extreme values for position information **/
-	public float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
-	/** name of file containing locations **/
-	String m_sKMLFile = null;
 	static float GEO_OFFSET = 3.0f;
 	
-	/** order of appearance of leafs, used to determine x-coordinates of leafs **/
-	int[] m_nOrder;
-	/** reverse of m_nOrder, useful for reordering **/
-	int[] m_nRevOrder;
-	/** file containing order of taxa -- if specified, the order will 
-	 * be read from the file. If set, no other ordering is allowed **/
-	String m_sOrderFile = null;
 
 	/** Topology number of the tree, in order of appearance in tree set **/
 	int[] m_nTopology;
@@ -247,8 +217,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
 	double m_cladeThreshold = 1e-4;
-	/** smallest support for it to be considered a clade, default 1% **/
-	public double m_smallestCladeSupport = 0.01;
 
 	/** flag to allow leafs to be draw and dragged around.
 	 * As a side effect, internal clades will not be positioned correctly,
@@ -257,19 +225,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** flag to indicate not to draw anything due to being busy initialising **/
 	boolean m_bInitializing;
 
-	/** jitter of x-positions for x-coordinate **/
-	int m_nJitter = 0;
-	/** random nr generator used for applying jitter **/
-	Random m_random = new Random();
-	/** intensity with which the trees are drawn (multiplier for alpha channel) **/
-	float m_fTreeIntensity = 1.0f;
-	float m_fCTreeIntensity = 1.0f;
-	/** width of lines used for drawing trees, etc. **/
-	int m_nTreeWidth = 1;
-	int m_nCTreeWidth = 4;
-	public int m_nGeoWidth = 1;
-	/** width of labels, when root at left **/
-	public int m_nLabelWidth = 100;
 
 	/** flags whether a leaf node is selected **/
 	public boolean[] m_bSelection;
@@ -289,56 +244,30 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public int m_nBurnIn = 10;
 	public boolean m_bBurnInIsPercentage = true;
 
+	/** mean cumulative width, calculated from trees **/
 	double m_w = 0;
-	/** current directory for opening files **/
-	String m_sDir = System.getProperty("user.dir");
 
-	/** array of various colors for color coding different topologies **/
-	public Color[] m_color;
 	public static int HEIGHTCOLOR = 6,
 		CONSCOLOR = 4,
 		LABELCOLOR = 5,
 		BGCOLOR = 7,
 		GEOCOLOR = 8,
 		ROOTCANALCOLOR=9;
+
 	/** image used for the background **/
 	public BufferedImage m_bgImage;
+	
 	/**
-	 * bounding box for area containted in bfImage, derived from the image name:
+	 * bounding box for area contained in bfImage, derived from the image name:
 	 * if the name matches (lat0,long0)x(lat1,long1) e.g. NZ(-40,140)x(-10,180)
 	 * it will assume the image covers the box 40 South 140 East to 10 South,
 	 * 180 East. NB first coordinate should contain lower values, and the second
 	 * coordinate the higher values.
 	 */
 	double[] m_fBGImageBox = { -180, -90, 180, 90 };
-	// boolean m_bSurpressMetadata = true;
-	/**
-	 * name of output file (if any) when batch processing. Typically used to
-	 * dump a bitmap file in.
-	 **/
-	String m_sOutputFile = null;
 
-	/**
-	 * Flag to indicate 90% HPD and median should be shown. This only makes
-	 * sense when one of the meta data based orderings is used
-	 */
-	boolean m_bShowBounds = false;
-	/**
-	 * Extra indentation to labels. This is helpful for unrooted trees since it
-	 * shifts all labels with a constant amount. Units are in terms of tree
-	 * height.
-	 */
-	public float m_fLabelIndent = 0.0f;
 
-	/**
-	 * Flag to indicate image should be recorded Frames that are drawn while
-	 * refreshing screen are saved in /tmp/frame<nr>.jpg if possible.
-	 */
-	boolean m_bRecord = false;
-	int m_nFrameNr;
 
-	public boolean m_bViewEditTree = false;
-	public boolean m_bViewClades = false;
 	public Set<Integer> m_cladeSelection = new HashSet<Integer>();
 	
 	BufferedImage m_rotate;
@@ -359,53 +288,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public int m_iPatternForBottom = 1;
 	public int m_iPatternForTop = 0;
 
-	/** string containing reg exp for grouping taxa **/
-	String m_sColorPattern = null;
-	/** index of color for a taxon **/
-	int[] m_iColor;
 
-	/** flag to indicate that single child nodes are allowed **/
-	boolean m_bAllowSingleChild = false;
-
-	/** flag to indicate that text should be rotated when root at top **/
-	public boolean m_bRotateTextWhenRootAtTop = false;
-
-	/**
-	 * mode for determining the X location of an internal node 0 = centre of
-	 * nodes below 1 = centre of all taxa below
-	 */
-	public int m_Xmode = 0;
-	/**
-	 * flag to indicate the X position needs to be corrected to prevent steep
-	 * angles
-	 **/
-	boolean m_bUseAngleCorrection = false;
-	double m_fAngleCorrectionThresHold = 0.9;
-
-	/** method used for ordering nodes **/
-	int m_nShuffleMode = NodeOrderer.DEFAULT;
-	
 	/** used to store name of tree file so that when burn-in changes, the tree set
 	 * can be reloaded
 	 */
 	public String m_sFileName;
 	
-	/** flag to indicate some meta data on the tree should be used for line widht **/
-	//public boolean m_bMetaDataForLineWidth = false;
-	/**
-	 * Flag to indicate top of branch widths should be calculated from the bottom
-	 * of branch lengths by distributing weight proportional to left and right
-	 * bottom branches to top branch -- scaled to fit bottom of parent branch.
-	 */
-	public boolean m_bCorrectTopOfBranch = false;
-//	/** indicator that only one group is in the pattern, so top of branch widths
-//	 * should be calculated from the bottom of branch information.
-//	 */
-//	boolean m_bTopWidthDiffersFromBottomWidth;
-	/** flag indicating meta data is zero based, instead of relative
-	 * which makes minimum values at zero width.
-	 */
-	public boolean m_bWidthsAreZeroBased = true;
+
 	
 	/** for storing the PDF file name from CLI **/
 	String m_asPDF = null;
@@ -425,7 +314,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		this();
 		System.out.println(banner());
 		m_bSelection = new boolean[0];
-		m_nRevOrder = new int[0];
+		settings.m_nRevOrder = new int[0];
 		m_cTrees = new Node[0];
 		m_trees = new Node[0];
 		initColors();
@@ -437,8 +326,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		System.err.println(getSize().width + "x" + getSize().height);
 
 		m_jScrollPane = new JScrollPane(m_Panel);
-		makeToolbar();
-		makeMenuBar();
+		makeToolbar(m_jTbTools);
+		m_menuBar = new JMenuBar();
+		makeMenuBar(m_menuBar);
 		addComponentListener(this);
 		this.setLayout(new BorderLayout());
 		this.add(m_jScrollPane, BorderLayout.CENTER);
@@ -476,31 +366,31 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	void initColors() {
-		m_color = new Color[10 + 11 + 50];
-		m_color[0] = Color.getColor("color.1", Color.blue);
-		m_color[1] = Color.getColor("color.2", Color.red);
-		m_color[2] = Color.getColor("color.3", Color.green);
-		m_color[3] = Color.getColor("color.default", new Color(0, 100, 25));
-		m_color[CONSCOLOR] = Color.getColor("color.cons", Color.blue);
-		m_color[LABELCOLOR] = Color.getColor("color.label", Color.blue);
-		m_color[HEIGHTCOLOR] = Color.getColor("color.height", Color.gray);
-		m_color[BGCOLOR] = Color.getColor("color.bg", Color.white);
-		m_color[GEOCOLOR] = Color.getColor("color.bg", Color.orange);
-		m_color[ROOTCANALCOLOR] = Color.getColor("color.rootcanal", Color.blue);
+		settings.m_color = new Color[10 + 11 + 50];
+		settings.m_color[0] = Color.getColor("color.1", Color.blue);
+		settings.m_color[1] = Color.getColor("color.2", Color.red);
+		settings.m_color[2] = Color.getColor("color.3", Color.green);
+		settings.m_color[3] = Color.getColor("color.default", new Color(0, 100, 25));
+		settings.m_color[CONSCOLOR] = Color.getColor("color.cons", Color.blue);
+		settings.m_color[LABELCOLOR] = Color.getColor("color.label", Color.blue);
+		settings.m_color[HEIGHTCOLOR] = Color.getColor("color.height", Color.gray);
+		settings.m_color[BGCOLOR] = Color.getColor("color.bg", Color.white);
+		settings.m_color[GEOCOLOR] = Color.getColor("color.bg", Color.orange);
+		settings.m_color[ROOTCANALCOLOR] = Color.getColor("color.rootcanal", Color.blue);
 
 		int k = GEOCOLOR + 1;
-		m_color[k++] = Color.blue;
-		m_color[k++] = Color.green;
-		m_color[k++] = Color.red;
-		m_color[k++] = Color.gray;
-		m_color[k++] = Color.orange;
-		m_color[k++] = Color.yellow;
-		m_color[k++] = Color.pink;
-		m_color[k++] = Color.black;
-		m_color[k++] = Color.cyan;
-		m_color[k++] = Color.darkGray;
-		m_color[k++] = Color.magenta;
-		m_color[k++] = new Color(100, 200, 25);
+		settings.m_color[k++] = Color.blue;
+		settings.m_color[k++] = Color.green;
+		settings.m_color[k++] = Color.red;
+		settings.m_color[k++] = Color.gray;
+		settings.m_color[k++] = Color.orange;
+		settings.m_color[k++] = Color.yellow;
+		settings.m_color[k++] = Color.pink;
+		settings.m_color[k++] = Color.black;
+		settings.m_color[k++] = Color.cyan;
+		settings.m_color[k++] = Color.darkGray;
+		settings.m_color[k++] = Color.magenta;
+		settings.m_color[k++] = new Color(100, 200, 25);
 		;
 //		m_color[k++] = new Color(100, 0, 25);
 //		m_color[k++] = new Color(25, 0, 100);
@@ -512,7 +402,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		for (float saturation = 0.9f; saturation >= 0.0f; saturation -= 0.2) {
 			for (float hue = 0.0f; hue < 1.0f; hue += 0.1) {
-				m_color[k++] = new Color(Color.HSBtoRGB(hue+saturation/10, saturation, 0.9f));
+				settings.m_color[k++] = new Color(Color.HSBtoRGB(hue+saturation/10, saturation, 0.9f));
 			}
 		}
 	} // initColors
@@ -554,19 +444,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 					if (args[i].equals("")) {
 						i += 1;
 					} else if (args[i].equals("-c")) {
-						m_fCTreeIntensity = Float.parseFloat(args[i + 1]);
+						settings.m_fCTreeIntensity = Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-i")) {
-						m_fTreeIntensity = Float.parseFloat(args[i + 1]);
+						settings.m_fTreeIntensity = Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-j")) {
-						m_nJitter = (int) Float.parseFloat(args[i + 1]);
+						settings.m_nJitter = (int) Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-w")) {
-						m_nCTreeWidth = (int) Float.parseFloat(args[i + 1]);
+						settings.m_nCTreeWidth = (int) Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-v")) {
-						m_nTreeWidth = (int) Float.parseFloat(args[i + 1]);
+						settings.m_nTreeWidth = (int) Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-f")) {
 						m_nAnimationDelay = (int) Float.parseFloat(args[i + 1]);
@@ -590,7 +480,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						GEO_OFFSET = Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-invertLongitude")) {
-						m_bInvertLongitude = true;
+						settings.m_bInvertLongitude = true;
 						i += 1;
 					} else if (args[i].equals("-scalemode")) {
 						String sMode = args[i+1].toLowerCase();
@@ -604,20 +494,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 							throw new Exception("expected scalemode to be NONE, SHORT or FULL");
 						i += 2;
 					} else if (args[i].equals("-li")) {
-						m_fLabelIndent = Float.parseFloat(args[i + 1]);
+						settings.m_fLabelIndent = Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-o")) {
-						m_sOutputFile = args[i + 1];
+						settings.m_sOutputFile = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-kml")) {
-						m_sKMLFile = args[i + 1];
+						settings.m_sKMLFile = args[i + 1];
 						//loadKML(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-geowidth")) {
-						m_nGeoWidth = Integer.parseInt(args[i + 1]);
+						settings.m_nGeoWidth = Integer.parseInt(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-geocolor")) {
-						m_color[GEOCOLOR] = Color.decode(args[i + 1]);
+						settings.m_color[GEOCOLOR] = Color.decode(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-bg")) {
 						try {
@@ -636,7 +526,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_sPattern = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-colorpattern")) {
-						m_sColorPattern = args[i + 1];
+						settings.m_sColorPattern = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-linecolortag")) {
 						m_lineColorTag = args[i + 1];
@@ -646,10 +536,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_showLegend = true;
 						i++;
 					} else if (args[i].equals("-singlechild")) {
-						m_bAllowSingleChild = Boolean.parseBoolean(args[i + 1]);
+						settings.m_bAllowSingleChild = Boolean.parseBoolean(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-rotatetext")) {
-						m_bRotateTextWhenRootAtTop = true;
+						settings.m_bRotateTextWhenRootAtTop = true;
 						i++;
 					} else if (args[i].equals("-transform")) {
 						m_bUseLogScale = true;
@@ -670,7 +560,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-rawrootcanaltree")) {
 						m_sOptTree = args[i+1];
-						m_bOptimiseRootCanalTree = false;
+						settings.m_bOptimiseRootCanalTree = false;
 						i += 2;
 					} else if (args[i].equals("-asPDF")) {
 						m_asPDF = args[i+1];
@@ -679,10 +569,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
 					} else if (args[i].equals("-r")) {
-						m_bDrawReverse = true;
+						settings.m_bDrawReverse = true;
 						i += 1;
 					} else if (args[i].equals("-order")) {
-						m_sOrderFile = args[i+1];
+						settings.m_sOrderFile = args[i+1];
 						i += 2;
 					}
 					
@@ -754,7 +644,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // banner
 
 	String formatColor(int iColor) {
-		return " 0x" + Integer.toHexString(m_color[iColor].getRGB()).substring(2) + ' ';
+		return " 0x" + Integer.toHexString(settings.m_color[iColor].getRGB()).substring(2) + ' ';
 	}
 
 	/** get status of internal settings **/
@@ -768,10 +658,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		return "\n\nCurrent status:\n" + m_trees.length + " trees with " + m_cTrees.length + " topologies " +
-				m_sLabels.size() + " taxa " + nSelected + " selected \n"
-				+ "Tree intensity: " + m_fTreeIntensity + "\n" + "Consensus Tree intensity: " + m_fCTreeIntensity
-				+ "\n" + "Tree width: " + m_nTreeWidth + "\n" + "Consensus Tree width: " + m_nCTreeWidth + "\n"
-				+ "Jitter: " + m_nJitter + "\n" + "Animation delay: " + m_nAnimationDelay + "\n" + "Height: "
+				settings.m_sLabels.size() + " taxa " + nSelected + " selected \n"
+				+ "Tree intensity: " + settings.m_fTreeIntensity + "\n" + "Consensus Tree intensity: " + settings.m_fCTreeIntensity
+				+ "\n" + "Tree width: " + settings.m_nTreeWidth + "\n" + "Consensus Tree width: " + settings.m_nCTreeWidth + "\n"
+				+ "Jitter: " + settings.m_nJitter + "\n" + "Animation delay: " + m_nAnimationDelay + "\n" + "Height: "
 				+ m_fHeight + "\n" + "Zoom: " + m_fScale + "\n" + "Number of drawing threads: " + m_Panel.m_nDrawThreads + "\n"
 				+ "Burn in: " + m_nBurnIn + "\n\nColor 1:" + formatColor(0) + "\tColor 2:" + formatColor(1)
 				+ "\tColor 3:" + formatColor(2) + "\tDefault Color:" + formatColor(3) + "\nConsensus Color:"
@@ -815,7 +705,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fTreeOffset = 0;
 		m_doActions = new Vector<DoAction>();
 		m_iUndo = 0;
-		m_random = new Random();
+		settings.m_random = new Random();
 		m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
 
 		//m_gridDrawer.m_bReverseGrid = false;
@@ -832,14 +722,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			/** contains strings with tree in Newick format **/
 			// Vector<String> sNewickTrees;
-			m_sLabels = new Vector<String>();
-			m_fLongitude = new Vector<Float>();
-			m_fLatitude = new Vector<Float>();
-			m_fMinLat = 360;
-			m_fMinLong = 360;
-			m_fMaxLat = 0;
-			m_fMaxLong = 0;
-			m_nOrder = null;
+			settings.m_sLabels = new Vector<String>();
+			settings.m_fLongitude = new Vector<Float>();
+			settings.m_fLatitude = new Vector<Float>();
+			settings.m_fMinLat = 360;
+			settings.m_fMinLong = 360;
+			settings.m_fMaxLat = 0;
+			settings.m_fMaxLong = 0;
+			settings.m_nOrder = null;
 
 			// parseFile(sFile);
 			TreeFileParser parser = new TreeFileParser(this);
@@ -852,23 +742,23 @@ public class DensiTree extends JPanel implements ComponentListener {
 			a_loadkml.setEnabled(true);
 			// m_nOffset = parser.m_nOffset;
 			float fOffset = GEO_OFFSET;
-			m_fMaxLong = parser.m_fMaxLong + fOffset;
-			m_fMaxLat = parser.m_fMaxLat + fOffset;
-			m_fMinLong = parser.m_fMinLong - fOffset;
-			m_fMinLat = parser.m_fMinLat - fOffset;
-			m_nNrOfLabels = parser.m_nNrOfLabels;
+			settings.m_fMaxLong = parser.m_fMaxLong + fOffset;
+			settings.m_fMaxLat = parser.m_fMaxLat + fOffset;
+			settings.m_fMinLong = parser.m_fMinLong - fOffset;
+			settings.m_fMinLat = parser.m_fMinLat - fOffset;
+			settings.m_nNrOfLabels = parser.m_nNrOfLabels;
 
 			if (m_trees.length == 0) {
-				m_sLabels = null;
+				settings.m_sLabels = null;
 				JOptionPane.showMessageDialog(null, "No trees found in file\nMaybe burn in is too large?",
 						"Help Message", JOptionPane.PLAIN_MESSAGE);
 				return;
 			}
 
 			// set up selection
-			m_bSelection = new boolean[m_sLabels.size()];
-			m_bLabelRectangle = new Rectangle[m_sLabels.size()];
-			m_bGeoRectangle = new Rectangle[m_sLabels.size()];
+			m_bSelection = new boolean[settings.m_sLabels.size()];
+			m_bLabelRectangle = new Rectangle[settings.m_sLabels.size()];
+			m_bGeoRectangle = new Rectangle[settings.m_sLabels.size()];
 			for (int i = 0; i < m_bSelection.length; i++) {
 				m_bSelection[i] = true;
 				m_bLabelRectangle[i] = new Rectangle();
@@ -940,15 +830,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 			// tree
 			Node tree = m_trees[0];
 			// over sized, too lazy to figure out exact number of labels
-			m_nOrder = new int[m_sLabels.size()];
-			m_nRevOrder = new int[m_sLabels.size()];
+			settings.m_nOrder = new int[settings.m_sLabels.size()];
+			settings.m_nRevOrder = new int[settings.m_sLabels.size()];
 			initOrder(tree, 0);
 			// sanity check
 			int nSum = 0;
-			for (int i = 0; i < m_nOrder.length; i++) {
-				nSum += m_nOrder[i];
+			for (int i = 0; i < settings.m_nOrder.length; i++) {
+				nSum += settings.m_nOrder[i];
 			}
-			if (nSum != m_nNrOfLabels * (m_nNrOfLabels - 1) / 2) {
+			if (nSum != settings.m_nNrOfLabels * (settings.m_nNrOfLabels - 1) / 2) {
 				JOptionPane.showMessageDialog(this,
 						"The tree set possibly contains non-binary trees. Expect that not all nodes are shown.");
 			}
@@ -1007,13 +897,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 //				public void run() {
 //					calcClades();
 //					m_bCladesReady = true;
-//					reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
+//					reshuffle((settings.m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
 //					calcPositions();
 //					makeDirty();
 //				};
 //			}.start();
 
-			//reshuffle((m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
+			//reshuffle((settings.m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
 			reshuffle(NodeOrderer.DEFAULT);
 			
 			// calculate y-position for tree set
@@ -1027,8 +917,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					calcClades();
 					m_bCladesReady = true;
 					m_jStatusBar.setText("Optimising node order");
-					int [] oldOrder = m_nOrder.clone();
-					if (!m_bAllowSingleChild) {
+					int [] oldOrder = settings.m_nOrder.clone();
+					if (!settings.m_bAllowSingleChild) {
 						reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
 						calcPositions();
 						calcLines();
@@ -1109,7 +999,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			throw e;
 		}
 		m_bInitializing = false;
-		if (m_sColorPattern != null) {
+		if (settings.m_sColorPattern != null) {
 			calcColorPattern();
 		}
 
@@ -1117,7 +1007,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (frame != null) {
 			frame.setTitle(FRAME_TITLE + " " + sFile);
 		}
-		if (m_sKMLFile != null) {
+		if (settings.m_sKMLFile != null) {
 			loadKML();
 		}
 		System.err.println("Done");
@@ -1131,7 +1021,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	private boolean orderChanged(int[] oldOrder) {
 		for (int i = 0; i < oldOrder.length; i++) {
-			if (oldOrder[i] != m_nOrder[i]) {
+			if (oldOrder[i] != settings.m_nOrder[i]) {
 				return true;
 			}
 		}
@@ -1217,7 +1107,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	private void calcClades() {
-		if (m_bAllowSingleChild) {
+		if (settings.m_bAllowSingleChild) {
 			return;
 		}
 		m_clades = new ArrayList<int[]>();
@@ -1234,7 +1124,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		
 		// add leafs as clades
-		for (int i = 0; i < m_nNrOfLabels; i++) {
+		for (int i = 0; i < settings.m_nNrOfLabels; i++) {
 			int[] clade = new int[1];
 			clade[0] = i;
 			m_clades.add(clade);
@@ -1389,7 +1279,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_summaryTree.add(m_cTrees[iMaxCladeProbTopology].copy());
 		cleanUpSummaryTree(m_summaryTree.get(0));
 
-		if (m_bOptimiseRootCanalTree) {
+		if (settings.m_bOptimiseRootCanalTree) {
 			BranchLengthOptimiser optimiser = new BranchLengthOptimiser(this);
 			optimiser.optimiseScore(m_summaryTree.get(0));
 		}
@@ -1405,7 +1295,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 //		// construct max. clade weight tree
 //		List<Node> nodes = new ArrayList<Node>();
 //		List<int[]> cladeIDs = new ArrayList<int[]>();
-//		for (int i = 0; i < m_sLabels.size(); i++) {
+//		for (int i = 0; i < settings.m_sLabels.size(); i++) {
 //			int [] cladeID = new int[1];
 //			cladeID[0] = i;
 //			cladeIDs.add(cladeID);
@@ -1432,11 +1322,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 //		m_summaryTree[5] = m_cTrees[iMaxCladeProbTopology].copy();
 		
 		if (m_sOptTree != null) {
-			TreeFileParser parser = new TreeFileParser(m_sLabels, null, null, 0);
+			TreeFileParser parser = new TreeFileParser(settings.m_sLabels, null, null, 0);
 			try {
 				Node tree = parser.parseNewick(m_sOptTree);
 				tree.sort();
-				tree.labelInternalNodes(m_nNrOfLabels);
+				tree.labelInternalNodes(settings.m_nNrOfLabels);
 				float fTreeHeight = positionHeight(tree, 0);
 				offsetHeight(tree, m_fHeight - fTreeHeight);
 				calcCladeIDForNode(tree, mapCladeToIndex);
@@ -1638,7 +1528,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		DecimalFormat format = new  DecimalFormat("###.##");
 		
 		for (int i = 0; i < m_cladePosition.length; i++) {
-			if (m_cladeWeight.get(i) >= m_smallestCladeSupport) {
+			if (m_cladeWeight.get(i) >= settings.m_smallestCladeSupport) {
 				String sStr = "";
 				//if (m_clades.get(i).length > 1) {
 					sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
@@ -1647,9 +1537,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					sStr += "[";
 					int j = 0;
 					for (j = 0; j < m_clades.get(i).length - 1; j++) {
-						sStr += (m_sLabels.get(m_clades.get(i)[j]) + ",");
+						sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + ",");
 					}
-					sStr += (m_sLabels.get(m_clades.get(i)[j]) + "]\n");
+					sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + "]\n");
 					list.add(sStr);
 				//}
 			}
@@ -1878,24 +1768,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	void calcColorPattern() {
-		m_iColor = new int[m_sLabels.size()];
-		Pattern pattern = Pattern.compile(".*" + m_sColorPattern + ".*");
+		settings.m_iColor = new int[settings.m_sLabels.size()];
+		Pattern pattern = Pattern.compile(".*" + settings.m_sColorPattern + ".*");
 		List<String> sPatterns = new ArrayList<String>();
-		for (int i = 0; i < m_sLabels.size(); i++) {
-			String sLabel = m_sLabels.get(i);
+		for (int i = 0; i < settings.m_sLabels.size(); i++) {
+			String sLabel = settings.m_sLabels.get(i);
 			Matcher matcher = pattern.matcher(sLabel);
 			if (matcher.find()) {
 				String sMatch = matcher.group(1);
 				if (sPatterns.indexOf(sMatch) < 0) {
 					sPatterns.add(sMatch);
 				}
-				m_iColor[i] = sPatterns.indexOf(sMatch);
+				settings.m_iColor[i] = sPatterns.indexOf(sMatch);
 			}
 		}
 	}
 
 	void loadKML() {
-		String sFileName = m_sKMLFile;
+		String sFileName = settings.m_sKMLFile;
 		HashMap<String, Vector<Double>> mapLabel2X = new HashMap<String, Vector<Double>>();
 		HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<String, Vector<Double>>();
 
@@ -2016,10 +1906,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} catch (Exception e) {
 			// try to process as tab-delimited txt file
 			try {
-				m_fMinLat = 90;
-				m_fMinLong = 180;
-				m_fMaxLat = -90;
-				m_fMaxLong = -180;
+				settings.m_fMinLat = 90;
+				settings.m_fMinLong = 180;
+				settings.m_fMaxLat = -90;
+				settings.m_fMaxLong = -180;
 
 				BufferedReader fin = new BufferedReader(new FileReader(sFileName));
 				String sStr = null;
@@ -2054,12 +1944,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		try {
 			// grab Taxa From Objects
-			m_fMinLat = 90;
-			m_fMinLong = 180;
-			m_fMaxLat = -90;
-			m_fMaxLong = -180;
-			for (int iLabel = 0; iLabel < m_nNrOfLabels; iLabel++) {
-				String sTaxon = m_sLabels.get(iLabel).toLowerCase();
+			settings.m_fMinLat = 90;
+			settings.m_fMinLong = 180;
+			settings.m_fMaxLat = -90;
+			settings.m_fMaxLong = -180;
+			for (int iLabel = 0; iLabel < settings.m_nNrOfLabels; iLabel++) {
+				String sTaxon = settings.m_sLabels.get(iLabel).toLowerCase();
 				String sTaxon2 = sTaxon.replaceAll("[-_]", "");
 				if (mapLabel2X.containsKey(sTaxon) || mapLabel2X.containsKey(sTaxon2)) {
 					if (!mapLabel2X.containsKey(sTaxon)) {
@@ -2077,34 +1967,34 @@ public class DensiTree extends JPanel implements ComponentListener {
 						fY += f;
 					}
 					fY /= nY.size();
-					while (m_fLatitude.size() <= iLabel) {
-						m_fLatitude.add(0f);
-						m_fLongitude.add(0f);
+					while (settings.m_fLatitude.size() <= iLabel) {
+						settings.m_fLatitude.add(0f);
+						settings.m_fLongitude.add(0f);
 					}
-					m_fLatitude.set(iLabel, (float) fY);
-					m_fLongitude.set(iLabel, (float) fX);
-					m_fMinLat = Math.min(m_fMinLat, (float) fY);
-					m_fMaxLat = Math.max(m_fMaxLat, (float) fY);
-					m_fMinLong = Math.min(m_fMinLong, (float) fX);
-					m_fMaxLong = Math.max(m_fMaxLong, (float) fX);
+					settings.m_fLatitude.set(iLabel, (float) fY);
+					settings.m_fLongitude.set(iLabel, (float) fX);
+					settings.m_fMinLat = Math.min(settings.m_fMinLat, (float) fY);
+					settings.m_fMaxLat = Math.max(settings.m_fMaxLat, (float) fY);
+					settings.m_fMinLong = Math.min(settings.m_fMinLong, (float) fX);
+					settings.m_fMaxLong = Math.max(settings.m_fMaxLong, (float) fX);
 				} else {
 					System.err.println("No geo info for " + sTaxon
 							+ " found (probably because taxon is missing or spelling error)");
-					while (m_fLatitude.size() <= iLabel) {
-						m_fLatitude.add(0f);
-						m_fLongitude.add(0f);
+					while (settings.m_fLatitude.size() <= iLabel) {
+						settings.m_fLatitude.add(0f);
+						settings.m_fLongitude.add(0f);
 					}
-					m_fLatitude.set(iLabel, 0f);
-					m_fLongitude.set(iLabel, 0f);
+					settings.m_fLatitude.set(iLabel, 0f);
+					settings.m_fLongitude.set(iLabel, 0f);
 				}
 			}
 			float fOffset = GEO_OFFSET;
-			m_fMaxLong = m_fMaxLong + fOffset;
-			m_fMaxLat = m_fMaxLat + fOffset;
-			m_fMinLong = m_fMinLong - fOffset;
-			m_fMinLat = m_fMinLat - fOffset;
+			settings.m_fMaxLong = settings.m_fMaxLong + fOffset;
+			settings.m_fMaxLat = settings.m_fMaxLat + fOffset;
+			settings.m_fMinLong = settings.m_fMinLong - fOffset;
+			settings.m_fMinLat = settings.m_fMinLat - fOffset;
 			
-			System.err.println("geo range (" +m_fMinLat + "," + m_fMinLong+ ")x(" + m_fMaxLat+","+ m_fMaxLong+")");
+			System.err.println("geo range (" +settings.m_fMinLat + "," + settings.m_fMinLong+ ")x(" + settings.m_fMaxLat+","+ settings.m_fMaxLong+")");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2131,15 +2021,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * investigation of some of the tree set features
 	 */
 	void reshuffle(int nMethod) {
-		int [] oldOrder = m_nOrder.clone();
-		m_nShuffleMode = nMethod;
+		int [] oldOrder = settings.m_nOrder.clone();
+		settings.m_nShuffleMode = nMethod;
 		setWaitCursor();
 		
-		if (m_sOrderFile != null) {
-			if (new File(m_sOrderFile).exists()) {
+		if (settings.m_sOrderFile != null) {
+			if (new File(settings.m_sOrderFile).exists()) {
 				nMethod = NodeOrderer.MANUAL;
 			} else {
-				JOptionPane.showMessageDialog(this, "Could not find file " + m_sOrderFile + " for reading");
+				JOptionPane.showMessageDialog(this, "Could not find file " + settings.m_sOrderFile + " for reading");
 			}
 		}
 
@@ -2153,12 +2043,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			case NodeOrderer.MANUAL: {
 				// use order given by user
-				for (int i = 0; i < m_sLabels.size(); i++) {
-					System.out.print(m_sLabels.elementAt(i) + " ");
+				for (int i = 0; i < settings.m_sLabels.size(); i++) {
+					System.out.print(settings.m_sLabels.elementAt(i) + " ");
 				}
 				
 				String[] sIndex;
-				if (m_sOrderFile == null) {
+				if (settings.m_sOrderFile == null) {
 					String sOrder = JOptionPane.showInputDialog("New node order:", "");
 					if (sOrder == null) {
 						return;
@@ -2167,7 +2057,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				} else {
 					List<String> labels = new ArrayList<>();
 					try {
-				        BufferedReader fin = new BufferedReader(new FileReader(m_sOrderFile));
+				        BufferedReader fin = new BufferedReader(new FileReader(settings.m_sOrderFile));
 				        String str = null;
 				        while (fin.ready()) {
 				            str = fin.readLine();
@@ -2178,34 +2068,34 @@ public class DensiTree extends JPanel implements ComponentListener {
 				        fin.close();
 					} catch (IOException e) {
 						e.printStackTrace();
-						JOptionPane.showMessageDialog(this, "Something went wrong with file " + m_sOrderFile + ": " + e.getMessage());
+						JOptionPane.showMessageDialog(this, "Something went wrong with file " + settings.m_sOrderFile + ": " + e.getMessage());
 						
 					}
 					sIndex = labels.toArray(new String[]{});
 					//m_sOrderFile = null;
 				}
 				
-				if (sIndex.length != m_nNrOfLabels) {
+				if (sIndex.length != settings.m_nNrOfLabels) {
 					System.err.println("Number of labels/taxa differs from given labels");
 					return;
 				}
-				int[] nOrder = new int[m_nOrder.length];
-				int[] nRevOrder = new int[m_nRevOrder.length];
+				int[] nOrder = new int[settings.m_nOrder.length];
+				int[] nRevOrder = new int[settings.m_nRevOrder.length];
 				for (int i = 0; i < sIndex.length; i++) {
 					int j = 0;
 					String sTarget = sIndex[i];
-					while ((j < m_sLabels.size()) && !(m_sLabels.elementAt(j).equals(sTarget))) {
+					while ((j < settings.m_sLabels.size()) && !(settings.m_sLabels.elementAt(j).equals(sTarget))) {
 						j++;
 					}
-					if (j == m_sLabels.size()) {
+					if (j == settings.m_sLabels.size()) {
 						System.err.println("Label \"" + sTarget + "\" not found among labels");
 						return;
 					}
 					nOrder[j] = i;
 					nRevOrder[i] = j;
 				}
-				m_nOrder = nOrder;
-				m_nRevOrder = nRevOrder;
+				settings.m_nOrder = nOrder;
+				settings.m_nRevOrder = nRevOrder;
 			}
 				break;
 			case NodeOrderer.META_ALL:
@@ -2219,17 +2109,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			default:
 				// otherwise, use one of the distance based methods
 				NodeOrderer h = new NodeOrderer(nMethod);
-				int[] nOrder = h.calcOrder(m_nNrOfLabels, m_trees, m_cTrees, m_rootcanaltree, m_fTreeWeight/*
+				int[] nOrder = h.calcOrder(settings.m_nNrOfLabels, m_trees, m_cTrees, m_rootcanaltree, m_fTreeWeight/*
 																						 * ,
 																						 * m_nOrder
 																						 */, m_clades, m_cladeWeight);
-				m_nOrder = nOrder;
-				for (int i = 0; i < m_nNrOfLabels; i++) {
-					m_nRevOrder[m_nOrder[i]] = i;
+				settings.m_nOrder = nOrder;
+				for (int i = 0; i < settings.m_nNrOfLabels; i++) {
+					settings.m_nRevOrder[settings.m_nOrder[i]] = i;
 				}
 				System.err.println();
-				for (int i = 0; i < m_nNrOfLabels; i++) {
-					System.out.print(m_sLabels.elementAt(m_nRevOrder[i]) + " ");
+				for (int i = 0; i < settings.m_nNrOfLabels; i++) {
+					System.out.print(settings.m_sLabels.elementAt(settings.m_nRevOrder[i]) + " ");
 				}
 				System.out.println();
 			}
@@ -2238,13 +2128,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		int nNodes = getNrOfNodes(m_trees[0]);
 		if (nMethod < NodeOrderer.META_ALL) {
-			m_bShowBounds = false;
+			settings.m_bShowBounds = false;
 			calcPositions();
 			calcLines();
 			makeDirty();
 			addAction(new DoAction());
 		} else {
-			m_bShowBounds = true;
+			settings.m_bShowBounds = true;
 			m_pattern = Pattern.compile(m_sPattern);
 			switch (nMethod) {
 			case NodeOrderer.META_ALL: {
@@ -2257,7 +2147,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					double fX = positionMetaAll(m_cTrees[i]);
 					fMaxX = Math.max(fMaxX, fX);
 				}
-				fMaxX = m_nNrOfLabels / fMaxX;
+				fMaxX = settings.m_nNrOfLabels / fMaxX;
 				for (int i = 0; i < m_trees.length; i++) {
 					scaleX(m_trees[i], fMaxX);
 				}
@@ -2270,9 +2160,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			case NodeOrderer.META_SUM:
 			case NodeOrderer.META_AVERAGE: {
 				for (int i = 0; i < m_trees.length; i++) {
-					float[] fHeights = new float[m_nNrOfLabels * 2 - 1];
-					float[] fMetas = new float[m_nNrOfLabels * 2 - 1];
-					int[] nCounts = new int[m_nNrOfLabels * 2 - 1];
+					float[] fHeights = new float[settings.m_nNrOfLabels * 2 - 1];
+					float[] fMetas = new float[settings.m_nNrOfLabels * 2 - 1];
+					int[] nCounts = new int[settings.m_nNrOfLabels * 2 - 1];
 					collectHeights(m_trees[i], fHeights, 0);
 					Arrays.sort(fHeights);
 					collectMetaData(m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
@@ -2296,9 +2186,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 				}
 				for (int i = 0; i < m_cTrees.length; i++) {
-					float[] fHeights = new float[m_nNrOfLabels * 2 - 1];
-					float[] fMetas = new float[m_nNrOfLabels * 2 - 1];
-					int[] nCounts = new int[m_nNrOfLabels * 2 - 1];
+					float[] fHeights = new float[settings.m_nNrOfLabels * 2 - 1];
+					float[] fMetas = new float[settings.m_nNrOfLabels * 2 - 1];
+					int[] nCounts = new int[settings.m_nNrOfLabels * 2 - 1];
 					collectHeights(m_cTrees[i], fHeights, 0);
 					Arrays.sort(fHeights);
 					collectMetaData(m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
@@ -2333,7 +2223,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						fMaxX = Math.max(f, fMaxX);
 					}
 				}
-				float fScale = m_nNrOfLabels / fMaxX;
+				float fScale = settings.m_nNrOfLabels / fMaxX;
 				for (float[] fXs : m_fCLinesX) {
 					for (int i = 0; i < fXs.length; i++) {
 						fXs[i] *= fScale;
@@ -2365,21 +2255,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		System.err.println("Rotating " + iRotationPoint + " " + iLeafs);
 		// find rotation range
-		int iMin = m_nOrder.length;
+		int iMin = settings.m_nOrder.length;
 		int iMax = 0;
 		for (Integer i : iLeafs) {
-			int j = m_nOrder[i];
+			int j = settings.m_nOrder[i];
 			iMin = Math.min(j, iMin);
 			iMax = Math.max(j, iMax);
 		}
 		for (int i = 0; i < (iMax - iMin) / 2 + 1; i++) {
-			int nTmp = m_nRevOrder[iMin + i];
-			m_nRevOrder[iMin + i] = m_nRevOrder[iMax - i];
-			m_nRevOrder[iMax - i] = nTmp;
+			int nTmp = settings.m_nRevOrder[iMin + i];
+			settings.m_nRevOrder[iMin + i] = settings.m_nRevOrder[iMax - i];
+			settings.m_nRevOrder[iMax - i] = nTmp;
 		}
 
-		for (int i = 0; i < m_sLabels.size(); i++) {
-			m_nOrder[m_nRevOrder[i]] = i;
+		for (int i = 0; i < settings.m_sLabels.size(); i++) {
+			settings.m_nOrder[settings.m_nRevOrder[i]] = i;
 		}
 
 		calcPositions();
@@ -2392,7 +2282,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Vector<Integer> iLeafs = new Vector<Integer>();
 		getRotationLeafs(m_cTrees[0], -1, iLeafs, iRotationPoint);
 		boolean[] bSelection = m_bSelection;
-		m_bSelection = new boolean[m_sLabels.size()];
+		m_bSelection = new boolean[settings.m_sLabels.size()];
 		for (int i : iLeafs) {
 			m_bSelection[i] = true;
 		}
@@ -2482,7 +2372,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < m_trees.length; i++) {
 			// m_fLinesX[i] = new float[nNodes * 2 + 2];
 			// m_fLinesY[i] = new float[nNodes * 2 + 2];
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				nNodes = getNrOfNodes(m_trees[i]);
 				m_fLinesX[i] = new float[nNodes * 2 + 2];
 				m_fLinesY[i] = new float[nNodes * 2 + 2];
@@ -2498,7 +2388,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		for (int i = 0; i < m_cTrees.length; i++) {
 			// m_fCLinesX[i] = new float[nNodes * 2 + 2];
 			// m_fCLinesY[i] = new float[nNodes * 2 + 2];
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				nNodes = getNrOfNodes(m_cTrees[i]);
 				m_fCLinesX[i] = new float[nNodes * 2 + 2];
 				m_fCLinesY[i] = new float[nNodes * 2 + 2];
@@ -2513,7 +2403,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		m_fRLinesX = new float[1][nNodes * 2 + 2];
 		m_fRLinesY = new float[1][nNodes * 2 + 2];
-		if (!m_bAllowSingleChild && m_bCladesReady) {
+		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
 			calcLinesForNode(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0]);
 		}
 		
@@ -2550,25 +2440,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	void calcLinesForNode(Node node, float [] fLinesX, float [] fLinesY) {
 		boolean[] b = new boolean[1];
-		if (m_bAllowSingleChild) {
+		if (settings.m_bAllowSingleChild) {
 			node.drawDryWithSingleChild(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
 					m_fTreeScale);
 		} else {
-			switch (m_Xmode) {
+			switch (settings.m_Xmode) {
 			case 0:
 				node.drawDry(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset, m_fTreeScale);
 				break;
 			case 1:
 				node.drawDryCentralised(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
-						m_fTreeScale, new float[2], new float[m_nNrOfLabels * 2 - 1],
-						new float[m_nNrOfLabels * 2 - 1], m_cladePosition);
+						m_fTreeScale, new float[2], new float[settings.m_nNrOfLabels * 2 - 1],
+						new float[settings.m_nNrOfLabels * 2 - 1], m_cladePosition);
 				break;
 			case 2:
-				float[] fCladeCenterX = new float[m_nNrOfLabels * 2 - 1];
-				float[] fCladeCenterY = new float[m_nNrOfLabels * 2 - 1];
-				float[] fPosX = new float[m_nNrOfLabels * 2 - 1];
-				float[] fPosY = new float[m_nNrOfLabels * 2 - 1];
-				node.getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition, m_sLabels.size());
+				float[] fCladeCenterX = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fCladeCenterY = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fPosX = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fPosY = new float[settings.m_nNrOfLabels * 2 - 1];
+				node.getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition, settings.m_sLabels.size());
 				node.drawStarTree(fLinesX, fLinesY, fPosX, fPosY, fCladeCenterX, fCladeCenterY,
 						m_bSelection, m_fTreeOffset, m_fTreeScale);
 				break;
@@ -2597,7 +2487,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_sPrevLineWidthPattern = m_sLineWidthPattern;
 		setWaitCursor();
 
-		if (m_sLabels == null) {
+		if (settings.m_sLabels == null) {
 			// no trees loaded
 			return;
 		}
@@ -2713,7 +2603,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				return;
 			}
 		}
-		if (m_sLabels == null) {
+		if (settings.m_sLabels == null) {
 			// no trees loaded
 			return;
 		}
@@ -2729,19 +2619,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			for (int i = 0; i < m_trees.length; i++) {
-				if (m_bAllowSingleChild) {
+				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
 				}
 				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTree(m_trees[i], m_nLineColor[i], 0);
 			}
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				//if (m_bAllowSingleChild) {
+				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
@@ -2756,11 +2646,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			//if (m_bAllowSingleChild) {
+			//if (settings.m_bAllowSingleChild) {
 			//	break;
 			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case BY_METADATA_PATTERN:
 			m_pattern = Pattern.compile(m_sLineColorPattern);
@@ -2770,19 +2660,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 			//m_colorMetaDataCategories = new ArrayList<String>();
 			m_colorMetaDataCategories = new HashMap<String, Integer>();
 			for (int i = 0; i < m_trees.length; i++) {
-				if (m_bAllowSingleChild) {
+				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
 				}
 				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTreeByMetaData(m_trees[i], m_nLineColor[i], 0);
 			}
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				//if (m_bAllowSingleChild) {
+				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
@@ -2797,11 +2687,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			//if (m_bAllowSingleChild) {
+			//if (settings.m_bAllowSingleChild) {
 			//	break;
 			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case COLOR_BY_METADATA_TAG:
 			m_pattern = Pattern.compile(m_sPattern);
@@ -2820,20 +2710,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			for (int i = 0; i < m_trees.length; i++) {
-				if (m_bAllowSingleChild) {
+				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
 				}
 				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				colorTreeByMetaDataTag(m_trees[i], m_nLineColor[i], 0, colorByCategory);
 			}
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				// it is known m_bAllowSingleChild = false at this point
-				//if (m_bAllowSingleChild) {
+				// it is known settings.m_bAllowSingleChild = false at this point
+				//if (settings.m_bAllowSingleChild) {
 				//	nNodes = getNrOfNodes(m_cTrees[i]);
 				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
@@ -2849,49 +2739,49 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case DEFAULT:
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			for (int i = 0; i < m_trees.length; i++) {
-				if (m_bAllowSingleChild) {
+				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
 				}
 				m_nLineColor[i] = new int[nNodes * 2 + 2];
 				int color = 0;
 				switch (m_nTopologyByPopularity[i]) {
 				case 0:
-					color = m_color[0].getRGB();
+					color = settings.m_color[0].getRGB();
 					break;
 				case 1:
-					color = m_color[1].getRGB();
+					color = settings.m_color[1].getRGB();
 					break;
 				case 2:
-					color = m_color[2].getRGB();
+					color = settings.m_color[2].getRGB();
 					break;
 				default:
-					color = m_color[3].getRGB();
+					color = settings.m_color[3].getRGB();
 				}
 				Arrays.fill(m_nLineColor[i], color);
 			}
 			for (int i = 0; i < m_cTrees.length; i++) {
-				int color = m_color[CONSCOLOR].getRGB();
+				int color = settings.m_color[CONSCOLOR].getRGB();
 				if (m_bViewMultiColor) {
-					color = m_color[9 + (i % (m_color.length - 9))].getRGB();
+					color = settings.m_color[9 + (i % (settings.m_color.length - 9))].getRGB();
 				}
-				if (m_bAllowSingleChild) {
+				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_cTrees[i]);
 				}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				Arrays.fill(m_nCLineColor[i], color);
 			}
-			if (m_bAllowSingleChild) {
+			if (settings.m_bAllowSingleChild) {
 				break;
 			}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
-			Arrays.fill(m_nRLineColor[0], m_color[ROOTCANALCOLOR].getRGB());
+			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		}
 	} // calcColors
@@ -2903,11 +2793,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (node.m_right != null) {
 				iPos = colorTreeByMetaData(node.m_right, nLineColor, iPos);
 			}
-			int color = m_color[9 + getMetaDataCategory(node.m_left) % (m_color.length - 9)].getRGB();
+			int color = settings.m_color[9 + getMetaDataCategory(node.m_left) % (settings.m_color.length - 9)].getRGB();
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
 			if (node.m_right != null) {
-				color = m_color[9 + getMetaDataCategory(node.m_right) % (m_color.length - 9)].getRGB();
+				color = settings.m_color[9 + getMetaDataCategory(node.m_right) % (settings.m_color.length - 9)].getRGB();
 			}
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
@@ -2945,7 +2835,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	int colorForNode(Node node, boolean colorByCategory) {
 		int color = 0;
 		Object o = node.getMetaDataSet().get(m_lineColorTag);
-		if (colorByCategory || m_bColorByCategory) {
+		if (colorByCategory || settings.m_bColorByCategory) {
 			if (o != null) {
 				if (m_colorMetaDataCategories.get(o.toString()) == null) {
 					m_colorMetaDataCategories.put(o.toString(), m_colorMetaDataCategories.size());
@@ -2955,8 +2845,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 //				}
 //				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
 				int i = m_colorMetaDataCategories.get(o.toString());
-				System.err.println(i + " " + (9 + i % (m_color.length - 9)) + " " + m_color.length);
-				color = m_color[9 + i % (m_color.length - 9)].getRGB();
+				System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
+				color = settings.m_color[9 + i % (settings.m_color.length - 9)].getRGB();
 			}
 		} else {
 			if (o != null) {
@@ -2973,7 +2863,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (node != null && !node.isLeaf()) {
 			iPos = colorTree(node.m_left, nLineColor, iPos);
 			iPos = colorTree(node.m_right, nLineColor, iPos);
-			int color = m_color[9+node.m_iClade%9].getRGB();
+			int color = settings.m_color[9+node.m_iClade%9].getRGB();
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
 			nLineColor[iPos++] = color;
@@ -3023,7 +2913,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 //					nY[iPos] = node.m_fPosY;
 					bNeedsDrawing[0] = true;
 				} else {
-					fWidth[iPos] = m_nTreeWidth;
+					fWidth[iPos] = settings.m_nTreeWidth;
 //					nX[iPos] = node.m_fPosX;
 //					nY[iPos] = node.m_fPosY;
 					iPos++;
@@ -3049,7 +2939,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				} else {
 //					nX[iPos] = node.m_fPosX;
 //					nY[iPos] = node.m_fPosY;
-					fWidth[iPos] = m_nTreeWidth;
+					fWidth[iPos] = settings.m_nTreeWidth;
 					iPos++;
 //					nX[iPos] = node.m_fPosX;
 //					nY[iPos] = node.m_fPosY;
@@ -3057,7 +2947,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fWidth[iPos] = fWidth[iPos-1];
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
 				iPos++;
-				if (m_lineWidthModeTop == LineWidthMode.DEFAULT && m_bCorrectTopOfBranch) {
+				if (m_lineWidthModeTop == LineWidthMode.DEFAULT && settings.m_bCorrectTopOfBranch) {
 					float fCurrentWidth = getGamma(node, 1, m_lineWidthMode, m_lineWidthTag, m_pattern);
 					float fSumWidth = fWidth[iPos-2] + fWidth[iPos-4];
 					fWidthTop[iPos-2] = fCurrentWidth * fWidth[iPos-2]/fSumWidth;
@@ -3115,7 +3005,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					Object o = map.get(tag);
 					if (o != null) {
 						try {
-							if (m_bWidthsAreZeroBased) {
+							if (settings.m_bWidthsAreZeroBased) {
 								double frac = ((Double) o) /Node.g_maxValue.get(m_lineWidthTag);
 								return (float) frac;
 							} else {
@@ -3140,8 +3030,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** initialise order of leafs **/
 	int initOrder(Node node, int iNr) throws Exception {
 		if (node.isLeaf()) {
-			m_nOrder[node.m_iLabel] = iNr;
-			m_nRevOrder[iNr] = node.m_iLabel;
+			settings.m_nOrder[node.m_iLabel] = iNr;
+			settings.m_nRevOrder[iNr] = node.m_iLabel;
 			return iNr + 1;
 		} else {
 			iNr = initOrder(node.m_left, iNr);
@@ -3155,8 +3045,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** number of leafs in selection, handy for sanity checks **/
 	int selectionSize() {
 		int nSelected = 0;
-		for (int i = 0; i < m_nRevOrder.length; i++) {
-			if (m_bSelection[m_nRevOrder[i]]) {
+		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
+			if (m_bSelection[settings.m_nRevOrder[i]]) {
 				nSelected++;
 			}
 		}
@@ -3175,7 +3065,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** check at least one, but not all labels are selected **/
 	boolean moveSanityChek() {
 		int nSelected = selectionSize();
-		if (nSelected > 0 && nSelected < m_nRevOrder.length - 1) {
+		if (nSelected > 0 && nSelected < settings.m_nRevOrder.length - 1) {
 			return true;
 		}
 		JOptionPane.showMessageDialog(null, "To move labels, select at least one, but not all of the labels",
@@ -3185,15 +3075,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** move labels in selection down in ordering **/
 	void moveSelectedLabelsDown() {
-		for (int i = 1; i < m_nRevOrder.length; i++) {
-			if (m_bSelection[m_nRevOrder[i]] && !m_bSelection[m_nRevOrder[i - 1]]) {
-				int h = m_nRevOrder[i];
-				m_nRevOrder[i] = m_nRevOrder[i - 1];
-				m_nRevOrder[i - 1] = h;
+		for (int i = 1; i < settings.m_nRevOrder.length; i++) {
+			if (m_bSelection[settings.m_nRevOrder[i]] && !m_bSelection[settings.m_nRevOrder[i - 1]]) {
+				int h = settings.m_nRevOrder[i];
+				settings.m_nRevOrder[i] = settings.m_nRevOrder[i - 1];
+				settings.m_nRevOrder[i - 1] = h;
 			}
 		}
-		for (int i = 0; i < m_nRevOrder.length; i++) {
-			m_nOrder[m_nRevOrder[i]] = i;
+		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
+			settings.m_nOrder[settings.m_nRevOrder[i]] = i;
 		}
 		calcPositions();
 		addAction(new DoAction());
@@ -3201,28 +3091,28 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** move labels in selection up in ordering **/
 	void moveSelectedLabelsUp() {
-		for (int i = m_nRevOrder.length - 2; i >= 0; i--) {
-			if (m_bSelection[m_nRevOrder[i]] && !m_bSelection[m_nRevOrder[i + 1]]) {
-				int h = m_nRevOrder[i];
-				m_nRevOrder[i] = m_nRevOrder[i + 1];
-				m_nRevOrder[i + 1] = h;
+		for (int i = settings.m_nRevOrder.length - 2; i >= 0; i--) {
+			if (m_bSelection[settings.m_nRevOrder[i]] && !m_bSelection[settings.m_nRevOrder[i + 1]]) {
+				int h = settings.m_nRevOrder[i];
+				settings.m_nRevOrder[i] = settings.m_nRevOrder[i + 1];
+				settings.m_nRevOrder[i + 1] = h;
 			}
 		}
-		for (int i = 0; i < m_nRevOrder.length; i++) {
-			m_nOrder[m_nRevOrder[i]] = i;
+		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
+			settings.m_nOrder[settings.m_nRevOrder[i]] = i;
 		}
 		calcPositions();
 		addAction(new DoAction());
 	}
 
 	public void calcPositions() {
-		if (m_sLabels == null) {
+		if (settings.m_sLabels == null) {
 			// no trees loaded yet
 			return;
 		}
 		setWaitCursor();
 
-		if (!m_bAllowSingleChild && m_bCladesReady) {
+		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
 			Arrays.fill(m_cladePosition, -1);
 			boolean bProgress = true;
 			do {
@@ -3237,14 +3127,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			} while (bProgress);
 	
-			if (m_bUseAngleCorrection) {
+			if (settings.m_bUseAngleCorrection) {
 				for (int i = 0; i < m_clades.size(); i++) {
-					if (m_cladeWeight.get(i) > m_fAngleCorrectionThresHold) {
+					if (m_cladeWeight.get(i) > settings.m_fAngleCorrectionThresHold) {
 						for (ChildClade child : m_cladeChildren.get(i)) {
-							if (m_cladeWeight.get(child.m_iLeft) < m_fAngleCorrectionThresHold) {
+							if (m_cladeWeight.get(child.m_iLeft) < settings.m_fAngleCorrectionThresHold) {
 								m_cladePosition[child.m_iLeft] = m_cladePosition[i];
 							}
-							if (m_cladeWeight.get(child.m_iRight) < m_fAngleCorrectionThresHold) {
+							if (m_cladeWeight.get(child.m_iRight) < settings.m_fAngleCorrectionThresHold) {
 								m_cladePosition[child.m_iRight] = m_cladePosition[i];
 							}
 						}
@@ -3254,7 +3144,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		for (int i = 0; i < m_trees.length; i++) {
-			if (m_nShuffleMode == NodeOrderer.GEOINFO) {
+			if (settings.m_nShuffleMode == NodeOrderer.GEOINFO) {
 				positionLeafsGeo(m_trees[i]);
 			} else {
 				positionLeafs(m_trees[i]);
@@ -3262,14 +3152,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			positionRest(m_trees[i]);
 		}
 		for (int i = 0; i < m_cTrees.length; i++) {
-			if (m_nShuffleMode == NodeOrderer.GEOINFO) {
+			if (settings.m_nShuffleMode == NodeOrderer.GEOINFO) {
 				positionLeafsGeo(m_cTrees[i]);
 			} else {
 				positionLeafs(m_cTrees[i]);
 			}
 			positionRest(m_cTrees[i]);
 		}
-		if (!m_bAllowSingleChild && m_bCladesReady) {
+		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
 			for (Node tree : m_summaryTree) {
 				positionLeafs(tree);
 				positionRest(tree);
@@ -3278,11 +3168,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	private float positionClades(int iClade) {
-		float fMin = m_nNrOfLabels;
+		float fMin = settings.m_nNrOfLabels;
 		float fMax = 0;
 		for (int i : m_clades.get(iClade)) {
-			fMin = Math.min(fMin, m_nOrder[i]);
-			fMax = Math.max(fMax, m_nOrder[i]);
+			fMin = Math.min(fMin, settings.m_nOrder[i]);
+			fMax = Math.max(fMax, settings.m_nOrder[i]);
 		}
 		return (fMin + fMax) / 2.0f + 0.5f;
 	}
@@ -3293,7 +3183,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * **/
 	void positionLeafs(Node node) {
 		if (node.isLeaf()) {
-			node.m_fPosX = m_nOrder[node.m_iLabel] + 0.5f;
+			node.m_fPosX = settings.m_nOrder[node.m_iLabel] + 0.5f;
 			if (m_cladePosition != null) {
 				//node.m_fPosX += m_cladePosition[node.m_iLabel];
 			}
@@ -3313,11 +3203,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void positionLeafsGeo(Node node) {
 		if (node.isLeaf()) {
 			if (m_treeDrawer.m_bRootAtTop) {
-				node.m_fPosX = m_nNrOfLabels * (m_fLongitude.elementAt(node.m_iLabel) - m_fMinLong)
-						/ (m_fMaxLong - m_fMinLong);
+				node.m_fPosX = settings.m_nNrOfLabels * (settings.m_fLongitude.elementAt(node.m_iLabel) - settings.m_fMinLong)
+						/ (settings.m_fMaxLong - settings.m_fMinLong);
 			} else {
-				node.m_fPosX = m_nNrOfLabels * (m_fMaxLat - m_fLatitude.elementAt(node.m_iLabel))
-						/ (m_fMaxLat - m_fMinLat);
+				node.m_fPosX = settings.m_nNrOfLabels * (settings.m_fMaxLat - settings.m_fLatitude.elementAt(node.m_iLabel))
+						/ (settings.m_fMaxLat - settings.m_fMinLat);
 			}
 		} else {
 			positionLeafsGeo(node.m_left);
@@ -3405,7 +3295,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // positionMetaAll
 
 	void scaleX(Node node, double fScale) {
-		node.m_fPosX = (float) (m_sLabels.size() - node.m_fPosX * fScale);
+		node.m_fPosX = (float) (settings.m_sLabels.size() - node.m_fPosX * fScale);
 		if (!node.isLeaf()) {
 			scaleX(node.m_left, fScale);
 			scaleX(node.m_right, fScale);
@@ -3450,7 +3340,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 **/
 	void getPosition(Node node, float[] fPosX) {
 		if (node.isLeaf()) {
-			fPosX[m_nOrder[node.m_iLabel]] = node.m_fPosX;
+			fPosX[settings.m_nOrder[node.m_iLabel]] = node.m_fPosX;
 		} else {
 			getPosition(node.m_left, fPosX);
 			if (node.m_right != null) {
@@ -3465,7 +3355,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 **/
 	void setPosition(Node node, float[] fPosX) {
 		if (node.isLeaf()) {
-			node.m_fPosX = fPosX[m_nOrder[node.m_iLabel]];
+			node.m_fPosX = fPosX[settings.m_nOrder[node.m_iLabel]];
 		} else {
 			setPosition(node.m_left, fPosX);
 			if (node.m_right != null) {
@@ -3544,69 +3434,69 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g) {
-		if (m_bHideLabels) {
+		if (settings.m_bHideLabels) {
 			return;
 		}
 		g.setFont(m_font);
-		if (m_bShowBounds) {
+		if (settings.m_bShowBounds) {
 			return;
 		}
 
 		if (node.isLeaf()) {
 			if (m_bSelection[node.m_iLabel]) {
-				if (m_iColor == null) {
-					g.setColor(m_color[LABELCOLOR]);
+				if (settings.m_iColor == null) {
+					g.setColor(settings.m_color[LABELCOLOR]);
 				} else {
-					g.setColor(m_color[GEOCOLOR + m_iColor[node.m_iLabel] % (m_color.length - GEOCOLOR)]);
+					g.setColor(settings.m_color[GEOCOLOR + settings.m_iColor[node.m_iLabel] % (settings.m_color.length - GEOCOLOR)]);
 				}
 			} else {
 				g.setColor(Color.GRAY);
 			}
 			if (m_treeDrawer.m_bRootAtTop) {
-				if (m_bRotateTextWhenRootAtTop) {
+				if (settings.m_bRotateTextWhenRootAtTop) {
 					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().getHeight() / 3;
-					int y = getPosY(((m_bAlignLabels ? m_fHeight:node.m_fPosY) + m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;// ;
+					int y = getPosY(((m_bAlignLabels ? m_fHeight:node.m_fPosY) + settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;// ;
 					g.rotate(Math.PI / 2.0);
 					g.translate(y, -x);
-					g.drawString(m_sLabels.elementAt(node.m_iLabel), 0, 0);
+					g.drawString(settings.m_sLabels.elementAt(node.m_iLabel), 0, 0);
 					g.translate(-y, x);
 					g.rotate(-Math.PI / 2.0);
 					Rectangle r = m_bLabelRectangle[node.m_iLabel];
 					r.x = x;
 					r.y = y - 10;
 					r.height = 10;
-					r.width = m_nLabelWidth;
+					r.width = settings.m_nLabelWidth;
 					drawImage(g, x, y, node.m_iLabel);
 				} else {
-					String sLabel = m_sLabels.elementAt(node.m_iLabel);
+					String sLabel = settings.m_sLabels.elementAt(node.m_iLabel);
 					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().stringWidth(sLabel)
 							/ 2;
-					int y = getPosY(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + m_fLabelIndent - m_fTreeOffset) * m_fTreeScale)
+					int y = getPosY(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale)
 							+ g.getFontMetrics().getHeight() + 2;
 					g.drawString(sLabel, x, y);
 					Rectangle r = m_bLabelRectangle[node.m_iLabel];
 					r.x = x;
 					r.y = y - 10;
 					r.height = 10;
-					r.width = m_nLabelWidth;
+					r.width = settings.m_nLabelWidth;
 					drawImage(g, x, y, node.m_iLabel);
 				}
 			} else {
 				int y = (int) (node.m_fPosX * m_fScaleY/* m_fScale */) + g.getFontMetrics().getHeight() / 3;
-				int x = getPosX(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 1;
-				if (m_bDrawReverse) {
+				int x = getPosX(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 1;
+				if (settings.m_bDrawReverse) {
 					g.scale(-1.0, 1.0);
-					String text = m_sLabels.elementAt(node.m_iLabel);
+					String text = settings.m_sLabels.elementAt(node.m_iLabel);
 					g.drawString(text, -x-g.getFontMetrics().stringWidth(text), y);
 					g.scale(-1.0, 1.0);
 				} else {
-					g.drawString(m_sLabels.elementAt(node.m_iLabel), x, y);
+					g.drawString(settings.m_sLabels.elementAt(node.m_iLabel), x, y);
 				}
 				Rectangle r = m_bLabelRectangle[node.m_iLabel];
 				r.x = x;
 				r.y = y - 10;
 				r.height = 10;
-				r.width = m_nLabelWidth;
+				r.width = settings.m_nLabelWidth;
 				drawImage(g, x, y, node.m_iLabel);
 			}
 		} else {
@@ -3618,9 +3508,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	private void drawImage(Graphics g, int x, int y, int iLabel) {
-		if (m_LabelImages != null && m_LabelImages[iLabel] != null) {
-			BufferedImage img = m_LabelImages[iLabel];
-			g.drawImage(img, x, y-m_nImageSize, x+m_nImageSize, y, 0, 0, img.getWidth(), img.getHeight(), null);
+		if (settings.m_LabelImages != null && settings.m_LabelImages[iLabel] != null) {
+			BufferedImage img = settings.m_LabelImages[iLabel];
+			g.drawImage(img, x, y-settings.m_nImageSize, x+settings.m_nImageSize, y, 0, 0, img.getWidth(), img.getHeight(), null);
 		}
 	}
 	
@@ -3628,12 +3518,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void drawGeo(Node node, Graphics g) {
 		if (node.isLeaf()) {
 			if (m_bSelection[node.m_iLabel]) {
-				if (m_fLongitude.elementAt(node.m_iLabel) == 0 && m_fLatitude.elementAt(node.m_iLabel) == 0) {
+				if (settings.m_fLongitude.elementAt(node.m_iLabel) == 0 && settings.m_fLatitude.elementAt(node.m_iLabel) == 0) {
 					return;
 				}
-				int gx = (int) ((m_fLongitude.elementAt(node.m_iLabel) - m_fMinLong) * m_fScaleGX * m_fScale);
-				int gy = (int) ((m_fMaxLat - m_fLatitude.elementAt(node.m_iLabel)) * m_fScaleGY * m_fScale);
-				g.setColor(m_color[GEOCOLOR]);
+				int gx = (int) ((settings.m_fLongitude.elementAt(node.m_iLabel) - settings.m_fMinLong) * m_fScaleGX * m_fScale);
+				int gy = (int) ((settings.m_fMaxLat - settings.m_fLatitude.elementAt(node.m_iLabel)) * m_fScaleGY * m_fScale);
+				g.setColor(settings.m_color[GEOCOLOR]);
 				if (m_treeDrawer.m_bRootAtTop) {
 					int x = (int) (node.m_fPosX * m_fScaleX * m_fScale) + 10;
 					int y = getPosY(node.m_fPosY * m_fScale);
@@ -3643,7 +3533,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				} else {
 					int y = (int) (node.m_fPosX * m_fScaleY * m_fScale);
 					int x = getPosX(node.m_fPosY * m_fScale);
-					if (m_bInvertLongitude) {
+					if (settings.m_bInvertLongitude) {
 						x = 0;
 					}
 					g.drawLine(x, y, gx, gy);
@@ -3701,7 +3591,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * created to get the entire tree to be in view upon launch.
 	 */
 	public void fitToScreen() {
-		if (m_sLabels == null) {
+		if (settings.m_sLabels == null) {
 			// no trees loaded yet
 			return;
 		}
@@ -3712,25 +3602,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 		nW = getWidth() - 24;
 		nH = getHeight() - 24;
 		if (m_treeDrawer.m_bRootAtTop) {
-			m_fScaleX = (nW + 0.0f) / m_sLabels.size();
-			m_fScaleGX = (nW + 0.0f) / (m_fMaxLong - m_fMinLong);
+			m_fScaleX = (nW + 0.0f) / settings.m_sLabels.size();
+			m_fScaleGX = (nW + 0.0f) / (settings.m_fMaxLong - settings.m_fMinLong);
 			if (m_fHeight > 0) {
-				if (m_bRotateTextWhenRootAtTop) {
-					m_fScaleY = (nH - m_nLabelWidth - 0.0f) / m_fHeight;
-					m_fScaleGY = (nH - m_nLabelWidth - 0.0f) / (m_fMaxLat - m_fMinLat);
+				if (settings.m_bRotateTextWhenRootAtTop) {
+					m_fScaleY = (nH - settings.m_nLabelWidth - 0.0f) / m_fHeight;
+					m_fScaleGY = (nH - settings.m_nLabelWidth - 0.0f) / (settings.m_fMaxLat - settings.m_fMinLat);
 				} else {
 					m_fScaleY = (nH - 10.0f) / m_fHeight;
-					m_fScaleGY = (nH - 10.0f) / (m_fMaxLat - m_fMinLat);
+					m_fScaleGY = (nH - 10.0f) / (settings.m_fMaxLat - settings.m_fMinLat);
 				}
 			}
 		} else {
-			if (m_sLabels != null && m_sLabels.size() > 0) {
-				m_fScaleY = (nH + 0.0f) / m_sLabels.size();
-				m_fScaleGY = (nH + 0.0f) / (m_fMaxLat - m_fMinLat);
+			if (settings.m_sLabels != null && settings.m_sLabels.size() > 0) {
+				m_fScaleY = (nH + 0.0f) / settings.m_sLabels.size();
+				m_fScaleGY = (nH + 0.0f) / (settings.m_fMaxLat - settings.m_fMinLat);
 			}
 			if (m_fHeight > 0) {
-				m_fScaleX = (nW - m_nLabelWidth + 0.0f) / m_fHeight;
-				m_fScaleGX = (nW - m_nLabelWidth + 0.0f) / (m_fMaxLong - m_fMinLong);
+				m_fScaleX = (nW - settings.m_nLabelWidth + 0.0f) / m_fHeight;
+				m_fScaleGX = (nW - settings.m_nLabelWidth + 0.0f) / (settings.m_fMaxLong - settings.m_fMinLong);
 			}
 		}
 		m_Panel.setPreferredSize(new Dimension((int) (nW * m_fScale), (int) (nH * m_fScale)));
@@ -3766,29 +3656,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 	void selectMode(int nXmode) {
 		switch (nXmode) {
 		case 0: // default
-			m_Xmode = 0;
-			m_bUseAngleCorrection = false;
+			settings.m_Xmode = 0;
+			settings.m_bUseAngleCorrection = false;
 			m_treeDrawer.m_bViewBlockTree = false;
 			m_viewClades.setEnabled(false);
 			m_viewEditTree.setEnabled(true);
 			break;
 		case 1: // star tree
-			m_Xmode = 2;
-			m_bUseAngleCorrection = false;
+			settings.m_Xmode = 2;
+			settings.m_bUseAngleCorrection = false;
 			m_treeDrawer.m_bViewBlockTree = false;
 			m_viewClades.setEnabled(true);
 			m_viewEditTree.setEnabled(false);
 			break;
 		case 2: // centralised
-			m_Xmode = 1;
-			m_bUseAngleCorrection = false;
+			settings.m_Xmode = 1;
+			settings.m_bUseAngleCorrection = false;
 			m_treeDrawer.m_bViewBlockTree = false;
 			m_viewClades.setEnabled(true);
 			m_viewEditTree.setEnabled(false);
 			break;
 		case 3: // centralised + angle corrected
-			m_Xmode = 1;
-			m_bUseAngleCorrection = true;
+			settings.m_Xmode = 1;
+			settings.m_bUseAngleCorrection = true;
 			m_treeDrawer.m_bViewBlockTree = false;
 			m_viewClades.setEnabled(true);
 			m_viewEditTree.setEnabled(false);
@@ -4019,9 +3909,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			Color newColor = JColorChooser.showDialog(m_Panel, getName(), m_color[m_iColor]);
+			Color newColor = JColorChooser.showDialog(m_Panel, getName(), settings.m_color[m_iColor]);
 			if (newColor != null) {
-				m_color[m_iColor] = newColor;
+				settings.m_color[m_iColor] = newColor;
 				makeDirty();
 			}
 			repaint();
@@ -4060,52 +3950,52 @@ public class DensiTree extends JPanel implements ComponentListener {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
 			if (m_sName.equals("Jitter+")) {
-				m_nJitter++;
-				if (m_nJitter >= 0) {
+				settings.m_nJitter++;
+				if (settings.m_nJitter >= 0) {
 					makeDirty();
 				}
 			}
 			if (m_sName.equals("Jitter-")) {
-				m_nJitter--;
-				if (m_nJitter >= 0) {
+				settings.m_nJitter--;
+				if (settings.m_nJitter >= 0) {
 					makeDirty();
 				}
 			}
 			if (m_sName.equals("Intensity+")) {
-				m_fTreeIntensity *= 1.1;
+				settings.m_fTreeIntensity *= 1.1;
 				makeDirty();
 			}
 			if (m_sName.equals("Intensity-")) {
-				m_fTreeIntensity /= 1.1;
+				settings.m_fTreeIntensity /= 1.1;
 				makeDirty();
 			}
 			if (m_sName.equals("Consensus Intensity+")) {
-				m_fCTreeIntensity *= 1.1;
+				settings.m_fCTreeIntensity *= 1.1;
 				makeDirty();
 			}
 			if (m_sName.equals("Consensus Intensity-")) {
-				m_fCTreeIntensity /= 1.1;
+				settings.m_fCTreeIntensity /= 1.1;
 				makeDirty();
 			}
 			if (m_sName.equals("Consensus Tree Width+")) {
-				m_nCTreeWidth++;
+				settings.m_nCTreeWidth++;
 				makeDirty();
 			}
 			if (m_sName.equals("Consensus Tree Width-")) {
-				m_nCTreeWidth--;
-				if (m_nCTreeWidth <= 1) {
-					m_nCTreeWidth = 1;
+				settings.m_nCTreeWidth--;
+				if (settings.m_nCTreeWidth <= 1) {
+					settings.m_nCTreeWidth = 1;
 				}
 				makeDirty();
 			}
 			if (m_sName.equals("Tree Width+")) {
-				m_nTreeWidth++;
+				settings.m_nTreeWidth++;
 				makeDirty();
 			}
 			if (m_sName.equals("Tree Width-")) {
-				m_nTreeWidth--;
-				if (m_nTreeWidth <= 1) {
-					m_nTreeWidth = 1;
+				settings.m_nTreeWidth--;
+				if (settings.m_nTreeWidth <= 1) {
+					settings.m_nTreeWidth = 1;
 				}
 				makeDirty();
 			}
@@ -4130,18 +4020,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			if (m_sName.equals("Angle Correction+")) {
-				m_fAngleCorrectionThresHold *= 1.1;
-				if (m_fAngleCorrectionThresHold > 0.999) {
-					m_fAngleCorrectionThresHold = 0.999;
+				settings.m_fAngleCorrectionThresHold *= 1.1;
+				if (settings.m_fAngleCorrectionThresHold > 0.999) {
+					settings.m_fAngleCorrectionThresHold = 0.999;
 				}
-				System.err.println("Angle Correction ThresHold = " + m_fAngleCorrectionThresHold);
+				System.err.println("Angle Correction ThresHold = " + settings.m_fAngleCorrectionThresHold);
 				calcPositions();
 				calcLines();
 				makeDirty();
 			}
 			if (m_sName.equals("Angle Correction-")) {
-				m_fAngleCorrectionThresHold /= 1.1;
-				System.err.println("Angle Correction ThresHold = " + m_fAngleCorrectionThresHold);
+				settings.m_fAngleCorrectionThresHold /= 1.1;
+				System.err.println("Angle Correction ThresHold = " + settings.m_fAngleCorrectionThresHold);
 				calcPositions();
 				calcLines();
 				makeDirty();
@@ -4204,7 +4094,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_sDir);
+			JFileChooser fc = new JFileChooser(settings.m_sDir);
 			fc.addChoosableFileFilter(new MyFileFilter() {
 				@Override
 				public String getExtention() {
@@ -4265,7 +4155,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				// f.getAbsoluteFile().toString()+"\"");
 				String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
-					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+					settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
 				if (sFileName != null && !sFileName.equals("")) {
 					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
@@ -4374,11 +4264,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Tree Set", true, new File(m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
+			File [] files = Util.getFile("Load Tree Set", true, new File(settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
 			if (files != null && files.length > 0) {
 				doOpen(files[0].getPath());
 			}
-//			JFileChooser fc = new JFileChooser(m_sDir);
+//			JFileChooser fc = new JFileChooser(settings.m_sDir);
 //			fc.addChoosableFileFilter(new FileFilter() {
 //				public boolean accept(File f) {
 //					if (f.isDirectory()) {
@@ -4418,7 +4308,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public void doOpen(String sFileName) {
 		if (sFileName.lastIndexOf('/') > 0) {
-			m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+			settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 		}
 		try {
 			//m_sKMLFile = null;
@@ -4439,7 +4329,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_sDir);
+			JFileChooser fc = new JFileChooser(settings.m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
 				@Override
 				public boolean accept(File f) {
@@ -4485,9 +4375,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (rval == JFileChooser.APPROVE_OPTION) {
 				String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
-					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+					settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
-				m_sKMLFile = sFileName;
+				settings.m_sKMLFile = sFileName;
 				loadKML();
 				m_jStatusBar.setText("Loaded " + sFileName);
 				fitToScreen();
@@ -4501,7 +4391,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_sDir);
+			JFileChooser fc = new JFileChooser(settings.m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
 				@Override
 				public boolean accept(File f) {
@@ -4537,7 +4427,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (rval == JFileChooser.APPROVE_OPTION) {
 				String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
-					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+					settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
 				try {
 					FileWriter outfile = new FileWriter(sFileName);
@@ -4545,9 +4435,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					buf.append("#NEXUS\n");
 					buf.append("Begin trees\n");
 					buf.append("\tTranslate\n");
-					for (int i = 0; i < m_sLabels.size(); i++) {
-						buf.append("\t\t" + i + " " + m_sLabels.get(i));
-						if (i < m_sLabels.size() - 1) {
+					for (int i = 0; i < settings.m_sLabels.size(); i++) {
+						buf.append("\t\t" + i + " " + settings.m_sLabels.get(i));
+						if (i < settings.m_sLabels.size() - 1) {
 							buf.append(",");
 						}
 						buf.append("\n");
@@ -4556,7 +4446,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					outfile.write(buf.toString());
 					for (int i = 0; i < m_trees.length; i++) {
 						outfile.write("tree STATE_" + i + " = " + m_trees[i].toString() + ";\n");
-						System.out.println(m_trees[i].toString(m_sLabels, false));
+						System.out.println(m_trees[i].toString(settings.m_sLabels, false));
 					}
 					outfile.write("End;\n");
 					outfile.close();
@@ -4573,17 +4463,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}; // class ActionSaveAs
 
 	public void loadImages() {
-		JFileChooser fc = new JFileChooser(m_sDir);
+		JFileChooser fc = new JFileChooser(settings.m_sDir);
 		fc.setDialogTitle("Load Image Map (text file mapping taxon names on image files)");
 		int rval = fc.showOpenDialog(m_Panel);
 
 		if (rval == JFileChooser.APPROVE_OPTION) {
 			String sFileName = fc.getSelectedFile().toString();
 			if (sFileName.lastIndexOf('/') > 0) {
-				m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+				settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 			}
 			try {
-				m_LabelImages = new BufferedImage[m_sLabels.size()];
+				settings.m_LabelImages = new BufferedImage[settings.m_sLabels.size()];
 		        BufferedReader fin = new BufferedReader(new FileReader(sFileName));
 		        //StringBuffer buf = new StringBuffer();
 		        String sStr = null;
@@ -4595,26 +4485,26 @@ public class DensiTree extends JPanel implements ComponentListener {
 			            String [] sStrs = sStr.split("\\s+");
 			            if (sStrs.length != 2) {
 			            	JOptionPane.showMessageDialog(m_Panel, "Found \"" + sStr + "\" but expected only two words on a line");
-			            	m_LabelImages = null;
+			            	settings.m_LabelImages = null;
 			            	fin.close();
 			            	return;
 			            }
 			            String sLabel = sStrs[0].toLowerCase();
 			            String imageFile = sStrs[1];
 			            int k = 0;
-			            while (k < m_sLabels.size() && !m_sLabels.get(k).toLowerCase().equals(sLabel)) {
+			            while (k < settings.m_sLabels.size() && !settings.m_sLabels.get(k).toLowerCase().equals(sLabel)) {
 			            	k++;
 			            }
-			            if (k == m_sLabels.size()) {
+			            if (k == settings.m_sLabels.size()) {
 			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + sLabel + "\" could not be found");
-			            	m_LabelImages = null;
+			            	settings.m_LabelImages = null;
 			            	fin.close();
 			            	return;
 			            }
 			            System.err.println("Loading " + imageFile);
 			            File file = new File(imageFile);
 			            if (file.exists()) {
-			            	m_LabelImages[k] = ImageIO.read(file);
+			            	settings.m_LabelImages[k] = ImageIO.read(file);
 			            } else {
 			            	System.err.println("File " + imageFile + " does not exist");
 			            }
@@ -4625,13 +4515,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			} catch (OutOfMemoryError e) {
 				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
 						JOptionPane.PLAIN_MESSAGE);
-            	m_LabelImages = null;
+				settings.m_LabelImages = null;
 				return;
 			} catch (Exception e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
 						JOptionPane.PLAIN_MESSAGE);
-            	m_LabelImages = null;
+				settings.m_LabelImages = null;
 				return;
 			}
 			makeDirty();
@@ -4644,7 +4534,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_sDir);
+			JFileChooser fc = new JFileChooser(settings.m_sDir);
 			fc.addChoosableFileFilter(new FileFilter() {
 				@Override
 				public boolean accept(File f) {
@@ -4671,7 +4561,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (rval == JFileChooser.APPROVE_OPTION) {
 				String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
-					m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+					settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
 				try {
 					loadBGImage(sFileName);
@@ -4738,14 +4628,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		public void actionPerformed(ActionEvent ae) {
 			String sStatus = getStatus();
 			String sCmdLineOptions = "\n\nTo start with the same settings, use the following command:\njava -jar DensiTree.jar -c "
-					+ m_fCTreeIntensity
+					+ settings.m_fCTreeIntensity
 					+ " -i "
-					+ m_fTreeIntensity
+					+ settings.m_fTreeIntensity
 					+ " -j "
-					+ m_nJitter
+					+ settings.m_nJitter
 					+ " -w "
-					+ m_nCTreeWidth
-					+ " -v " + m_nTreeWidth + " -f " + m_nAnimationDelay + " -t " + m_Panel.m_nDrawThreads + " -b " + m_nBurnIn;
+					+ settings.m_nCTreeWidth
+					+ " -v " + settings.m_nTreeWidth + " -f " + m_nAnimationDelay + " -t " + m_Panel.m_nDrawThreads + " -b " + m_nBurnIn;
 			System.out.println(sCmdLineOptions);
 			JOptionPane.showMessageDialog(null, banner() + sStatus + sCmdLineOptions, "Help Message",
 					JOptionPane.PLAIN_MESSAGE);
@@ -4770,10 +4660,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			String sLabeWidth = JOptionPane.showInputDialog("Labe Width:", m_nLabelWidth + "");
+			String sLabeWidth = JOptionPane.showInputDialog("Labe Width:", settings.m_nLabelWidth + "");
 			if (sLabeWidth != null) {
 				try {
-					m_nLabelWidth = Integer.parseInt(sLabeWidth);
+					settings.m_nLabelWidth = Integer.parseInt(sLabeWidth);
 				} catch (Exception e) {
 				}
 				fitToScreen();
@@ -4804,10 +4694,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			String sGeoWidth = JOptionPane.showInputDialog("Geographical line width:", m_nGeoWidth + "");
+			String sGeoWidth = JOptionPane.showInputDialog("Geographical line width:", settings.m_nGeoWidth + "");
 			if (sGeoWidth != null) {
 				try {
-					m_nGeoWidth = Integer.parseInt(sGeoWidth);
+					settings.m_nGeoWidth = Integer.parseInt(sGeoWidth);
 					m_Panel.clearImage();
 					repaint();
 				} catch (Exception e) {
@@ -4948,8 +4838,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (ae.getModifiers() == 18) {
 				// when menu item is selected & ctrl key is pressed
 				System.err.println("start recording: results in /tmp");
-				m_nFrameNr = 0;
-				m_bRecord = true;
+				settings.m_nFrameNr = 0;
+				settings.m_bRecord = true;
 			}
 			m_viewMode = ViewMode.DRAW;
 			a_animateStart.setIcon("start");
@@ -4993,50 +4883,50 @@ public class DensiTree extends JPanel implements ComponentListener {
 		@Override
 		public void actionPerformed(ActionEvent ae) {
 			int nDeleted = 0;
-			for (int i = m_bSelection.length - 1; i >= 0 && m_nNrOfLabels > 2; i--) {
+			for (int i = m_bSelection.length - 1; i >= 0 && settings.m_nNrOfLabels > 2; i--) {
 				if (m_bSelection[i]) {
 					// delete node with nr i
 					for (int j = 0; j < m_trees.length; j++) {
 						m_trees[j] = deleteLeaf(m_trees[j], i);
 						renumber(m_trees[j], i);
-						m_trees[j].labelInternalNodes(m_nNrOfLabels - 1);
+						m_trees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
 					}
 					for (int j = 0; j < m_cTrees.length; j++) {
 						m_cTrees[j] = deleteLeaf(m_cTrees[j], i);
 						renumber(m_cTrees[j], i);
-						m_cTrees[j].labelInternalNodes(m_nNrOfLabels - 1);
+						m_cTrees[j].labelInternalNodes(settings.m_nNrOfLabels - 1);
 					}
-					m_sLabels.remove(i);
-					m_nNrOfLabels--;
-					if (m_fLongitude != null && m_fLongitude.size() > i) {
-						m_fLongitude.remove(i);
-						m_fLatitude.remove(i);
+					settings.m_sLabels.remove(i);
+					settings.m_nNrOfLabels--;
+					if (settings.m_fLongitude != null && settings.m_fLongitude.size() > i) {
+						settings.m_fLongitude.remove(i);
+						settings.m_fLatitude.remove(i);
 					}
-					int[] nOrder = new int[m_nOrder.length - 1];
-					int[] nRevOrder = new int[m_nRevOrder.length - 1];
+					int[] nOrder = new int[settings.m_nOrder.length - 1];
+					int[] nRevOrder = new int[settings.m_nRevOrder.length - 1];
 					int k = 0;
 					for (int j = 0; j < nOrder.length; j++) {
-						if (m_nOrder[k] == i) {
+						if (settings.m_nOrder[k] == i) {
 							k++;
 						}
-						nOrder[j] = (m_nOrder[k] < i ? m_nOrder[k] : m_nOrder[k] - 1);
+						nOrder[j] = (settings.m_nOrder[k] < i ? settings.m_nOrder[k] : settings.m_nOrder[k] - 1);
 						k++;
 					}
 					k = 0;
 					for (int j = 0; j < nRevOrder.length; j++) {
-						if (m_nRevOrder[k] == i) {
+						if (settings.m_nRevOrder[k] == i) {
 							k++;
 						}
-						nRevOrder[j] = (m_nRevOrder[k] < i ? m_nRevOrder[k] : m_nRevOrder[k] - 1);
+						nRevOrder[j] = (settings.m_nRevOrder[k] < i ? settings.m_nRevOrder[k] : settings.m_nRevOrder[k] - 1);
 						k++;
 					}
-					m_nOrder = nOrder;
-					m_nRevOrder = nRevOrder;
+					settings.m_nOrder = nOrder;
+					settings.m_nRevOrder = nRevOrder;
 					nDeleted++;
 				}
 			}
-			System.err.println("ORDER:" + Arrays.toString(m_nOrder));
-			System.err.println("REVOR:" + Arrays.toString(m_nRevOrder));
+			System.err.println("ORDER:" + Arrays.toString(settings.m_nOrder));
+			System.err.println("REVOR:" + Arrays.toString(settings.m_nRevOrder));
 			m_bSelection = new boolean[m_bSelection.length - nDeleted];
 			for (int i = 0; i < m_bSelection.length; i++) {
 				m_bSelection[i] = true;
@@ -5103,15 +4993,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 		float[] m_fPosX;
 
 		DoAction() {
-			m_nOrder2 = m_nOrder.clone();
-			m_nRevOrder2 = m_nRevOrder.clone();
-			m_fPosX = new float[m_sLabels.size()];
+			m_nOrder2 = settings.m_nOrder.clone();
+			m_nRevOrder2 = settings.m_nRevOrder.clone();
+			m_fPosX = new float[settings.m_sLabels.size()];
 			getPosition(m_trees[0], m_fPosX);
 		}
 
 		void doThisAction() {
-			m_nOrder = m_nOrder2.clone();
-			m_nRevOrder = m_nRevOrder2.clone();
+			settings.m_nOrder = m_nOrder2.clone();
+			settings.m_nRevOrder = m_nRevOrder2.clone();
 			for (int i = 0; i < m_trees.length; i++) {
 				setPosition(m_trees[i], m_fPosX);
 				positionRest(m_trees[i]);
@@ -5295,7 +5185,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	
-	void makeToolbar() {
+	void makeToolbar(JToolBar m_jTbTools) {
 		m_jTbTools.setFloatable(false);
 		m_jTbTools.add(a_load);
 		m_jTbTools.addSeparator(new Dimension(2, 2));
@@ -5484,7 +5374,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (m_bAllowCladeSelection) {
 	 				m_cladeSelection.clear();
 					for (int i : m_cladelist.getSelectedIndices()) {
-						if (m_cladeWeight.get(i) > 0.01 && ((m_Xmode == 1 && m_clades.get(i).length > 1) || (m_Xmode == 2 && m_clades.get(i).length == 1))) {
+						if (m_cladeWeight.get(i) > 0.01 && ((settings.m_Xmode == 1 && m_clades.get(i).length > 1) || (settings.m_Xmode == 2 && m_clades.get(i).length == 1))) {
 							m_cladeSelection.add(i);
 						}
 					}
@@ -5521,8 +5411,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	} // setIcon
 
-	protected void makeMenuBar() {
-		m_menuBar = new JMenuBar();
+	protected void makeMenuBar(JMenuBar m_menuBar) {
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic('F');
 		// ----------------------------------------------------------------------
@@ -5556,23 +5445,23 @@ public class DensiTree extends JPanel implements ComponentListener {
 		editMenu.add(a_moveup);
 		editMenu.add(a_movedown);
 
-		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", m_bViewEditTree);
+		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", settings.m_bViewEditTree);
 		m_viewEditTree.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewEditTree.addActionListener(ae -> {
-				boolean bPrev = m_bViewEditTree;
-				m_bViewEditTree = m_viewEditTree.getState();
-				if (bPrev != m_bViewEditTree) {
+				boolean bPrev = settings.m_bViewEditTree;
+				settings.m_bViewEditTree = m_viewEditTree.getState();
+				if (bPrev != settings.m_bViewEditTree) {
 					makeDirty();
 				}
 			});
 		editMenu.add(m_viewEditTree);
 
-		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_bViewClades);
+		m_viewClades = new JCheckBoxMenuItem("Show Clades", settings.m_bViewClades);
 		m_viewClades.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
 		m_viewClades.addActionListener(ae-> {
-				boolean bPrev = m_bViewClades;
-				m_bViewClades = m_viewClades.getState();
-				if (bPrev != m_bViewClades) {
+				boolean bPrev = settings.m_bViewClades;
+				settings.m_bViewClades = m_viewClades.getState();
+				if (bPrev != settings.m_bViewClades) {
 					makeDirty();
 				}
 			});

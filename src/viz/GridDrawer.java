@@ -42,8 +42,8 @@ public class GridDrawer {
 				if (m_nGridMode == GridMode.SHORT) {
 					nW = 10;
 				}
-				buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + ","
-						+ m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' "
+				buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + ","
+						+ m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' "
 						+ "stroke-width='" + 1 + "' " + " d='");
 				if (m_bAutoGrid) {
 					float fHeight = (float) adjust(fTreeHeight);
@@ -69,8 +69,8 @@ public class GridDrawer {
 								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
 								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
 								+
-								"stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen()
-								+ "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+								"stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen()
+								+ "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
 					}
 				} else {
 					float fHeight = m_fGridOffset;
@@ -98,8 +98,8 @@ public class GridDrawer {
 								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
 								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
 								+
-								"stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen()
-								+ "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+								"stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen()
+								+ "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
 						fHeight += Math.abs(m_fGridTicks);
 					}
 				}
@@ -108,8 +108,8 @@ public class GridDrawer {
 				if (m_nGridMode == GridMode.SHORT) {
 					nH = 10;
 				}
-				buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + ","
-						+ m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' "
+				buf.append("<path " + "fill='none' " + "stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + ","
+						+ m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' "
 						+ "stroke-width='" + 1 + "' " + " d='");
 				if (m_bAutoGrid) {
 					float fHeight = (float) adjust(m_dt.m_fHeight);
@@ -135,8 +135,8 @@ public class GridDrawer {
 								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
 								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
 								+
-								"stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen()
-								+ "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+								"stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen()
+								+ "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
 					}
 				} else {
 					float fHeight = m_fGridOffset;
@@ -163,8 +163,8 @@ public class GridDrawer {
 								+ "font-size='" + m_gridfont.getSize() + "pt' " + "font-style='"
 								+ (m_gridfont.isBold() ? "oblique" : "") + (m_gridfont.isItalic() ? "italic" : "") + "' "
 								+
-								"stroke='rgb(" + m_dt.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getGreen()
-								+ "," + m_dt.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
+								"stroke='rgb(" + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getRed() + "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getGreen()
+								+ "," + m_dt.settings.m_color[DensiTree.HEIGHTCOLOR].getBlue() + ")' " + ">" + sStr + "</text>\n");				
 
 						fHeight += Math.abs(m_fGridTicks);
 					}
@@ -200,7 +200,7 @@ public class GridDrawer {
 				if (m_nGridMode == GridMode.SHORT) {
 					nW = 10;
 				}
-				g.setColor(m_dt.m_color[DensiTree.HEIGHTCOLOR]);
+				g.setColor(m_dt.settings.m_color[DensiTree.HEIGHTCOLOR]);
 				
 				float fTreeHeight = m_dt.m_fHeight * fUserScale;
 
@@ -239,7 +239,7 @@ public class GridDrawer {
 					maxH = nH;
 					nH = maxH - 10;
 				}
-				g.setColor(m_dt.m_color[DensiTree.HEIGHTCOLOR]);
+				g.setColor(m_dt.settings.m_color[DensiTree.HEIGHTCOLOR]);
 				
 				
 				float fTreeHeight = m_dt.m_fHeight * fUserScale;

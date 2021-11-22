@@ -156,7 +156,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		chckbxCategorical = new JCheckBox("categorical");
 		chckbxCategorical.addActionListener(e-> {
-				m_dt.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.settings.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.calcColors(true);
 				m_dt.makeDirty();
 			});
@@ -225,7 +225,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			addColorAction("Background", "Background color ", DensiTree.BGCOLOR);
 			addColorAction("Root canal", "Root canal color ", DensiTree.ROOTCANALCOLOR);
 					
-			for (int k = 9; k < m_dt.m_color.length; k++) {
+			for (int k = 9; k < m_dt.settings.m_color.length; k++) {
 				addColorAction("Color " + k, "Custom line color " + k, k);
 			}
 			
@@ -244,7 +244,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		
 		private void addColorAction(String label, String tiptext, int colorID) {
-			JButton button = new ColorButton(label, m_dt.m_color[colorID]);
+			JButton button = new ColorButton(label, m_dt.settings.m_color[colorID]);
 			button.setToolTipText(tiptext);
 			button.addActionListener(new ColorActionListener(colorID, tiptext));
 			
@@ -283,12 +283,12 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			}
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.m_color[m_colorID]);
-				if (newColor != null && m_dt.m_color[m_colorID] != newColor) {
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.settings.m_color[m_colorID]);
+				if (newColor != null && m_dt.settings.m_color[m_colorID] != newColor) {
 					ColorButton button = ((ColorButton)e.getSource());
 					button.m_color = newColor;
 					button.repaint();
-					m_dt.m_color[m_colorID] = newColor;
+					m_dt.settings.m_color[m_colorID] = newColor;
 					m_dt.calcColors(true);
 					m_dt.makeDirty();
 				}

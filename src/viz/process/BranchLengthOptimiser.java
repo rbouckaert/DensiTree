@@ -36,8 +36,8 @@ public class BranchLengthOptimiser {
 		long start = System.currentTimeMillis();
 
 		// initialise CladeBranchInfo data structures		
-		float [] heights = new float[m_dt.m_sLabels.size() * 2 - 1];
-		Node [] nodes = new Node[m_dt.m_sLabels.size() * 2 - 1];
+		float [] heights = new float[m_dt.settings.m_sLabels.size() * 2 - 1];
+		Node [] nodes = new Node[m_dt.settings.m_sLabels.size() * 2 - 1];
 		collectNodes(tree, nodes, heights, tree.m_fPosY);
 		scorer = new BranchScorer(m_dt, nodes);
 		double startscore = scorer.score(heights);
@@ -89,7 +89,7 @@ public class BranchLengthOptimiser {
 		if (m_dt.m_sOptFile != null) {
 			try {
 				PrintStream out = new PrintStream(m_dt.m_sOptFile);
-				out.println(tree.toString(m_dt.m_sLabels, false));
+				out.println(tree.toString(m_dt.settings.m_sLabels, false));
 				out.close();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -145,7 +145,7 @@ public class BranchLengthOptimiser {
 
 	private void initialiseTree(float[] heights, Node[] nodes) {
 		// do pre-optimisation; position each node optimally, without considering parents
-		for (int k = m_dt.m_sLabels.size(); k < nodes.length; k++) {
+		for (int k = m_dt.settings.m_sLabels.size(); k < nodes.length; k++) {
 			Node node = nodes[k];
 			CladeBranchInfo infoLeft = scorer.m_cladeBranchInfo.get(node.m_left.m_iClade);
 			CladeBranchInfo infoRight = scorer.m_cladeBranchInfo.get(node.m_right.m_iClade);

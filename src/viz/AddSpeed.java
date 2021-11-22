@@ -49,8 +49,8 @@ public class AddSpeed extends DensiTree {
 		} else {
 			if (node.isLeaf()) {
 				if (node.getParent().getMetaData() != null) {
-					float fX = g_densitree.m_fLongitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]%32;
-					float fY = g_densitree.m_fLatitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]/32;
+					float fX = g_densitree.settings.m_fLongitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]%32;
+					float fY = g_densitree.settings.m_fLatitude.get(node.m_iLabel);//m_nCurrentPosition[node.m_iLabel]/32;
 					Matcher matcher2 = g_pattern.matcher(node.getParent().getMetaData());
 					matcher2.find();
 					float fX2 = Float.parseFloat(matcher2.group(1));
@@ -86,9 +86,9 @@ public class AddSpeed extends DensiTree {
 		}
 		
 		try {
-			g_densitree.m_sLabels = new Vector<String>();
-			g_densitree.m_fLongitude = new Vector<Float>();
-			g_densitree.m_fLatitude = new Vector<Float>();
+			g_densitree.settings.m_sLabels = new Vector<String>();
+			g_densitree.settings.m_fLongitude = new Vector<Float>();
+			g_densitree.settings.m_fLatitude = new Vector<Float>();
 	    	g_pattern = Pattern.compile(DEFAULT_PATTERN);
 
 	    	
@@ -102,9 +102,9 @@ public class AddSpeed extends DensiTree {
 			buf.append("#NEXUS\n");
 			buf.append("Begin trees\n");
 			buf.append("\tTranslate\n");
-			for (int i = 0; i < g_densitree.m_sLabels.size(); i++) {
-				buf.append("\t\t" + i + " " + g_densitree.m_sLabels.get(i));
-				if (i < g_densitree.m_sLabels.size()-1) {
+			for (int i = 0; i < g_densitree.settings.m_sLabels.size(); i++) {
+				buf.append("\t\t" + i + " " + g_densitree.settings.m_sLabels.get(i));
+				if (i < g_densitree.settings.m_sLabels.size()-1) {
 					buf.append(",");
 				}
 				buf.append("\n");

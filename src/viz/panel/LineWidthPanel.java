@@ -227,12 +227,12 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 
 									LineWidthMode oldMode = m_dt.m_lineWidthModeTop; 
 									String oldTag = m_dt.m_lineWidthTagTop;
-									boolean oldCorrectTopOfBranch = m_dt.m_bCorrectTopOfBranch;
+									boolean oldCorrectTopOfBranch = m_dt.settings.m_bCorrectTopOfBranch;
 									if (selected.equals(SAME_AS_BOTTOM)) {
 										m_dt.m_lineWidthModeTop = LineWidthMode.DEFAULT;
 									} else if (selected.equals(MAKE_FIT_BOTTOM)) {
 										m_dt.m_lineWidthModeTop = LineWidthMode.DEFAULT;
-										m_dt.m_bCorrectTopOfBranch = true;
+										m_dt.settings.m_bCorrectTopOfBranch = true;
 									} else if (selected.equals(LineWidthMode.BY_METADATA_PATTERN.toString())) {
 										m_dt.m_lineWidthModeTop = LineWidthMode.BY_METADATA_PATTERN;
 									} else if (selected.equals(LineWidthMode.BY_METADATA_NUMBER.toString())) {
@@ -241,13 +241,13 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 										m_dt.m_lineWidthTagTop = selected; 
 										m_dt.m_lineWidthModeTop = LineWidthMode.BY_METADATA_TAG;
 									}
-									m_dt.m_bCorrectTopOfBranch = selected.equals(MAKE_FIT_BOTTOM);
+									m_dt.settings.m_bCorrectTopOfBranch = selected.equals(MAKE_FIT_BOTTOM);
 									m_dt.resetStyle();
 //							txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
 //							chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 //									|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
 									if (m_dt.m_lineWidthModeTop != oldMode || (m_dt.m_lineWidthTag != null && !m_dt.m_lineWidthTagTop.equals(oldTag))
-											|| oldCorrectTopOfBranch != m_dt.m_bCorrectTopOfBranch) {
+											|| oldCorrectTopOfBranch != m_dt.settings.m_bCorrectTopOfBranch) {
 										m_dt.calcLineWidths(true);
 										m_dt.makeDirty();
 									}
@@ -292,11 +292,11 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		spinner_1.setMaximumSize(new Dimension(1,20));
 		
 		chckbxZeroBased = new JCheckBox("Zero based");
-		chckbxZeroBased.setSelected(m_dt.m_bWidthsAreZeroBased);
+		chckbxZeroBased.setSelected(m_dt.settings.m_bWidthsAreZeroBased);
 		chckbxZeroBased.addActionListener(ea-> {
-				boolean bPrev = m_dt.m_bCorrectTopOfBranch;
-				m_dt.m_bWidthsAreZeroBased = ((JCheckBox) ea.getSource()).isSelected();
-				if (bPrev != m_dt.m_bWidthsAreZeroBased) {
+				boolean bPrev = m_dt.settings.m_bCorrectTopOfBranch;
+				m_dt.settings.m_bWidthsAreZeroBased = ((JCheckBox) ea.getSource()).isSelected();
+				if (bPrev != m_dt.settings.m_bWidthsAreZeroBased) {
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -421,7 +421,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 			comboBoxBottom.setSelectedItem(m_dt.m_lineWidthTag);
 		}
 		if (m_dt.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
-			if (m_dt.m_bCorrectTopOfBranch) {
+			if (m_dt.settings.m_bCorrectTopOfBranch) {
 				comboBoxTop.setSelectedItem(MAKE_FIT_BOTTOM);
 			} else {
 				comboBoxTop.setSelectedItem(SAME_AS_BOTTOM);				

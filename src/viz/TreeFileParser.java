@@ -56,14 +56,14 @@ public class TreeFileParser {
 	
 	public TreeFileParser(DensiTree densiTree) {
 		//m_densiTree = densiTree;
-		m_sLabels = densiTree.m_sLabels;
-		m_fLongitude = densiTree.m_fLongitude;
-		m_fLatitude = densiTree.m_fLatitude;
+		m_sLabels = densiTree.settings.m_sLabels;
+		m_fLongitude = densiTree.settings.m_fLongitude;
+		m_fLatitude = densiTree.settings.m_fLatitude;
 		m_nBurnIn = densiTree.m_nBurnIn;
 		m_bBurnInIsPercentage = densiTree.m_bBurnInIsPercentage;
 		m_fMinLat = 90; m_fMinLong = 180;
 		m_fMaxLat = -90; m_fMaxLong = -180;
-		m_bAllowSingleChild = densiTree.m_bAllowSingleChild;
+		m_bAllowSingleChild = densiTree.settings.m_bAllowSingleChild;
 	} // c'tor
 	
 	public TreeFileParser(Vector<String> sLabels, Vector<Float> fLongitude, Vector<Float> fLatitude, int nBurnIn) {

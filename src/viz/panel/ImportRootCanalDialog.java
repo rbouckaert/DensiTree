@@ -248,13 +248,13 @@ public class ImportRootCanalDialog extends JPanel {
 				 	m_dt.setDefaultCursor();				
 			}
 			if (newick != null) {
-				TreeFileParser parser = new TreeFileParser(m_dt.m_sLabels, null, null, 0);
+				TreeFileParser parser = new TreeFileParser(m_dt.settings.m_sLabels, null, null, 0);
 				try {
 					Node tree = parser.parseNewick(newick);
 					tree.sort();
 
 					System.err.println("labelInternalNodes");
-					tree.labelInternalNodes(m_dt.m_sLabels.size());
+					tree.labelInternalNodes(m_dt.settings.m_sLabels.size());
 
 					System.err.println("positionHeight");
 					float fTreeHeight = m_dt.positionHeight(tree, 0);

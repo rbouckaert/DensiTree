@@ -180,9 +180,9 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(checkBox_3, gbc_checkBox_3);
 		
 		chckbxShowEditTree.addActionListener(e-> {
-				boolean bPrev = m_dt.m_bViewEditTree;
-				m_dt.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.m_bViewEditTree) {
+				boolean bPrev = m_dt.settings.m_bViewEditTree;
+				m_dt.settings.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.settings.m_bViewEditTree) {
 					m_dt.makeDirty();
 				}
 			});
@@ -207,7 +207,7 @@ public class ShowPanel extends JPanel implements ChangeListener {
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		chckbxShowEditTree.setEnabled(m_dt.m_Xmode == 0);
+		chckbxShowEditTree.setEnabled(m_dt.settings.m_Xmode == 0);
 		if (m_dt.m_summaryTree != null && m_dt.m_summaryTree.size() > 0) {
 	        for (int i = 0; i < m_dt.m_summaryTree.size() && i < comboBox.getItemCount(); i++) {
 	            if (m_dt.m_rootcanaltree == m_dt.m_summaryTree.get(i)) {
