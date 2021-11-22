@@ -207,7 +207,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				if (m_dt.m_viewMode == ViewMode.DRAW) {
 					m_drawThread[m_nFrom] = null;
 					if (!isDrawing()) {
-						if (m_dt.m_bShowRootCanalTopology) {
+						if (m_dt.settings.m_bShowRootCanalTopology) {
 							drawRootCanalTree(g);
 						}
 						double fEntropy = calcImageEntropy();
@@ -391,9 +391,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_dt.settings.m_bViewClades && m_dt.m_bCladesReady && (m_dt.settings.m_Xmode == 1 || m_dt.settings.m_Xmode == 2)) {
 			m_dt.m_cladeDrawer.viewClades(g);
 		}
-		if (m_dt.m_showLegend &&
-			(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN ||
-				m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG)) {
+		if (m_dt.settings.m_showLegend &&
+			(m_dt.settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN ||
+				m_dt.settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG)) {
 			Font font = new Font(g.getFont().getName(), Font.BOLD, 14);
 			g.setFont(font);
 //			for (int k = 0; k < m_dt.m_colorMetaDataCategories.size(); k++) {
@@ -401,8 +401,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //				g.drawString(m_dt.m_colorMetaDataCategories.get(k), 10, k*15+15);
 //			}
 			int k = 0;
-			for (String s : m_dt.m_colorMetaDataCategories.keySet()) {
-				g.setColor(m_dt.settings.m_color[9 + m_dt.m_colorMetaDataCategories.get(s) % (m_dt.settings.m_color.length - 9)]);
+			for (String s : m_dt.settings.m_colorMetaDataCategories.keySet()) {
+				g.setColor(m_dt.settings.m_color[9 + m_dt.settings.m_colorMetaDataCategories.get(s) % (m_dt.settings.m_color.length - 9)]);
 				g.drawString(s, 10, k*15+15);
 				k++;
 			}
@@ -516,7 +516,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 							m_dt.m_treeDrawer);
 					m_drawThread[i].start();
 				}
-				if (m_dt.m_bShowRootCanalTopology) {
+				if (m_dt.settings.m_bShowRootCanalTopology) {
 					drawRootCanalTree(g);
 				}
 			}

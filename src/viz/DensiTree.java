@@ -529,11 +529,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 						settings.m_sColorPattern = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-linecolortag")) {
-						m_lineColorTag = args[i + 1];
-						m_lineColorMode = LineColorMode.COLOR_BY_METADATA_TAG;
+						settings.m_lineColorTag = args[i + 1];
+						settings.m_lineColorMode = LineColorMode.COLOR_BY_METADATA_TAG;
 						i += 2;
 					} else if (args[i].equals("-linecolorlegend")) {
-						m_showLegend = true;
+						settings.m_showLegend = true;
 						i++;
 					} else if (args[i].equals("-singlechild")) {
 						settings.m_bAllowSingleChild = Boolean.parseBoolean(args[i + 1]);
@@ -689,11 +689,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
 		a_animateStart.setIcon("start");
-		m_prevLineColorMode = null;
-		LineColorMode orgLineColorMode =  m_lineColorMode;
-		m_lineColorMode = LineColorMode.DEFAULT;
-		m_prevLineWidthMode = null;
-		m_lineWidthMode = LineWidthMode.DEFAULT;
+		settings.m_prevLineColorMode = null;
+		LineColorMode orgLineColorMode =  settings.m_lineColorMode;
+		settings.m_lineColorMode = LineColorMode.DEFAULT;
+		settings.m_prevLineWidthMode = null;
+		settings.m_lineWidthMode = LineWidthMode.DEFAULT;
 		
 		System.err.print("Initializing...");
 		m_iAnimateTree = 0;
@@ -940,10 +940,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 //							}
 						}
 					}
-					m_metaDataTags = new ArrayList<String>();
-					m_metaDataTypes = new ArrayList<MetaDataType>();
+					settings.m_metaDataTags = new ArrayList<String>();
+					settings.m_metaDataTypes = new ArrayList<MetaDataType>();
 					collectMetaDataTags(m_trees[0]);
-					if (m_metaDataTags.size() > 0) {
+					if (settings.m_metaDataTags.size() > 0) {
 						calcPositions();
 						calcLines();
 						makeDirty();
@@ -968,8 +968,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			};
 			thread.start();
 			
-			m_metaDataTags = new ArrayList<String>();
-			m_metaDataTypes = new ArrayList<MetaDataType>();
+			settings.m_metaDataTags = new ArrayList<String>();
+			settings.m_metaDataTypes = new ArrayList<MetaDataType>();
 			collectMetaDataTags(m_trees[0]);
 			notifyChangeListeners();
 
@@ -977,7 +977,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				while (!m_bMetaDataReady) {
 					Thread.sleep(100);
 				}
-				m_lineColorMode = orgLineColorMode;
+				settings.m_lineColorMode = orgLineColorMode;
 				calcColors(false);
 				makeDirty();
 			}
@@ -1033,17 +1033,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Map<String, Object> metaDataMap = node.getMetaDataSet();
 		if (metaDataMap != null) {
 			for (String key : metaDataMap.keySet()) {
-				if (!m_metaDataTags.contains(key)) {
-					m_metaDataTags.add(key);
+				if (!settings.m_metaDataTags.contains(key)) {
+					settings.m_metaDataTags.add(key);
 					Object o = metaDataMap.get(key);
 					if (o instanceof Double) {
-						m_metaDataTypes.add(MetaDataType.NUMERIC);
+						settings.m_metaDataTypes.add(MetaDataType.NUMERIC);
 					} else {
 						String s = o.toString();
 						if (s.length() > 0 && s.charAt(0)=='{') {
-							m_metaDataTypes.add(MetaDataType.SET);
+							settings.m_metaDataTypes.add(MetaDataType.SET);
 						} else {
-							m_metaDataTypes.add(MetaDataType.STRING);
+							settings.m_metaDataTypes.add(MetaDataType.STRING);
 						}
 					}
 				}
@@ -1091,8 +1091,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** X-position of the clade **/
 	float[] m_cladePosition;
 	/** index of consensus tree with highest product of clade probabilities **/
-	public //int m_iMaxCladeProbTopology;
-	boolean m_bShowRootCanalTopology = false;
 	
 	/** Each clade has a list of pairs of child clades **/
 	class ChildClade {
@@ -2474,17 +2472,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public void calcLineWidths(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineWidthMode == m_prevLineWidthMode && m_lineWidthTag != null && m_lineWidthTag.equals(m_prevLineWidthTag)
-					&& m_sLineWidthPattern.equals(m_sPrevLineWidthPattern)) {
+			if (settings.m_lineWidthMode == settings.m_prevLineWidthMode && settings.m_lineWidthTag != null && settings.m_lineWidthTag.equals(settings.m_prevLineWidthTag)
+					&& settings.m_sLineWidthPattern.equals(settings.m_sPrevLineWidthPattern)) {
 				return;
 			}
 		} else {
 			calcPositions();
 			calcLines();
 		}
-		m_prevLineWidthMode = m_lineWidthMode;
-		m_prevLineWidthTag = m_lineWidthTag;
-		m_sPrevLineWidthPattern = m_sLineWidthPattern;
+		settings.m_prevLineWidthMode = settings.m_lineWidthMode;
+		settings.m_prevLineWidthTag = settings.m_lineWidthTag;
+		settings.m_sPrevLineWidthPattern = settings.m_sLineWidthPattern;
 		setWaitCursor();
 
 		if (settings.m_sLabels == null) {
@@ -2492,7 +2490,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			return;
 		}
 		
-		if (m_lineWidthMode == LineWidthMode.DEFAULT) {
+		if (settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
 			m_fLineWidth = null;
 			m_fCLineWidth = null;
 			m_fTopLineWidth = null;
@@ -2510,11 +2508,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		checkSelection();
 		int nNodes = getNrOfNodes(m_trees[0]);
 
-		if (m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
-			m_pattern = Pattern.compile(m_sLineWidthPattern);
+		if (settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
+			m_pattern = Pattern.compile(settings.m_sLineWidthPattern);
 		}
-		if (m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
-			m_patternTop = Pattern.compile(m_sLineWidthPatternTop);
+		if (settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+			m_patternTop = Pattern.compile(settings.m_sLineWidthPatternTop);
 		}
 //		if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
 //			m_pattern = createPattern();
@@ -2568,38 +2566,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // calcLinesWidths
 
 
-	/** variables that deal with width of lines **/
 	public enum LineWidthMode {BY_METADATA_PATTERN, BY_METADATA_NUMBER, DEFAULT, BY_METADATA_TAG};
-	public LineWidthMode m_lineWidthMode = LineWidthMode.DEFAULT;
-	public LineWidthMode m_lineWidthModeTop = LineWidthMode.DEFAULT;
-	LineWidthMode m_prevLineWidthMode = null;
-	public String m_sLineWidthPattern = DEFAULT_PATTERN;
-	public String m_sLineWidthPatternTop = DEFAULT_PATTERN;
-	String m_sPrevLineWidthPattern = null;
-	public String m_lineWidthTag;
-	public String m_lineWidthTagTop;
-	String m_prevLineWidthTag;
 
-	/** variables that deal with coloring of lines **/
 	public enum LineColorMode {COLOR_BY_CLADE, BY_METADATA_PATTERN, DEFAULT, COLOR_BY_METADATA_TAG};
 	public enum MetaDataType {NUMERIC, STRING, SET};
-	public LineColorMode m_lineColorMode = LineColorMode.DEFAULT;
-	public LineColorMode m_prevLineColorMode = null;
-	public String m_sLineColorPattern = DEFAULT_PATTERN;
-	String m_sPrevLineColorPattern = null;
-	//List<String> m_colorMetaDataCategories = new ArrayList<String>();
-	Map<String,Integer> m_colorMetaDataCategories = new HashMap<String, Integer>();
-	public List<String> m_metaDataTags = new ArrayList<String>();
-	public List<MetaDataType> m_metaDataTypes = new ArrayList<MetaDataType>();
-	public String m_lineColorTag;
-	String m_prevLineColorTag;
-	public boolean m_showLegend = false;
 	
 	
 	public void calcColors(boolean forceRecalc) {
 		if (!forceRecalc) {
-			if (m_lineColorMode == m_prevLineColorMode && m_lineColorTag != null && m_lineColorTag.equals(m_prevLineColorTag)
-					&& m_sLineColorPattern.equals(m_sPrevLineColorPattern)) {
+			if (settings.m_lineColorMode == settings.m_prevLineColorMode && settings.m_lineColorTag != null && settings.m_lineColorTag.equals(settings.m_prevLineColorTag)
+					&& settings.m_sLineColorPattern.equals(settings.m_sPrevLineColorPattern)) {
 				return;
 			}
 		}
@@ -2609,11 +2585,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		setWaitCursor();
 
-		m_prevLineColorMode = m_lineColorMode; 
-		m_prevLineColorTag = m_lineColorTag;
-		m_sPrevLineColorPattern = m_sLineColorPattern;
+		settings.m_prevLineColorMode = settings.m_lineColorMode; 
+		settings.m_prevLineColorTag = settings.m_lineColorTag;
+		settings.m_sPrevLineColorPattern = settings.m_sLineColorPattern;
 		int nNodes = getNrOfNodes(m_trees[0]);
-		switch (m_lineColorMode) {
+		switch (settings.m_lineColorMode) {
 		case COLOR_BY_CLADE:
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
@@ -2653,12 +2629,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 			Arrays.fill(m_nRLineColor[0], settings.m_color[ROOTCANALCOLOR].getRGB());
 			break;
 		case BY_METADATA_PATTERN:
-			m_pattern = Pattern.compile(m_sLineColorPattern);
+			m_pattern = Pattern.compile(settings.m_sLineColorPattern);
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			//m_colorMetaDataCategories = new ArrayList<String>();
-			m_colorMetaDataCategories = new HashMap<String, Integer>();
+			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
 			for (int i = 0; i < m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
 					nNodes = getNrOfNodes(m_trees[i]);
@@ -2699,11 +2675,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
 			//m_colorMetaDataCategories = new ArrayList<String>();
-			m_colorMetaDataCategories = new HashMap<String, Integer>();
+			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
 			boolean colorByCategory = false;
-			for (int i = 0; i < m_metaDataTags.size(); i++) {
-				if (m_metaDataTags.get(i).equals(m_lineColorTag)) {
-					if (m_metaDataTypes.get(i).equals(MetaDataType.STRING)) {
+			for (int i = 0; i < settings.m_metaDataTags.size(); i++) {
+				if (settings.m_metaDataTags.get(i).equals(settings.m_lineColorTag)) {
+					if (settings.m_metaDataTypes.get(i).equals(MetaDataType.STRING)) {
 						colorByCategory = true;
 					}
 					break;
@@ -2834,24 +2810,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	int colorForNode(Node node, boolean colorByCategory) {
 		int color = 0;
-		Object o = node.getMetaDataSet().get(m_lineColorTag);
+		Object o = node.getMetaDataSet().get(settings.m_lineColorTag);
 		if (colorByCategory || settings.m_bColorByCategory) {
 			if (o != null) {
-				if (m_colorMetaDataCategories.get(o.toString()) == null) {
-					m_colorMetaDataCategories.put(o.toString(), m_colorMetaDataCategories.size());
+				if (settings.m_colorMetaDataCategories.get(o.toString()) == null) {
+					settings.m_colorMetaDataCategories.put(o.toString(), settings.m_colorMetaDataCategories.size());
 				}
 //				if (!m_colorMetaDataCategories.contains(o)) {
 //					m_colorMetaDataCategories.add(o.toString());
 //				}
 //				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
-				int i = m_colorMetaDataCategories.get(o.toString());
+				int i = settings.m_colorMetaDataCategories.get(o.toString());
 				System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
 				color = settings.m_color[9 + i % (settings.m_color.length - 9)].getRGB();
 			}
 		} else {
 			if (o != null) {
-				double frac = (((Double) o) - Node.g_minValue.get(m_lineColorTag)) /
-						(Node.g_maxValue.get(m_lineColorTag) - Node.g_minValue.get(m_lineColorTag));
+				double frac = (((Double) o) - Node.g_minValue.get(settings.m_lineColorTag)) /
+						(Node.g_maxValue.get(settings.m_lineColorTag) - Node.g_minValue.get(settings.m_lineColorTag));
 				color = Color.HSBtoRGB((float) frac, 0.5f, 0.8f); 
 			}
 		}
@@ -2902,11 +2878,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (bChildNeedsDrawing[0]) {
 //					nX[iPos] = node.m_left.m_fPosX;
 //					nY[iPos] = node.m_left.m_fPosY;
-					fWidth[iPos] = getGamma(node.m_left, 1, m_lineWidthMode, m_lineWidthTag, m_pattern);
-					if (m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+					fWidth[iPos] = getGamma(node.m_left, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
+					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
 					} else {
-						fWidthTop[iPos] = getGamma(node.m_left, 2, m_lineWidthModeTop, m_lineWidthTagTop, m_patternTop);						
+						fWidthTop[iPos] = getGamma(node.m_left, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, m_patternTop);						
 					}
 					iPos++;
 //					nX[iPos] = nX[iPos - 1];
@@ -2926,11 +2902,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (bChildNeedsDrawing[1]) {
 //					nX[iPos] = node.m_right.m_fPosX;
 //					nY[iPos] = nY[iPos - 1];
-					fWidth[iPos] = getGamma(node.m_right, 1, m_lineWidthMode, m_lineWidthTag, m_pattern);
-					if (m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+					fWidth[iPos] = getGamma(node.m_right, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
+					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
 					} else {
-						fWidthTop[iPos] = getGamma(node.m_right, 2, m_lineWidthModeTop, m_lineWidthTagTop, m_patternTop);
+						fWidthTop[iPos] = getGamma(node.m_right, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, m_patternTop);
 					}
 					iPos++;
 //					nX[iPos] = nX[iPos - 1];
@@ -2947,8 +2923,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 				fWidth[iPos] = fWidth[iPos-1];
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
 				iPos++;
-				if (m_lineWidthModeTop == LineWidthMode.DEFAULT && settings.m_bCorrectTopOfBranch) {
-					float fCurrentWidth = getGamma(node, 1, m_lineWidthMode, m_lineWidthTag, m_pattern);
+				if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT && settings.m_bCorrectTopOfBranch) {
+					float fCurrentWidth = getGamma(node, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, m_pattern);
 					float fSumWidth = fWidth[iPos-2] + fWidth[iPos-4];
 					fWidthTop[iPos-2] = fCurrentWidth * fWidth[iPos-2]/fSumWidth;
 					fWidthTop[iPos-4] = fCurrentWidth * fWidth[iPos-4]/fSumWidth;
@@ -3006,11 +2982,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 					if (o != null) {
 						try {
 							if (settings.m_bWidthsAreZeroBased) {
-								double frac = ((Double) o) /Node.g_maxValue.get(m_lineWidthTag);
+								double frac = ((Double) o) /Node.g_maxValue.get(settings.m_lineWidthTag);
 								return (float) frac;
 							} else {
-								double frac = (((Double) o) - Node.g_minValue.get(m_lineWidthTag)) /
-										(Node.g_maxValue.get(m_lineWidthTag) - Node.g_minValue.get(m_lineWidthTag));
+								double frac = (((Double) o) - Node.g_minValue.get(settings.m_lineWidthTag)) /
+										(Node.g_maxValue.get(settings.m_lineWidthTag) - Node.g_minValue.get(settings.m_lineWidthTag));
 								return (float) frac;								
 							}
 						} catch (Exception e) {
@@ -3268,10 +3244,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 				nGroup = 1;
 			}
 			String match = matcher.group(nGroup);
-			if (m_colorMetaDataCategories.get(match) == null) {
-				m_colorMetaDataCategories.put(match, m_colorMetaDataCategories.size());
+			if (settings.m_colorMetaDataCategories.get(match) == null) {
+				settings.m_colorMetaDataCategories.put(match, settings.m_colorMetaDataCategories.size());
 			}
-			return m_colorMetaDataCategories.get(match);
+			return settings.m_colorMetaDataCategories.get(match);
 			
 //			if (!m_colorMetaDataCategories.contains(match)) {
 //				m_colorMetaDataCategories.add(match);
@@ -3709,7 +3685,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		BranchDrawer bd = null;
 		switch (nStyle) {
 		case 0:
-			if (m_lineWidthMode != LineWidthMode.DEFAULT) {
+			if (settings.m_lineWidthMode != LineWidthMode.DEFAULT) {
 				bd = new TrapeziumBranchDrawer();
 			} else {
 				bd = new BranchDrawer();
@@ -3717,7 +3693,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_treeDrawer.m_bViewBlockTree = false;
 			break;
 		case 1:
-			if (m_lineWidthMode != LineWidthMode.DEFAULT) {
+			if (settings.m_lineWidthMode != LineWidthMode.DEFAULT) {
 				bd = new TrapeziumBranchDrawer();
 			} else {
 				bd = new BranchDrawer();

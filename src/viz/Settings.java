@@ -2,8 +2,16 @@ package viz;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
+
+import viz.DensiTree.LineColorMode;
+import viz.DensiTree.LineWidthMode;
+import viz.DensiTree.MetaDataType;
 
 /** collection of drawing settings, like shape of tree, line width, line colour, etc. **/
 public class Settings {
@@ -138,4 +146,29 @@ public class Settings {
 	/** array of various colors for color coding different topologies **/
 	public Color[] m_color;
 
+	/** variables that deal with width of lines **/
+	public LineWidthMode m_lineWidthMode = LineWidthMode.DEFAULT;
+	public LineWidthMode m_lineWidthModeTop = LineWidthMode.DEFAULT;
+	LineWidthMode m_prevLineWidthMode = null;
+	public String m_sLineWidthPattern = DensiTree.DEFAULT_PATTERN;
+	public String m_sLineWidthPatternTop = DensiTree.DEFAULT_PATTERN;
+	String m_sPrevLineWidthPattern = null;
+	public String m_lineWidthTag;
+	public String m_lineWidthTagTop;
+	String m_prevLineWidthTag;
+
+	/** variables that deal with coloring of lines **/
+	public LineColorMode m_lineColorMode = LineColorMode.DEFAULT;
+	public LineColorMode m_prevLineColorMode = null;
+	public String m_sLineColorPattern =DensiTree.DEFAULT_PATTERN;
+	String m_sPrevLineColorPattern = null;
+	//List<String> m_colorMetaDataCategories = new ArrayList<String>();
+	Map<String,Integer> m_colorMetaDataCategories = new HashMap<String, Integer>();
+	public List<String> m_metaDataTags = new ArrayList<String>();
+	public List<MetaDataType> m_metaDataTypes = new ArrayList<MetaDataType>();
+	public String m_lineColorTag;
+	String m_prevLineColorTag;
+	public boolean m_showLegend = false;
+
+	public boolean m_bShowRootCanalTopology = false;
 }

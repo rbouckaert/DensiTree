@@ -86,11 +86,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(checkBox, gbc_checkBox);
 
 		checkBoxShowRotoCanal = new JCheckBox("Root Canal");
-		checkBoxShowRotoCanal.setSelected(m_dt.m_bShowRootCanalTopology);
+		checkBoxShowRotoCanal.setSelected(m_dt.settings.m_bShowRootCanalTopology);
 		checkBoxShowRotoCanal.addActionListener(e-> {
-				boolean bPrev = m_dt.m_bShowRootCanalTopology;
-				m_dt.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.m_bShowRootCanalTopology) {
+				boolean bPrev = m_dt.settings.m_bShowRootCanalTopology;
+				m_dt.settings.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.settings.m_bShowRootCanalTopology) {
 					m_dt.makeDirty();
 				}
 			});
