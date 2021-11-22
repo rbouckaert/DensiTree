@@ -1,5 +1,6 @@
 package viz;
 
+import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,10 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 
+import viz.DensiTree.LineWidthMode;
+import viz.DensiTree.MetaDataType;
 import viz.process.BranchLengthOptimiser;
 
 public class TreeData {
@@ -578,6 +583,26 @@ public class TreeData {
 	}
 
 
+	/** number of leafs in selection, handy for sanity checks **/
+	int selectionSize() {
+		int nSelected = 0;
+		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
+			if (m_bSelection[settings.m_nRevOrder[i]]) {
+				nSelected++;
+			}
+		}
+		return nSelected;
+	}
+
+	/** check the selection is empty, and ask user whether this is desirable **/
+	void checkSelection() {
+		if (m_bSelection.length > 0 && selectionSize() == 0) {
+			for (int i = 0; i < m_bSelection.length; i++) {
+				m_bSelection[i] = true;
+			}
+		}
+	}
+
 	void resetCladeSelection() {
 		m_bAllowCladeSelection = false;
 		m_cladelist.clearSelection();
@@ -851,6 +876,35 @@ public class TreeData {
 		}
 	}
 	
+	
+	/**
+	 * record position information in position array (fPosX) used for undo/redo
+	 **/
+	void getPosition(Node node, float[] fPosX) {
+		if (node.isLeaf()) {
+			fPosX[settings.m_nOrder[node.m_iLabel]] = node.m_fPosX;
+		} else {
+			getPosition(node.m_left, fPosX);
+			if (node.m_right != null) {
+				getPosition(node.m_right, fPosX);
+			}
+		}
+	}
+
+	/**
+	 * set position information based on position array (fPosX) used for
+	 * undo/redo
+	 **/
+	void setPosition(Node node, float[] fPosX) {
+		if (node.isLeaf()) {
+			node.m_fPosX = fPosX[settings.m_nOrder[node.m_iLabel]];
+		} else {
+			setPosition(node.m_left, fPosX);
+			if (node.m_right != null) {
+				setPosition(node.m_right, fPosX);
+			}
+		}
+	}
 	/**
 	 * position nodes so that root node is at fOffset (initially 0) and rest
 	 * according to lengths of the branches
@@ -891,6 +945,744 @@ public class TreeData {
 	}
 
 
+	int getNrOfNodes(Node node) {
+		if (node.isLeaf()) {
+			return 1;
+		} else {
+			int nNodes = getNrOfNodes(node.m_left);
+			if (node.m_right != null) {
+				nNodes += getNrOfNodes(node.m_right);
+			} else {
+				// count one for the dummy node on the right
+				nNodes++;
+			}
+			return nNodes + 1;
+		}
+	}
+	
+	public void calcColors(boolean forceRecalc) {
+		if (!forceRecalc) {
+			if (settings.m_lineColorMode == settings.m_prevLineColorMode && settings.m_lineColorTag != null && settings.m_lineColorTag.equals(settings.m_prevLineColorTag)
+					&& settings.m_sLineColorPattern.equals(settings.m_sPrevLineColorPattern)) {
+				return;
+			}
+		}
+		if (settings.m_sLabels == null) {
+			// no trees loaded
+			return;
+		}
+		m_dt.setWaitCursor();
+
+		settings.m_prevLineColorMode = settings.m_lineColorMode; 
+		settings.m_prevLineColorTag = settings.m_lineColorTag;
+		settings.m_sPrevLineColorPattern = settings.m_sLineColorPattern;
+		int nNodes = getNrOfNodes(m_trees[0]);
+		switch (settings.m_lineColorMode) {
+		case COLOR_BY_CLADE:
+			m_nLineColor = new int[m_trees.length][];
+			m_nCLineColor = new int[m_cTrees.length][];
+			m_nRLineColor = new int[1][];
+			for (int i = 0; i < m_trees.length; i++) {
+				if (settings.m_bAllowSingleChild) {
+					nNodes = getNrOfNodes(m_trees[i]);
+				}
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTree(m_trees[i], m_nLineColor[i], 0);
+			}
+			if (settings.m_bAllowSingleChild) {
+				break;
+			}
+			// calculate coordinates of lines for drawing consensus trees
+			for (int i = 0; i < m_cTrees.length; i++) {
+				int nTopologies = 0;
+				//if (settings.m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = m_nCLineColor[i]; 
+				for (int j = 0; j < m_trees.length; j++) {
+						for (int k = 0; k < nCLineColor.length; k++) {
+							nCLineColor[k] += m_nLineColor[j][k];
+						}
+						nTopologies++;
+				}
+				for (int k = 0; k < nCLineColor.length; k++) {
+					nCLineColor[k] /= nTopologies;
+				}
+			}
+			//if (settings.m_bAllowSingleChild) {
+			//	break;
+			//}
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
+			break;
+		case BY_METADATA_PATTERN:
+			settings.m_pattern = Pattern.compile(settings.m_sLineColorPattern);
+			m_nLineColor = new int[m_trees.length][];
+			m_nCLineColor = new int[m_cTrees.length][];
+			m_nRLineColor = new int[1][];
+			//m_colorMetaDataCategories = new ArrayList<String>();
+			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
+			for (int i = 0; i < m_trees.length; i++) {
+				if (settings.m_bAllowSingleChild) {
+					nNodes = getNrOfNodes(m_trees[i]);
+				}
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTreeByMetaData(m_trees[i], m_nLineColor[i], 0);
+			}
+			if (settings.m_bAllowSingleChild) {
+				break;
+			}
+			// calculate coordinates of lines for drawing consensus trees
+			for (int i = 0; i < m_cTrees.length; i++) {
+				int nTopologies = 0;
+				//if (settings.m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = m_nCLineColor[i]; 
+				for (int j = 0; j < m_trees.length; j++) {
+						for (int k = 0; k < nCLineColor.length; k++) {
+							nCLineColor[k] += m_nLineColor[j][k];
+						}
+						nTopologies++;
+				}
+				for (int k = 0; k < nCLineColor.length; k++) {
+					nCLineColor[k] /= nTopologies;
+				}
+			}
+			//if (settings.m_bAllowSingleChild) {
+			//	break;
+			//}
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
+			break;
+		case COLOR_BY_METADATA_TAG:
+			settings.m_pattern = Pattern.compile(settings.m_sPattern);
+			m_nLineColor = new int[m_trees.length][];
+			m_nCLineColor = new int[m_cTrees.length][];
+			m_nRLineColor = new int[1][];
+			//m_colorMetaDataCategories = new ArrayList<String>();
+			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
+			boolean colorByCategory = false;
+			for (int i = 0; i < settings.m_metaDataTags.size(); i++) {
+				if (settings.m_metaDataTags.get(i).equals(settings.m_lineColorTag)) {
+					if (settings.m_metaDataTypes.get(i).equals(MetaDataType.STRING)) {
+						colorByCategory = true;
+					}
+					break;
+				}
+			}
+			for (int i = 0; i < m_trees.length; i++) {
+				if (settings.m_bAllowSingleChild) {
+					nNodes = getNrOfNodes(m_trees[i]);
+				}
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
+				colorTreeByMetaDataTag(m_trees[i], m_nLineColor[i], 0, colorByCategory);
+			}
+			if (settings.m_bAllowSingleChild) {
+				break;
+			}
+			// calculate coordinates of lines for drawing consensus trees
+			for (int i = 0; i < m_cTrees.length; i++) {
+				int nTopologies = 0;
+				// it is known settings.m_bAllowSingleChild = false at this point
+				//if (settings.m_bAllowSingleChild) {
+				//	nNodes = getNrOfNodes(m_cTrees[i]);
+				//}
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				int [] nCLineColor = m_nCLineColor[i]; 
+				for (int j = 0; j < m_trees.length; j++) {
+						for (int k = 0; k < nCLineColor.length; k++) {
+							nCLineColor[k] += m_nLineColor[j][k];
+						}
+						nTopologies++;
+				}
+				for (int k = 0; k < nCLineColor.length; k++) {
+					nCLineColor[k] /= nTopologies;
+				}
+			}
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
+			break;
+		case DEFAULT:
+			m_nLineColor = new int[m_trees.length][];
+			m_nCLineColor = new int[m_cTrees.length][];
+			m_nRLineColor = new int[1][];
+			for (int i = 0; i < m_trees.length; i++) {
+				if (settings.m_bAllowSingleChild) {
+					nNodes = getNrOfNodes(m_trees[i]);
+				}
+				m_nLineColor[i] = new int[nNodes * 2 + 2];
+				int color = 0;
+				switch (m_nTopologyByPopularity[i]) {
+				case 0:
+					color = settings.m_color[0].getRGB();
+					break;
+				case 1:
+					color = settings.m_color[1].getRGB();
+					break;
+				case 2:
+					color = settings.m_color[2].getRGB();
+					break;
+				default:
+					color = settings.m_color[3].getRGB();
+				}
+				Arrays.fill(m_nLineColor[i], color);
+			}
+			for (int i = 0; i < m_cTrees.length; i++) {
+				int color = settings.m_color[DensiTree.CONSCOLOR].getRGB();
+				if (settings.m_bViewMultiColor) {
+					color = settings.m_color[9 + (i % (settings.m_color.length - 9))].getRGB();
+				}
+				if (settings.m_bAllowSingleChild) {
+					nNodes = getNrOfNodes(m_cTrees[i]);
+				}
+				m_nCLineColor[i] = new int[nNodes * 2 + 2];
+				Arrays.fill(m_nCLineColor[i], color);
+			}
+			if (settings.m_bAllowSingleChild) {
+				break;
+			}
+			m_nRLineColor[0] = new int[nNodes * 2 + 2];
+			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
+			break;
+		}
+	} // calcColors
+
+
+	/**
+	 * return meta data value of a node as defined by the pattern (m_sPattern &
+	 * m_pattern), or 1 if parsing fails.
+	 */
+	// int [] m_nCurrentPosition;
+	float getMetaData(Node node) {
+		try {
+			Matcher matcher = settings.m_pattern.matcher(node.getMetaData());
+			matcher.find();
+			int nGroup = 1;
+			int nGroups = matcher.groupCount();
+			if (nGroup > nGroups) {
+				nGroup = 1;
+			}
+			return Float.parseFloat(matcher.group(nGroup));
+		} catch (Exception e) {
+		}
+		return 1f;
+	} // getMetaData
+
+	int getMetaDataCategory(Node node) {
+		try {
+			Matcher matcher = settings.m_pattern.matcher(node.getMetaData());
+			matcher.find();
+			int nGroup = 1;
+			int nGroups = matcher.groupCount();
+			if (nGroup > nGroups) {
+				nGroup = 1;
+			}
+			String match = matcher.group(nGroup);
+			if (settings.m_colorMetaDataCategories.get(match) == null) {
+				settings.m_colorMetaDataCategories.put(match, settings.m_colorMetaDataCategories.size());
+			}
+			return settings.m_colorMetaDataCategories.get(match);
+			
+//			if (!m_colorMetaDataCategories.contains(match)) {
+//				m_colorMetaDataCategories.add(match);
+//			}
+//			//System.err.println(node.m_sMetaData + ": " + match + " = " + m_metaDataCategories.indexOf(match));
+//			return m_colorMetaDataCategories.indexOf(match);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
+		return 0;
+	} // getMetaData
+	
+	private int colorTreeByMetaData(Node node, int[] nLineColor, int iPos) {
+		if (!node.isLeaf()) {
+			iPos = colorTreeByMetaData(node.m_left, nLineColor, iPos);
+			if (node.m_right != null) {
+				iPos = colorTreeByMetaData(node.m_right, nLineColor, iPos);
+			}
+			int color = settings.m_color[9 + getMetaDataCategory(node.m_left) % (settings.m_color.length - 9)].getRGB();
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			if (node.m_right != null) {
+				color = settings.m_color[9 + getMetaDataCategory(node.m_right) % (settings.m_color.length - 9)].getRGB();
+			}
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			if (node.isRoot()) {
+				nLineColor[iPos++] = color;
+				nLineColor[iPos++] = color;
+			}
+		}
+		return iPos;
+	}
+
+	private int colorTreeByMetaDataTag(Node node, int[] nLineColor, int iPos, boolean colorByCategory) {
+		if (!node.isLeaf()) {
+			iPos = colorTreeByMetaDataTag(node.m_left, nLineColor, iPos, colorByCategory);
+			if (node.m_right != null) {
+				iPos = colorTreeByMetaDataTag(node.m_right, nLineColor, iPos, colorByCategory);
+			}
+			int color = colorForNode(node.m_left, colorByCategory);
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			
+			if (node.m_right != null) {
+				color = colorForNode(node.m_right, colorByCategory);
+			}
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			if (node.isRoot()) {
+				nLineColor[iPos++] = color;
+				nLineColor[iPos++] = color;
+			}
+		}
+		return iPos;
+	}
+
+	int colorForNode(Node node, boolean colorByCategory) {
+		int color = 0;
+		Object o = node.getMetaDataSet().get(settings.m_lineColorTag);
+		if (colorByCategory || settings.m_bColorByCategory) {
+			if (o != null) {
+				if (settings.m_colorMetaDataCategories.get(o.toString()) == null) {
+					settings.m_colorMetaDataCategories.put(o.toString(), settings.m_colorMetaDataCategories.size());
+				}
+//				if (!m_colorMetaDataCategories.contains(o)) {
+//					m_colorMetaDataCategories.add(o.toString());
+//				}
+//				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
+				int i = settings.m_colorMetaDataCategories.get(o.toString());
+				System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
+				color = settings.m_color[9 + i % (settings.m_color.length - 9)].getRGB();
+			}
+		} else {
+			if (o != null) {
+				double frac = (((Double) o) - Node.g_minValue.get(settings.m_lineColorTag)) /
+						(Node.g_maxValue.get(settings.m_lineColorTag) - Node.g_minValue.get(settings.m_lineColorTag));
+				color = Color.HSBtoRGB((float) frac, 0.5f, 0.8f); 
+			}
+		}
+		return color;
+	}
 	
 	
+	private int colorTree(Node node, int[] nLineColor, int iPos) {
+		if (node != null && !node.isLeaf()) {
+			iPos = colorTree(node.m_left, nLineColor, iPos);
+			iPos = colorTree(node.m_right, nLineColor, iPos);
+			int color = settings.m_color[9+node.m_iClade%9].getRGB();
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			nLineColor[iPos++] = color;
+			if (node.isRoot()) {
+				nLineColor[iPos++] = color;
+				nLineColor[iPos++] = color;
+			}
+		}
+		return iPos;
+	}
+
+	/**
+	 * 'draw' tree into an array of x & positions. This draws the tree as
+	 * block diagram.
+	 * 
+	 * @param nX
+	 * @param nY
+	 * @param iPos
+	 * @return
+	 */
+	int drawTreeS(Node node, float[] nX, float[] nY, float[] fWidth, float[] fWidthTop, int iPos, boolean[] bNeedsDrawing) {
+		if (node.isLeaf()) {
+			bNeedsDrawing[0] = m_bSelection[node.m_iLabel];
+		} else {
+			boolean[] bChildNeedsDrawing = new boolean[2];
+			iPos = drawTreeS(node.m_left, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
+			bChildNeedsDrawing[0] = bNeedsDrawing[0];
+			if (node.m_right != null) {
+				iPos = drawTreeS(node.m_right, nX, nY, fWidth, fWidthTop, iPos, bNeedsDrawing);
+				bChildNeedsDrawing[1] = bNeedsDrawing[0];
+			} else {
+				bChildNeedsDrawing[1] = false;
+			}
+			bNeedsDrawing[0] = false;
+				if (bChildNeedsDrawing[0]) {
+//					nX[iPos] = node.m_left.m_fPosX;
+//					nY[iPos] = node.m_left.m_fPosY;
+					fWidth[iPos] = getGamma(node.m_left, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
+					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+						fWidthTop[iPos] = fWidth[iPos];
+					} else {
+						fWidthTop[iPos] = getGamma(node.m_left, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);						
+					}
+					iPos++;
+//					nX[iPos] = nX[iPos - 1];
+//					nY[iPos] = node.m_fPosY;
+					bNeedsDrawing[0] = true;
+				} else {
+					fWidth[iPos] = settings.m_nTreeWidth;
+//					nX[iPos] = node.m_fPosX;
+//					nY[iPos] = node.m_fPosY;
+					iPos++;
+//					nX[iPos] = node.m_fPosX;
+//					nY[iPos] = node.m_fPosY;
+				}
+				fWidth[iPos] = fWidth[iPos-1];
+				fWidthTop[iPos] = fWidthTop[iPos-1]; 
+				iPos++;
+				if (bChildNeedsDrawing[1]) {
+//					nX[iPos] = node.m_right.m_fPosX;
+//					nY[iPos] = nY[iPos - 1];
+					fWidth[iPos] = getGamma(node.m_right, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
+					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+						fWidthTop[iPos] = fWidth[iPos];
+					} else {
+						fWidthTop[iPos] = getGamma(node.m_right, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);
+					}
+					iPos++;
+//					nX[iPos] = nX[iPos - 1];
+//					nY[iPos] = node.m_right.m_fPosY;
+					bNeedsDrawing[0] = true;
+				} else {
+//					nX[iPos] = node.m_fPosX;
+//					nY[iPos] = node.m_fPosY;
+					fWidth[iPos] = settings.m_nTreeWidth;
+					iPos++;
+//					nX[iPos] = node.m_fPosX;
+//					nY[iPos] = node.m_fPosY;
+				}
+				fWidth[iPos] = fWidth[iPos-1];
+				fWidthTop[iPos] = fWidthTop[iPos-1]; 
+				iPos++;
+				if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT && settings.m_bCorrectTopOfBranch) {
+					float fCurrentWidth = getGamma(node, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
+					float fSumWidth = fWidth[iPos-2] + fWidth[iPos-4];
+					fWidthTop[iPos-2] = fCurrentWidth * fWidth[iPos-2]/fSumWidth;
+					fWidthTop[iPos-4] = fCurrentWidth * fWidth[iPos-4]/fSumWidth;
+				}
+
+				
+			if (node.isRoot()) {
+//				nX[iPos] = node.m_fPosX;
+//				nY[iPos] = node.m_fPosY;
+				fWidth[iPos] = 0;//getGamma(node, 1);
+				fWidthTop[iPos] = 0;//getGamma(node, 1);
+				iPos++;
+//				nX[iPos] = node.m_fPosX;
+//				nY[iPos] = node.m_fPosY - node.m_fLength;
+				iPos++;
+			}
+		}
+		return iPos;
+	}
+
+	float getGamma(Node node , int nGroup, LineWidthMode mode, String tag, Pattern pattern) {
+		try {
+			if (mode == LineWidthMode.BY_METADATA_PATTERN) {
+				String sMetaData = node.getMetaData();
+				try {
+					Matcher matcher = pattern.matcher(sMetaData);
+					matcher.find();
+					int nGroups = matcher.groupCount();
+					if (nGroup > nGroups) {
+						nGroup = 1;
+					}
+					String sMatch = matcher.group(nGroup);
+			        float f = Float.parseFloat(sMatch);
+			        return f;
+				} catch (Exception e) {
+				}
+			} else if (mode == LineWidthMode.BY_METADATA_NUMBER) {
+				int index = 0;
+				if (nGroup == 1) {
+					index = settings.m_iPatternForBottom - 1;
+				} else {
+					index = settings.m_iPatternForTop - 1;
+					if (index < 0) {
+						index = settings.m_iPatternForBottom - 1;
+					}
+				}
+				if (index < 0) {
+					index = 0;
+				}
+				return (float) (node.getMetaDataList().get(index)/Node.g_maxListValue.get(index));
+			} else {
+				Map<String,Object> map = node.getMetaDataSet();
+				if (map != null) {
+					Object o = map.get(tag);
+					if (o != null) {
+						try {
+							if (settings.m_bWidthsAreZeroBased) {
+								double frac = ((Double) o) /Node.g_maxValue.get(settings.m_lineWidthTag);
+								return (float) frac;
+							} else {
+								double frac = (((Double) o) - Node.g_minValue.get(settings.m_lineWidthTag)) /
+										(Node.g_maxValue.get(settings.m_lineWidthTag) - Node.g_minValue.get(settings.m_lineWidthTag));
+								return (float) frac;								
+							}
+						} catch (Exception e) {
+							// ignore
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return 1f;
+	}
+
+
+	
+	/**
+	 * calculate coordinates for lines in real coordinates This initialises the
+	 * m_nLines,m_nTLines, m_nCLines and m_nCTLines arrays
+	 **/
+	public void calcLines() {
+		final float m_fTreeScale = m_dt.m_fTreeScale;
+		final float m_fTreeOffset = m_dt.m_fTreeOffset;
+		final float m_fHeight = m_dt.m_fHeight;
+		final double m_fExponent = m_dt.m_fExponent;
+		
+		checkSelection();
+		if (m_trees.length == 0) {
+			return;
+		}
+		m_dt.setWaitCursor();
+		
+		// calculate coordinates of lines for drawing trees
+		int nNodes = getNrOfNodes(m_trees[0]);
+
+		boolean[] b = new boolean[1];
+		for (int i = 0; i < m_trees.length; i++) {
+			// m_fLinesX[i] = new float[nNodes * 2 + 2];
+			// m_fLinesY[i] = new float[nNodes * 2 + 2];
+			if (settings.m_bAllowSingleChild) {
+				nNodes = getNrOfNodes(m_trees[i]);
+				m_fLinesX[i] = new float[nNodes * 2 + 2];
+				m_fLinesY[i] = new float[nNodes * 2 + 2];
+				m_trees[i].drawDryWithSingleChild(m_fLinesX[i], m_fLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
+						m_fTreeScale);
+			} else {
+				m_fLinesX[i] = new float[nNodes * 2 + 2];
+				m_fLinesY[i] = new float[nNodes * 2 + 2];
+				calcLinesForNode(m_trees[i], m_fLinesX[i], m_fLinesY[i]);
+			}
+		}
+		// calculate coordinates of lines for drawing consensus trees
+		for (int i = 0; i < m_cTrees.length; i++) {
+			// m_fCLinesX[i] = new float[nNodes * 2 + 2];
+			// m_fCLinesY[i] = new float[nNodes * 2 + 2];
+			if (settings.m_bAllowSingleChild) {
+				nNodes = getNrOfNodes(m_cTrees[i]);
+				m_fCLinesX[i] = new float[nNodes * 2 + 2];
+				m_fCLinesY[i] = new float[nNodes * 2 + 2];
+				m_cTrees[i].drawDryWithSingleChild(m_fCLinesX[i], m_fCLinesY[i], 0, b, m_bSelection, m_fTreeOffset,
+						m_fTreeScale);
+			} else {
+				m_fCLinesX[i] = new float[nNodes * 2 + 2];
+				m_fCLinesY[i] = new float[nNodes * 2 + 2];
+				calcLinesForNode(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i]);
+			}
+		}
+
+		m_fRLinesX = new float[1][nNodes * 2 + 2];
+		m_fRLinesY = new float[1][nNodes * 2 + 2];
+		if (!settings.m_bAllowSingleChild && m_bCladesReady) {
+			calcLinesForNode(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0]);
+		}
+		
+		if (settings.m_bUseLogScale) {
+			System.err.println("Use log scaling");
+			//float f = (float) Math.log(m_fHeight + 1.0);
+			float fNormaliser = (float) (m_fHeight / Math.pow(m_fHeight, m_fExponent));
+			for (int i = 0; i < m_trees.length; i++) {
+				for (int j = 0; j < m_fLinesY[i].length; j++) {
+					m_fLinesY[i][j] = ((float) Math.pow(m_fHeight - m_fLinesY[i][j], m_fExponent)/fNormaliser);
+				}
+			}
+			for (int i = 0; i < m_cTrees.length; i++) {
+				for (int j = 0; j < m_fCLinesY[i].length; j++) {
+					m_fCLinesY[i][j] = (float) Math.pow(m_fHeight - m_fCLinesY[i][j], m_fExponent)/fNormaliser;
+				}
+			}
+			for (int j = 0; j < m_fRLinesY[0].length; j++) {
+				m_fRLinesY[0][j] = (float) Math.pow(m_fHeight - m_fRLinesY[0][j], m_fExponent)/fNormaliser;
+			}
+		}
+		m_dt.m_w = 0;
+		for (int i = 0; i < m_cTrees.length; i++) {
+			float[] fCLines = m_fCLinesX[i];
+			float fWeight = m_fTreeWeight[i];
+			for (int j = 0; j < fCLines.length - 3; j += 4) {
+				m_dt.m_w += Math.abs(fCLines[j + 1] - fCLines[j + 2]) * fWeight;
+			}
+		}
+		calcColors(false);
+		calcLineWidths(false);
+	} // calcLines
+	
+	
+	void calcLinesForNode(Node node, float [] fLinesX, float [] fLinesY) {
+		final float m_fTreeScale = m_dt.m_fTreeScale;
+		final float m_fTreeOffset = m_dt.m_fTreeOffset;
+
+		boolean[] b = new boolean[1];
+		if (settings.m_bAllowSingleChild) {
+			node.drawDryWithSingleChild(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
+					m_fTreeScale);
+		} else {
+			switch (settings.m_Xmode) {
+			case 0:
+				node.drawDry(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset, m_fTreeScale);
+				break;
+			case 1:
+				node.drawDryCentralised(fLinesX, fLinesY, 0, b, m_bSelection, m_fTreeOffset,
+						m_fTreeScale, new float[2], new float[settings.m_nNrOfLabels * 2 - 1],
+						new float[settings.m_nNrOfLabels * 2 - 1], m_cladePosition);
+				break;
+			case 2:
+				float[] fCladeCenterX = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fCladeCenterY = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fPosX = new float[settings.m_nNrOfLabels * 2 - 1];
+				float[] fPosY = new float[settings.m_nNrOfLabels * 2 - 1];
+				node.getStarTreeCladeCenters(fCladeCenterX, fCladeCenterY, m_fTreeOffset, m_fTreeScale, m_cladePosition, settings.m_sLabels.size());
+				node.drawStarTree(fLinesX, fLinesY, fPosX, fPosY, fCladeCenterX, fCladeCenterY,
+						m_bSelection, m_fTreeOffset, m_fTreeScale);
+				break;
+			}
+		}
+
+	}
+	
+	/**
+	 * calculate coordinates for lines in real coordinates This initialises the
+	 * m_nCLines and m_nCTLines (but not m_nLines,m_nTLines), arrays
+	 **/
+
+	public void calcLineWidths(boolean forceRecalc) {
+		if (!forceRecalc) {
+			if (settings.m_lineWidthMode == settings.m_prevLineWidthMode && settings.m_lineWidthTag != null && settings.m_lineWidthTag.equals(settings.m_prevLineWidthTag)
+					&& settings.m_sLineWidthPattern.equals(settings.m_sPrevLineWidthPattern)) {
+				return;
+			}
+		} else {
+			calcPositions();
+			calcLines();
+		}
+		settings.m_prevLineWidthMode = settings.m_lineWidthMode;
+		settings.m_prevLineWidthTag = settings.m_lineWidthTag;
+		settings.m_sPrevLineWidthPattern = settings.m_sLineWidthPattern;
+		m_dt.setWaitCursor();
+
+		if (settings.m_sLabels == null) {
+			// no trees loaded
+			return;
+		}
+		
+		if (settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
+			m_fLineWidth = null;
+			m_fCLineWidth = null;
+			m_fTopLineWidth = null;
+			m_fTopCLineWidth = null;
+			m_fRLineWidth = null;
+			m_fRTopLineWidth = null;
+			return;
+		}
+		m_fLineWidth = new float[m_trees.length][];
+		m_fCLineWidth = new float[m_cTrees.length][];
+		m_fTopLineWidth = new float[m_trees.length][];
+		m_fTopCLineWidth = new float[m_cTrees.length][];
+		m_fRLineWidth = new float[1][];
+		m_fRTopLineWidth = new float[1][];
+		checkSelection();
+		int nNodes = getNrOfNodes(m_trees[0]);
+
+		if (settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
+			settings.m_pattern = Pattern.compile(settings.m_sLineWidthPattern);
+		}
+		if (settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+			settings.m_patternTop = Pattern.compile(settings.m_sLineWidthPatternTop);
+		}
+//		if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+//			m_pattern = createPattern();
+//		}
+
+		// calculate coordinates of lines for drawing trees
+		boolean[] b = new boolean[1];
+		for (int i = 0; i < m_trees.length; i++) {
+			//m_fLinesX[i] = new float[nNodes * 2 + 2];
+			//m_fLinesY[i] = new float[nNodes * 2 + 2];
+			m_fLineWidth[i] = new float[nNodes * 2 + 2];
+			m_fTopLineWidth[i] = new float[nNodes * 2 + 2];
+			drawTreeS(m_trees[i], m_fLinesX[i], m_fLinesY[i], m_fLineWidth[i], m_fTopLineWidth[i], 0, b);
+		}
+
+		// calculate coordinates of lines for drawing consensus trees
+		for (int i = 0; i < m_cTrees.length; i++) {
+			//m_fCLinesX[i] = new float[nNodes * 2 + 2];
+			//m_fCLinesY[i] = new float[nNodes * 2 + 2];
+			m_fCLineWidth[i] = new float[nNodes * 2 + 2];
+			m_fTopCLineWidth[i] = new float[nNodes * 2 + 2];
+			drawTreeS(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i], m_fCLineWidth[i], m_fTopCLineWidth[i], 0, b);
+			int nTopologies = 0;
+			float [] fCLineWidth = new float[nNodes * 2 + 2];
+			float [] fTopCLineWidth = new float[nNodes * 2 + 2];
+			for (int j = 0; j < m_trees.length; j++) {
+				if (m_nTopologyByPopularity[j] == i) {
+					for (int k = 0; k < fCLineWidth.length; k++) {
+						fCLineWidth[k] += m_fLineWidth[j][k];
+						fTopCLineWidth[k] += m_fTopLineWidth[j][k];
+					}
+					nTopologies++;
+				}
+				
+			}
+			for (int k = 0; k < fCLineWidth.length; k++) {
+				fCLineWidth[k] /= nTopologies;
+				fTopCLineWidth[k] /= nTopologies;
+			}
+			m_fCLineWidth[i] = fCLineWidth;
+			m_fTopCLineWidth[i] = fTopCLineWidth;
+		}
+
+		// TODO: don't know how to set line width of root canal tree, so keep it unspecified
+		m_fRLineWidth[0] = new float[nNodes * 2 + 2];
+		m_fRTopLineWidth[0] = new float[nNodes * 2 + 2];
+		drawTreeS(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0], m_fRLineWidth[0], m_fRTopLineWidth[0], 0, b);
+		m_fRLineWidth = null;
+		m_fRTopLineWidth = null;
+
+	} // calcLinesWidths
+
+	
+	
+
+	int collectMetaData(Node node, float[] fHeights, float fLengthToRoot, int iPos, float[] fMetas, int[] nCounts) {
+		float fHeight = node.m_fPosY;// fLengthToRoot + node.m_fLength;
+		float fMeta = getMetaData(node);
+		int i = Arrays.binarySearch(fHeights, fHeight);
+		while (i >= 0 && fHeights[i] > fLengthToRoot) {
+			fMetas[i] += fMeta;
+			nCounts[i]++;
+			i--;
+		}
+		if (!node.isLeaf()) {
+			iPos = collectMetaData(node.m_left, fHeights, fHeight/*
+																 * fLengthToRoot
+																 * +
+																 * node.m_fLength
+																 */, iPos, fMetas, nCounts);
+			iPos = collectMetaData(node.m_right, fHeights, fHeight/*
+																 * fLengthToRoot
+																 * +
+																 * node.m_fLength
+																 */, iPos, fMetas, nCounts);
+		}
+		return iPos;
+	} // collectMetaData
+
 }

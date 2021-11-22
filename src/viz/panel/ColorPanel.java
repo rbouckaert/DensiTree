@@ -133,7 +133,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons-trees</html>");
 		chckbxMultiColorConsensus.addActionListener(e-> {
-				m_dt.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.settings.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
 			});
 		GridBagConstraints gbc_chckbxMultiColorConsensus = new GridBagConstraints();

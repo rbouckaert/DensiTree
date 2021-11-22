@@ -184,5 +184,11 @@ public class Settings {
 	public int m_iPatternForTop = 0;
 	
 	
+	/** use log scaling for drawing height **/
+	boolean m_bUseLogScale = false;
 	
+	/** show consensus tree in multiple colours, or just main colour */
+	public boolean m_bViewMultiColor = false;
+	/** show geographical info if available **/
+	public boolean m_bDrawGeo = true;
 }

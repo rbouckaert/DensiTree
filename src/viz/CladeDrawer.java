@@ -38,7 +38,7 @@ public class CladeDrawer {
 		float fScaleY = m_dt.m_fScaleY;
 		g.setFont(m_font);
 		g.setColor(m_color);
-		if (m_dt.m_bUseLogScale) {
+		if (m_dt.settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {

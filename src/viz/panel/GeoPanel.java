@@ -47,11 +47,11 @@ public class GeoPanel extends JPanel {
 		
 		JCheckBox chckbxShowGeoInfo = new JCheckBox("<html>Show geo info<br>(if any)</html>");
 		chckbxShowGeoInfo.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_GEO_INFO));
-		chckbxShowGeoInfo.setSelected(m_dt.m_bDrawGeo);
+		chckbxShowGeoInfo.setSelected(m_dt.settings.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(e-> {
-				boolean bPrev = m_dt.m_bDrawGeo;
-				m_dt.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.m_bDrawGeo) {
+				boolean bPrev = m_dt.settings.m_bDrawGeo;
+				m_dt.settings.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.settings.m_bDrawGeo) {
 					m_dt.makeDirty();
 				}
 			});

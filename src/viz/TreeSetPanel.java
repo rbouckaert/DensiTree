@@ -132,7 +132,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				m_image.scale(g, m_dt.m_fScale, m_dt.m_fScale);
 				float fScaleX = m_dt.m_fScaleX;
 				float fScaleY = m_dt.m_fScaleY;
-				if (m_dt.m_bUseLogScale) {
+				if (m_dt.settings.m_bUseLogScale) {
 					if (m_treeDrawer.m_bRootAtTop) {
 						fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 					} else {
@@ -421,7 +421,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	void viewEditTree(Graphics g) {
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;
-		if (m_dt.m_bUseLogScale) {
+		if (m_dt.settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {
@@ -543,7 +543,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		// need this here so that the screen is updated when selection of
 		// taxa changes
 		m_dt.drawLabels(m_dt.treeData.m_trees[0], g);
-		if (m_dt.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
+		if (m_dt.settings.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
 			g.setColor(m_dt.settings.m_color[DensiTree.GEOCOLOR]);
 			Stroke stroke = new BasicStroke(m_dt.settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 			g.setStroke(stroke);
@@ -586,7 +586,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	void drawRootCanalTree(Graphics2D g) {
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;
-		if (m_dt.m_bUseLogScale) {
+		if (m_dt.settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {
@@ -635,7 +635,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				m_dt.settings.m_fMinLat, m_dt.settings.m_fMaxLat);
 			// drawBGImage(g2);
 			// m_image.drawImage(g2 , this);
-			if (m_dt.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
+			if (m_dt.settings.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
 				g2.setColor(m_dt.settings.m_color[DensiTree.GEOCOLOR]);
 				Stroke stroke = new BasicStroke(m_dt.settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 				g2.setStroke(stroke);
@@ -950,7 +950,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (m_dt.m_bDrawGeo) {
+		if (m_dt.settings.m_bDrawGeo) {
 			for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
 				if (m_dt.m_bGeoRectangle[i].contains(e.getPoint())) {
 					m_dt.m_jStatusBar.setText(m_dt.settings.m_sLabels.elementAt(i));
