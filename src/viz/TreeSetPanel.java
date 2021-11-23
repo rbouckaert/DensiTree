@@ -115,12 +115,13 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			this.treeData = treeData;
 		} // c'tor
 
-		public DrawThread(String str, int nFrom, int nTo, int nEvery, TreeDrawer treeDrawer) {
+		public DrawThread(String str, int nFrom, int nTo, int nEvery, TreeDrawer treeDrawer, TreeData treeData) {
 			super(str);
 			m_nFrom = nFrom;
 			m_nTo = nTo;
 			m_nEvery = nEvery;
 			m_dt.m_treeDrawer = treeDrawer;
+			this.treeData = treeData;
 		} // c'tor
 
 		@Override
@@ -284,7 +285,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof ArcBranchDrawer) {
 				treeDrawer.m_branchStyle = 2;
 			}
-			DrawThread thread = new DrawThread("draw thread", 0, m_dt.treeData.m_trees.length, 1, treeDrawer);
+			DrawThread thread = new DrawThread("draw thread", 0, m_dt.treeData.m_trees.length, 1, treeDrawer, m_dt.treeData);
 			thread.run();
 			drawLabelsSVG(m_dt.treeData.m_trees[0], buf);
 			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
@@ -345,19 +346,33 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-		TreeData treeData = m_dt.treeData;
-		paintComponent(g, treeData);
+		Graphics2D g2 = (Graphics2D) g;
+		Color oldBackground = g2.getBackground();
+		g2.setBackground(m_dt.settings.m_color[DensiTree.BGCOLOR]);
+		Rectangle r = g.getClipBounds();
+		g.clearRect(r.x, r.y, r.width, r.height);
+		g2.setBackground(oldBackground);
+		g.setClip(r.x, r.y, r.width, r.height);
+
+		paintComponent(g, m_dt.treeData);
+		if (m_dt.treeData2 != null) {
+			paintComponent(g, m_dt.treeData2);
+		}
+
+		((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
+		m_dt.drawLabels(m_dt.treeData.m_trees[0], g2, m_dt.treeData);
 	}
 	
 	public void paintComponent(Graphics g, TreeData treeData) {
 		switch (treeData.drawMode) {
 		case TreeData.MODE_LEFT :
-			((Graphics2D)g).setTransform(new AffineTransform(0.5,0,0,1,0, 0));
+			((Graphics2D)g).setTransform(new AffineTransform(0.5,0,0,1,0,0));
 			break;
 		case TreeData.MODE_RIGHT :
-			((Graphics2D)g).setTransform(new AffineTransform(-0.5,0,0,1,m_image.getWidth()/2, 0));
+			((Graphics2D)g).setTransform(new AffineTransform(-0.5,0,0,1,m_image.getWidth(), 0));
 			break;
 		case TreeData.MODE_CENTRE :
+			break;
 		}
 
 		
@@ -396,7 +411,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			// wait a second for the drawing to be finished
 			try {
 				Graphics2D g2 = m_image.createGraphics();
-				m_dt.drawLabels(treeData.m_trees[0], g2);
+				m_dt.drawLabels(treeData.m_trees[0], g2, treeData);
 				ImageIO.write(m_image.m_localImage, "png", new File(m_dt.settings.m_sOutputFile));
 				System.exit(0);
 			} catch (Exception e) {
@@ -493,12 +508,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	/** draw complete set of trees **/
 	void drawTreeSet(Graphics2D g, TreeData treeData) {
-		Color oldBackground = g.getBackground();
-		g.setBackground(m_dt.settings.m_color[DensiTree.BGCOLOR]);
-		Rectangle r = g.getClipBounds();
-		g.clearRect(r.x, r.y, r.width, r.height);
-		g.setBackground(oldBackground);
-		g.setClip(r.x, r.y, r.width, r.height);
 
 		if (treeData.m_trees == null || treeData.m_fCLinesY == null || m_dt.m_bInitializing) {
 			// nothing to see
@@ -531,7 +540,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				int nDrawThreads = Math.min(m_nDrawThreads, treeData.m_trees.length);
 				for (int i = 0; i < nDrawThreads; i++) {
 					m_drawThread[i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, nDrawThreads,
-							m_dt.m_treeDrawer);
+							m_dt.m_treeDrawer, treeData);
 					m_drawThread[i].start();
 				}
 				if (m_dt.settings.m_bShowRootCanalTopology) {
@@ -560,7 +569,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 		// need this here so that the screen is updated when selection of
 		// taxa changes
-		m_dt.drawLabels(treeData.m_trees[0], g);
 		if (m_dt.settings.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
 			g.setColor(m_dt.settings.m_color[DensiTree.GEOCOLOR]);
 			Stroke stroke = new BasicStroke(m_dt.settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
@@ -660,7 +668,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				m_dt.drawGeo(treeData.m_cTrees[0], g2);
 			}
 			m_dt.m_gridDrawer.paintHeightInfo(g2);
-			m_dt.drawLabels(treeData.m_trees[0], g2);
+			m_dt.drawLabels(treeData.m_trees[0], g2, treeData);
 			m_image.SyncIntToRGBImage();
 		}
 
@@ -1021,4 +1029,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		
 	}
 
+	
+	
 } // class TreeSetPanel

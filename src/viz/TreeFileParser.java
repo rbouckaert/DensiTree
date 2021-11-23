@@ -24,6 +24,8 @@ package viz;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 
@@ -81,7 +83,7 @@ public class TreeFileParser {
 	
 	public Node [] parseFile(String sFile) throws Exception {
 		//Vector<String> sNewickTrees = new Vector<String>();
-		Vector<Node> trees = new Vector<Node>();
+		List<Node> trees = new ArrayList<>();
 		m_nOffset = 0;
 		
 		File file = new File(sFile);
@@ -194,7 +196,7 @@ public class TreeFileParser {
 	        	}
 				int iLabel = new Integer(sStr.substring(0, k)).intValue();
 				//String sLabel = sStrs[1];
-				if (m_sLabels.size() < iLabel) {
+				if (m_sLabels.size() <= iLabel) {
 					//m_sLabels.add("__dummy__");
 					m_nOffset = 1;
 				}

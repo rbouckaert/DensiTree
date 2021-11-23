@@ -1,6 +1,7 @@
 package viz;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
@@ -1690,4 +1692,191 @@ public class TreeData {
 		return iPos;
 	} // collectMetaData
 
+	public boolean loadFromFile(String sFile) {
+		TreeFileParser parser = new TreeFileParser(m_dt);
+		try {
+			m_trees = parser.parseFile(sFile);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Problem loading file: " + e.getMessage(),
+					"Help Message", JOptionPane.PLAIN_MESSAGE);
+			e.printStackTrace();
+			return false;
+		}
+		m_dt.m_nBurnIn = parser.m_nBurnIn;
+		if (m_dt.m_iOptTree >= 0) {
+			m_dt.m_optTree = m_trees[m_dt.m_iOptTree - m_dt.m_nBurnIn];
+		}
+
+		m_dt.a_loadkml.setEnabled(true);
+		float fOffset = DensiTree.GEO_OFFSET;
+		settings.m_fMaxLong = parser.m_fMaxLong + fOffset;
+		settings.m_fMaxLat = parser.m_fMaxLat + fOffset;
+		settings.m_fMinLong = parser.m_fMinLong - fOffset;
+		settings.m_fMinLat = parser.m_fMinLat - fOffset;
+		settings.m_nNrOfLabels = parser.m_nNrOfLabels;
+
+		if (m_trees.length == 0) {
+			settings.m_sLabels = null;
+			JOptionPane.showMessageDialog(null, "No trees found in file\nMaybe burn in is too large?",
+					"Help Message", JOptionPane.PLAIN_MESSAGE);
+			return false;
+		}
+
+		// set up selection
+		m_bSelection = new boolean[settings.m_sLabels.size()];
+		m_dt.m_bLabelRectangle = new Rectangle[settings.m_sLabels.size()];
+		m_dt.m_bGeoRectangle = new Rectangle[settings.m_sLabels.size()];
+		for (int i = 0; i < m_bSelection.length; i++) {
+			m_bSelection[i] = true;
+			m_dt.m_bLabelRectangle[i] = new Rectangle();
+			m_dt.m_bGeoRectangle[i] = new Rectangle();
+		}
+		m_bSelectionChanged = false;
+
+		// chop off root branch, if any
+		double fMinRootLength = Double.MAX_VALUE;
+		for (int i = 0; i < m_trees.length; i++) {
+			fMinRootLength = Math.min(fMinRootLength, m_trees[i].m_fLength);
+		}
+		for (int i = 0; i < m_trees.length; i++) {
+			m_trees[i].m_fLength -= fMinRootLength;
+		}
+
+		// reserve memory for nodes of m_trees
+		float[] fHeights = new float[m_trees.length];
+		for (int i = 0; i < m_trees.length; i++) {
+			fHeights[i] = positionHeight(m_trees[i], 0);
+			m_dt.m_fHeight = Math.max(m_dt.m_fHeight, fHeights[i]);
+		}
+		for (int i = 0; i < m_trees.length; i++) {
+			offsetHeight(m_trees[i], m_dt.m_fHeight - fHeights[i]);
+		}
+
+		// count tree topologies
+		// first step is find how many different topologies are present
+		m_nTopology = new int[m_trees.length];
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
+		for (int i = 0; i < m_trees.length; i++) {
+			Node tree = m_trees[i];
+			String sNewick = tree.toShortNewick();
+			if (map.containsKey(sNewick)) {
+				m_nTopology[i] = map.get(sNewick).intValue();
+			} else {
+				m_nTopology[i] = map.size();
+				map.put(sNewick, map.size());
+			}
+		}
+
+		// second step is find how many different tree have a particular
+		// topology
+		m_nTopologies = map.size();
+		int[] nTopologies = new int[m_nTopologies];
+		for (int i = 0; i < m_trees.length; i++) {
+			nTopologies[m_nTopology[i]]++;
+		}
+
+		// sort the trees so that frequently occurring topologies go first
+		// in
+		// the ordering
+		for (int i = 0; i < m_trees.length; i++) {
+			for (int j = i + 1; j < m_trees.length; j++) {
+				if (nTopologies[m_nTopology[i]] < nTopologies[m_nTopology[j]]
+						|| (nTopologies[m_nTopology[i]] == nTopologies[m_nTopology[j]] && m_nTopology[i] > m_nTopology[j])) {
+					int h = m_nTopology[j];
+					m_nTopology[j] = m_nTopology[i];
+					m_nTopology[i] = h;
+					Node tree = m_trees[j];
+					m_trees[j] = m_trees[i];
+					m_trees[i] = tree;
+				}
+
+			}
+		}
+		
+		
+		
+		// reserve memory for nodes of m_cTrees
+		// reserveMemory(m_nTopologies * (m_nNrOfLabels*2-1));
+		// calculate consensus trees
+		int i = 0;
+		int iOld = 0;
+		int iConsTree = 0;
+		m_fTreeWeight = new float[m_nTopologies];
+		m_cTrees = new Node[m_nTopologies];
+		Node tree = m_trees[0];
+		while (i < m_trees.length) {
+			tree = m_trees[i].copy();
+			Node consensusTree = tree;
+			i++;
+			while (i < m_trees.length && m_nTopology[i] == m_nTopology[i - 1]) {
+				tree = m_trees[i];
+				addLength(tree, consensusTree);
+				i++;
+			}
+			divideLength(consensusTree, i - iOld);
+			m_fTreeWeight[iConsTree] = (float) (i - iOld + 0.0) / m_trees.length;
+			// position nodes of consensus trees
+			// positionLeafs(consensusTree);
+			// positionRest(consensusTree);
+			float fHeight = positionHeight(consensusTree, 0);
+			offsetHeight(consensusTree, m_dt.m_fHeight - fHeight);
+			m_cTrees[iConsTree] = consensusTree;
+			iConsTree++;
+			iOld = i;
+		}
+		m_nTopologyByPopularity = new int[m_trees.length];
+		int nColor = 0;
+		m_nTopologyByPopularity[0] = 0;
+		for (i = 1; i < m_trees.length; i++) {
+			if (m_nTopology[i] != m_nTopology[i - 1]) {
+				nColor++;
+			}
+			m_nTopologyByPopularity[i] = nColor;
+		}
+
+		// calculate lines for drawing trees & consensus trees
+		m_fLinesX = new float[m_trees.length][];
+		m_fLinesY = new float[m_trees.length][];
+		// m_fTLinesX = new float[m_trees.length][];
+		// m_fTLinesY = new float[m_trees.length][];
+		m_fCLinesX = new float[m_nTopologies][];
+		m_fCLinesY = new float[m_nTopologies][];
+		// m_fCTLinesX = new float[m_nTopologies][];
+		// m_fCTLinesY = new float[m_nTopologies][];
+		// calcLines();
+		
+		m_bCladesReady = false;
+
+		return true;
+	}
+
+
+	/**
+	 * move divide y-position of a tree with factor f. Useful to calculate
+	 * consensus trees.
+	 **/
+	private void divideLength(Node node, float f) {
+		if (!node.isLeaf()) {
+			divideLength(node.m_left, f);
+			if (node.m_right != null) {
+				divideLength(node.m_right, f);
+			}
+		}
+		node.m_fLength /= f;
+	}
+
+	/**
+	 * add length of branches in src to that of target Useful to calculate
+	 * consensus trees. Assumes src and target share same topology
+	 */
+	private void addLength(Node src, Node target) {
+		// assumes same topologies for src and target
+		if (!src.isLeaf()) {
+			addLength(src.m_left, target.m_left);
+			if (src.m_right != null) {
+				addLength(src.m_right, target.m_right);
+			}
+		}
+		target.m_fLength += src.m_fLength;
+	}
 }
