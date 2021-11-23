@@ -601,6 +601,73 @@ public class DensiTree extends JPanel implements ComponentListener {
 				+ formatColor(BGCOLOR) + "\tHeight color:" + formatColor(HEIGHTCOLOR);
 	}
 
+	
+	class MetaDataThread extends Thread {
+		TreeData treeData;
+		
+		MetaDataThread(TreeData treeData) {
+			this.treeData = treeData;
+		}
+		
+		@Override
+		public void run() {
+			m_jStatusBar.setText("Calculating clades");
+			treeData.calcClades();
+			treeData.m_bCladesReady = true;
+			m_jStatusBar.setText("Optimising node order");
+			int [] oldOrder = settings.m_nOrder.clone();
+			if (!settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
+				reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
+				calcPositions();
+				calcLines();
+				notifyChangeListeners();
+				if (orderChanged(oldOrder)) {
+					System.err.println("Node order changed");	
+					makeDirty();
+				}
+			}
+			String statusMsg = "Parsing metadata";
+			for (int k = 0; k < treeData.m_trees.length; k++) {
+				parseMetaData(treeData.m_trees[k]);
+				if (k % 100 == 0) {
+					statusMsg += ".";
+					m_jStatusBar.setText(statusMsg);
+					setWaitCursor();
+//					if (getCursor().getType() != Cursor.WAIT_CURSOR) {
+//						setCursor(new Cursor(Cursor.WAIT_CURSOR));
+//					}
+				}
+			}
+			if (!settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
+				settings.m_metaDataTags = new ArrayList<String>();
+				settings.m_metaDataTypes = new ArrayList<MetaDataType>();
+				collectMetaDataTags(treeData.m_trees[0]);
+				if (settings.m_metaDataTags.size() > 0) {
+					calcPositions();
+					calcLines();
+					makeDirty();
+				}
+			}
+			treeData.m_bMetaDataReady = true;			
+			notifyChangeListeners();
+			m_jStatusBar.setText("Done parsing metadata");
+			
+			thread = null;
+		}
+
+		private void parseMetaData(Node node) {
+			node.parseMetaData();
+			if (!node.isLeaf()) {
+				parseMetaData(node.m_left);
+				if (node.m_right != null) {
+					parseMetaData(node.m_right);
+				}
+			}
+		};
+		
+	};
+	
+	
 	/**
 	 * read trees from file, and process them into a set of lines This may take
 	 * a while... sFile: name of Nexus or Newick tree list file or to read
@@ -697,62 +764,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcPositions();
 			
 			treeData.m_bMetaDataReady = false;			
-			thread = new Thread() {
-				@Override
-				public void run() {
-					m_jStatusBar.setText("Calculating clades");
-					treeData.calcClades();
-					treeData.m_bCladesReady = true;
-					m_jStatusBar.setText("Optimising node order");
-					int [] oldOrder = settings.m_nOrder.clone();
-					if (!settings.m_bAllowSingleChild) {
-						reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
-						calcPositions();
-						calcLines();
-						notifyChangeListeners();
-						if (orderChanged(oldOrder)) {
-							System.err.println("Node order changed");	
-							makeDirty();
-						}
-					}
-					String statusMsg = "Parsing metadata";
-					for (int k = 0; k < treeData.m_trees.length; k++) {
-						parseMetaData(treeData.m_trees[k]);
-						if (k % 100 == 0) {
-							statusMsg += ".";
-							m_jStatusBar.setText(statusMsg);
-							setWaitCursor();
-//							if (getCursor().getType() != Cursor.WAIT_CURSOR) {
-//								setCursor(new Cursor(Cursor.WAIT_CURSOR));
-//							}
-						}
-					}
-					settings.m_metaDataTags = new ArrayList<String>();
-					settings.m_metaDataTypes = new ArrayList<MetaDataType>();
-					collectMetaDataTags(treeData.m_trees[0]);
-					if (settings.m_metaDataTags.size() > 0) {
-						calcPositions();
-						calcLines();
-						makeDirty();
-					}
-					treeData.m_bMetaDataReady = true;			
-					notifyChangeListeners();
-					m_jStatusBar.setText("Done parsing metadata");
-					
-					thread = null;
-				}
-
-				private void parseMetaData(Node node) {
-					node.parseMetaData();
-					if (!node.isLeaf()) {
-						parseMetaData(node.m_left);
-						if (node.m_right != null) {
-							parseMetaData(node.m_right);
-						}
-					}
-				};
-				
-			};
+			thread = new MetaDataThread(treeData);
 			thread.start();
 			
 			settings.m_metaDataTags = new ArrayList<String>();
@@ -2518,18 +2530,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionLoad
 
-	Action a_load2 = new MyAction("Load mirror set", "Load mirror tree set", "open", null) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Mirror Tree Set", true, new File(settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
-			if (files != null && files.length > 0) {
-				doOpenMirror(files[0].getPath());
-			}
-		}
-	}; // class ActionLoad2
-	
 	public void doOpen(String sFileName) {
 		if (sFileName.lastIndexOf('/') > 0) {
 			settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
@@ -2548,6 +2548,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 		fitToScreen();
 	}
 	
+	Action a_loadMirror = new MyAction("Load mirror set", "Load mirror tree set", "open", null) {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			File [] files = Util.getFile("Load Mirror Tree Set", true, new File(settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
+			if (files != null && files.length > 0) {
+				doOpenMirror(files[0].getPath());
+			}
+		}
+	}; // class ActionLoadMirror
+	
 	public void doOpenMirror(String sFileName) {
 		if (sFileName.lastIndexOf('/') > 0) {
 			settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
@@ -2560,7 +2572,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			treeData.drawMode = TreeData.MODE_LEFT;
 			treeData2.drawMode = TreeData.MODE_RIGHT;
-			calcLines();
+
+			if (thread != null) {
+				try {
+					thread.stop();
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+			thread = new MetaDataThread(treeData2);
+			thread.start();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
@@ -3668,7 +3690,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_menuBar.add(fileMenu);
 		fileMenu.add(a_new);
 		fileMenu.add(a_load);
-		fileMenu.add(a_load2);
+		fileMenu.add(a_loadMirror);
 		fileMenu.add(a_saveas);
 		fileMenu.add(a_loadimage);
 
