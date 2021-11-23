@@ -52,7 +52,6 @@ import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -87,7 +86,6 @@ import viz.panel.GridPanel;
 import viz.panel.LabelPanel;
 import viz.panel.LineWidthPanel;
 import viz.panel.ShowPanel;
-import viz.process.BranchLengthOptimiser;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
@@ -104,6 +102,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	static int instances = 1;
 	
 	public Settings settings = new Settings();
+//	public TreeData [] treeData = {new TreeData(this, settings)};
 	public TreeData treeData = new TreeData(this, settings);
 	
 	static float GEO_OFFSET = 3.0f;
@@ -2228,7 +2227,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
 		        super(sName);
-			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 			    if ((acceleratorKey & InputEvent.ALT_DOWN_MASK) > 0) {
 				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - InputEvent.ALT_DOWN_MASK, InputEvent.ALT_DOWN_MASK);
 			    }
@@ -2238,7 +2237,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
 		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
 		        }
-		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
+		        putValue(Action.MNEMONIC_KEY, Integer.valueOf(sName.charAt(0)));
 		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
 		        //if (true || !viz.util.Util.isMac()) {
 			        if (tempURL != null) {
@@ -2261,7 +2260,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
 		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
 		        }
-		        putValue(Action.MNEMONIC_KEY, new Integer(sName.charAt(0)));
+		        putValue(Action.MNEMONIC_KEY, Integer.valueOf(sName.charAt(0)));
 		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
 		        if (!viz.util.Util.isMac()) {
 			        if (tempURL != null) {

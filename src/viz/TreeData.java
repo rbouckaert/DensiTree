@@ -30,6 +30,11 @@ public class TreeData {
 		this.settings = settings;
 	}
 
+	final static int MODE_LEFT = 0;
+	final static int MODE_RIGHT = 2;
+	final static int MODE_CENTRE = 3;
+	int drawMode = MODE_CENTRE;
+	
 	/** same trees, but represented as Node data structure **/
 	public Node[] m_trees;
 	
