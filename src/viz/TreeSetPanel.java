@@ -49,7 +49,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	Thread[] m_drawThread;
 
 	/** image in memory containing tree set drawing **/
-	private BufferedImageF m_image;
+	private BufferedImageF m_image1, m_image2;
 	
 	private BufferedImage m_selectedImage;
 
@@ -81,7 +81,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	/** reset image so that it will be redrawn on the next occasion */
 	public void clearImage() {
-		m_image = null;
+		m_image1 = null;
+		m_image2 = null;
 		stopDrawThreads();
 	}
 
@@ -104,8 +105,10 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		int m_iTreeTopology = -1;
 		TreeDrawer m_treeDrawer;
 		TreeData treeData;
+		BufferedImageF m_image;
 
-		public DrawThread(String str, int nFrom, int nTo, int nEvery, int iTreeTopology, TreeDrawer treeDrawer, TreeData treeData) {
+		public DrawThread(String str, int nFrom, int nTo, int nEvery, int iTreeTopology, TreeDrawer treeDrawer, 
+				TreeData treeData, BufferedImageF image) {
 			super(str);
 			m_treeDrawer = treeDrawer;
 			m_nFrom = nFrom;
@@ -113,15 +116,18 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			m_nEvery = nEvery;
 			m_iTreeTopology = iTreeTopology;
 			this.treeData = treeData;
+			m_image = image;
 		} // c'tor
 
-		public DrawThread(String str, int nFrom, int nTo, int nEvery, TreeDrawer treeDrawer, TreeData treeData) {
+		public DrawThread(String str, int nFrom, int nTo, int nEvery, TreeDrawer treeDrawer, TreeData treeData,
+				BufferedImageF image) {
 			super(str);
 			m_nFrom = nFrom;
 			m_nTo = nTo;
 			m_nEvery = nEvery;
 			m_dt.m_treeDrawer = treeDrawer;
 			this.treeData = treeData;
+			m_image = image;
 		} // c'tor
 
 		@Override
@@ -213,7 +219,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 						if (m_dt.settings.m_bShowRootCanalTopology) {
 							drawRootCanalTree(g, treeData);
 						}
-						double fEntropy = calcImageEntropy();
+						double fEntropy = calcImageEntropy(m_image);
 						m_dt.m_jStatusBar.setText("Done Drawing trees ");
 						System.out.println("Entropy(x100): " + fEntropy + " Mean cumulative width: " + m_dt.m_w);
 					}
@@ -266,7 +272,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 	} // m_dt.drawLabelsSVG
 
-	void toSVG(String sFileName) {
+	void toSVG(String sFileName, BufferedImageF m_image) {
 		try {
 			if (m_dt.m_font == null) {
 				m_dt.m_font = new Font("Monospaced", Font.PLAIN, 10);
@@ -285,7 +291,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof ArcBranchDrawer) {
 				treeDrawer.m_branchStyle = 2;
 			}
-			DrawThread thread = new DrawThread("draw thread", 0, m_dt.treeData.m_trees.length, 1, treeDrawer, m_dt.treeData);
+			DrawThread thread = new DrawThread("draw thread", 0, m_dt.treeData.m_trees.length, 1, treeDrawer, m_dt.treeData, m_image);
 			thread.run();
 			drawLabelsSVG(m_dt.treeData.m_trees[0], buf);
 			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
@@ -306,7 +312,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 	} // toSVG
 
-	double calcImageEntropy() throws Exception {
+	double calcImageEntropy(BufferedImageF m_image) throws Exception {
 		if (m_image == null) {
 			return 0;
 		}
@@ -354,22 +360,22 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g2.setBackground(oldBackground);
 		g.setClip(r.x, r.y, r.width, r.height);
 
-		paintComponent(g, m_dt.treeData);
+		paintComponent(g, m_dt.treeData, m_image1);
 		if (m_dt.treeData2 != null) {
-			paintComponent(g, m_dt.treeData2);
+			paintComponent(g, m_dt.treeData2, m_image2);
 		}
 
 		((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
 		m_dt.drawLabels(m_dt.treeData.m_trees[0], g2, m_dt.treeData);
 	}
 	
-	public void paintComponent(Graphics g, TreeData treeData) {
+	public void paintComponent(Graphics g, TreeData treeData, BufferedImageF m_image) {
 		switch (treeData.drawMode) {
 		case TreeData.MODE_LEFT :
-			((Graphics2D)g).setTransform(new AffineTransform(0.5,0,0,1,0,0));
+			//((Graphics2D)g).setTransform(new AffineTransform(0.5,0,0,1,0,0));
 			break;
 		case TreeData.MODE_RIGHT :
-			((Graphics2D)g).setTransform(new AffineTransform(-0.5,0,0,1,m_image.getWidth(), 0));
+			((Graphics2D)g).setTransform(new AffineTransform(-1.0,0,0,1,2*m_image1.getWidth(), 0));
 			break;
 		case TreeData.MODE_CENTRE :
 			break;
@@ -384,13 +390,13 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_dt.settings.m_bDrawReverse && m_image != null) {
 				((Graphics2D)g).setTransform(new AffineTransform(-1,0,0,1,m_image.getWidth(), 0));
 			}
-			drawTreeSet((Graphics2D) g, treeData);
+			drawTreeSet((Graphics2D) g, treeData, m_image);
 			if (m_dt.settings.m_bDrawReverse && m_image != null) {
 				((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1,0, 0));
 			}
 			break;
 		case ANIMATE:
-			drawFrame(g, treeData);
+			drawFrame(g, treeData, m_image);
 			m_dt.m_gridDrawer.paintHeightInfo(g);
 			try {
 				Thread.sleep(m_dt.m_nAnimationDelay);
@@ -401,7 +407,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			repaint();
 			return;
 		case BROWSE:
-			drawFrame(g, treeData);
+			drawFrame(g, treeData, m_image);
 			m_dt.m_gridDrawer.paintHeightInfo(g);
 			m_dt.setDefaultCursor();
 			//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
@@ -507,7 +513,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 
 	/** draw complete set of trees **/
-	void drawTreeSet(Graphics2D g, TreeData treeData) {
+	void drawTreeSet(Graphics2D g, TreeData treeData, BufferedImageF m_image) {
 
 		if (treeData.m_trees == null || treeData.m_fCLinesY == null || m_dt.m_bInitializing) {
 			// nothing to see
@@ -519,10 +525,15 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_image == null) {
 				System.err.println("Setting up new image");
 				if (!m_dt.settings.m_bShowBounds) {
-					m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale), (int) (getHeight() * m_dt.m_fScale));
+					m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 				} else {
-					m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale),
+					m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2),
 							(int) (getHeight() * m_dt.m_fScale));
+				}
+				if (treeData.drawMode == TreeData.MODE_RIGHT) {
+					m_image2 = m_image;
+				} else {
+					m_image1 = m_image;
 				}
 				m_dt.m_treeDrawer.setImage(m_image);
 				Graphics2D g2 = m_image.createGraphics();
@@ -531,7 +542,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
 				m_dt.m_gridDrawer.paintHeightInfo(g2);
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
-				if (m_image == null) {
+				if (m_image1 == null) {
 					return;
 				} else {
 					m_image.SyncIntToRGBImage();
@@ -540,7 +551,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				int nDrawThreads = Math.min(m_nDrawThreads, treeData.m_trees.length);
 				for (int i = 0; i < nDrawThreads; i++) {
 					m_drawThread[i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, nDrawThreads,
-							m_dt.m_treeDrawer, treeData);
+							m_dt.m_treeDrawer, treeData, m_image);
 					m_drawThread[i].start();
 				}
 				if (m_dt.settings.m_bShowRootCanalTopology) {
@@ -550,7 +561,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 		}
 		;
-		if (m_image == null) {
+		if (m_image1 == null) {
 			return;
 		}
 		m_image.drawImage(g, this);
@@ -629,7 +640,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	}
 
 	/** draw new frame in animation or browse action **/
-	void drawFrame(Graphics g, TreeData treeData) {
+	void drawFrame(Graphics g, TreeData treeData, BufferedImageF m_image) {
 		Color oldBackground = ((Graphics2D) g).getBackground();
 		((Graphics2D) g).setBackground(m_dt.settings.m_color[DensiTree.BGCOLOR]);
 		Rectangle r = g.getClipBounds();
@@ -649,10 +660,16 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 																				// ViewMode.BROWSE)
 																				// {
 			if (!m_dt.settings.m_bShowBounds) {
-				m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale), (int) (getHeight() * m_dt.m_fScale));
+				m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			} else {
-				m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale), (int) (getHeight() * m_dt.m_fScale));
+				m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			}
+			if (treeData.drawMode == TreeData.MODE_RIGHT) {
+				m_image2 = m_image;
+			} else {
+				m_image1 = m_image;
+			}
+
 			m_dt.m_treeDrawer.setImage(m_image);
 			Graphics2D g2 = m_image.createGraphics();
 			// g2.setBackground(m_dt.m_color[DensiTree.BGCOLOR]);
@@ -674,7 +691,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 		for (int i = 0; i < m_nDrawThreads; i++) {
 			m_drawThread[i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, m_nDrawThreads, m_dt.m_iAnimateTree,
-					m_dt.m_treeDrawer, treeData);
+					m_dt.m_treeDrawer, treeData, m_image);
 			m_drawThread[i].start();
 		}
 

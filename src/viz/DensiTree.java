@@ -618,6 +618,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			int [] oldOrder = settings.m_nOrder.clone();
 			if (!settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
 				reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
+			}
+			if (!settings.m_bAllowSingleChild) {
 				calcPositions();
 				calcLines();
 				notifyChangeListeners();
@@ -1891,6 +1893,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fScaleX *= m_fScale;
 		m_fScaleY *= m_fScale;
 		m_jScrollPane.revalidate();
+		
+		if (treeData2 != null) {
+			m_fScaleX /= 2.0;
+		}
 		makeDirty();
 		// System.err.println("Scale " + m_fScaleX + " " + m_fScaleY);
 	}
@@ -2548,7 +2554,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		fitToScreen();
 	}
 	
-	Action a_loadMirror = new MyAction("Load mirror set", "Load mirror tree set", "open", null) {
+	Action a_loadMirror = new MyAction("Load mirror set", "Load mirror tree set", "open", -1) {
 		private static final long serialVersionUID = 1L;
 
 		@Override
@@ -2570,6 +2576,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				treeData2 = null;
 				return;
 			}
+			m_sFileName = sFileName;
 			treeData.drawMode = TreeData.MODE_LEFT;
 			treeData2.drawMode = TreeData.MODE_RIGHT;
 
