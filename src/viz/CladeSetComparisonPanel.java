@@ -6,6 +6,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -24,7 +27,7 @@ public class CladeSetComparisonPanel extends JPanel {
 		g.setColor(Color.white);
 		g.clearRect(0, 0, getWidth(), getHeight());
 		g.setColor(Color.blue);
-		if (m_dt.treeData2 == null) {
+		if (m_dt.treeData2 == null || m_dt.m_mirrorCladeToCladeMap == null) {
 			g.drawString(" Can only draw comparison", 0, getHeight()/2 - 15);
 			g.drawString(" when mirror set is loaded", 0, getHeight()/2);
 			g.drawString(" using File/Load mirror menu", 0, getHeight()/2 + 15);
@@ -32,15 +35,43 @@ public class CladeSetComparisonPanel extends JPanel {
 		}
 		Graphics2D g2 = (Graphics2D) g;
 		
-		initPNG(g2);
+		initGraph(g2);
+		
+		Map<String,Integer> map = m_dt.m_mirrorCladeToCladeMap;
+		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
+			output(g2, i, map, false);
+		}
+		
+		for (int i : m_dt.treeData.m_cladeSelection) {
+			output(g2, i, map, true);
+		}
 	}
 
 	
+	private void output(Graphics2D g2, int i, Map<String,Integer> map, boolean highlight) {
+		double h1 = m_dt.treeData.m_cladeHeight.get(i);
+		double lo1 = m_dt.treeData.m_cladeHeight95HPDdown.get(i);
+		double hi1 = m_dt.treeData.m_cladeHeight95HPDup.get(i);
+		double support1 = m_dt.treeData.m_cladeWeight.get(i);
+		int [] clade = m_dt.treeData.m_clades.get(i);
+		Integer j = map.get(Arrays.toString(clade));
+		if (j != null) {
+			double h2 = m_dt.treeData2.m_cladeHeight.get(j);
+			double lo2 = m_dt.treeData2.m_cladeHeight95HPDdown.get(j);
+			double hi2 = m_dt.treeData2.m_cladeHeight95HPDup.get(j);
+			double support2 = m_dt.treeData2.m_cladeWeight.get(j);
+			output(g2, m_dt.m_fHeight, h1, lo1, hi1, h2, lo2, hi2, support1, support2, highlight);
+		} else {
+			output(g2, m_dt.m_fHeight, h1, lo1, hi1, 0.0, 0.0, 0.0, support1, 0.0, highlight);
+		}
+	}
+
+
 	private int w; // width of  panel including labels
 	private int h; // height of panel including labels
 	private int off; // offset space for labels
 
-	private void initPNG(Graphics2D g) {
+	private void initGraph(Graphics2D g) {
 		g.setColor(Color.white);
 		w = getWidth();
 		h = getHeight();
@@ -74,7 +105,7 @@ public class CladeSetComparisonPanel extends JPanel {
 		g.drawString("1.0", x, (int)(off + 0.0*(h-2*off)));
 
 		g.setColor(Color.black);
-		g.setFont(new Font("Arial",Font.PLAIN, 10));
+		g.setFont(new Font("Arial",Font.PLAIN, 16));
 		g.drawString(m_dt.m_sFileName, off, h-2);// - g.getFontMetrics().getHeight());
 
 		AffineTransform orig = g.getTransform();
@@ -89,34 +120,44 @@ public class CladeSetComparisonPanel extends JPanel {
 	void output(Graphics2D g, double maxHeight,
 			double h1, double lo1, double hi1, 
 			double h2, double lo2, double hi2,
-			double support1, double support2) {
+			double support1, double support2,
+			boolean highlight) {
 		double x = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
 		double y = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);
 		double r = 1+(support1 + support2) * 10; 
-		g.setColor(Color.red);
-		g.setComposite(AlphaComposite.SrcOver.derive(0.25f));
+		if (highlight) {
+			g.setColor(Color.black);
+			g.setComposite(AlphaComposite.SrcOver.derive(0.99f));
+		} else {
+			g.setColor(Color.red);
+			g.setComposite(AlphaComposite.SrcOver.derive(0.25f));
+		}
 		g.fillOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		
-		g.setColor(Color.blue);
+		if (highlight) {
+			g.setColor(Color.black);
+		} else {
+			g.setColor(Color.blue);
+		}
 		float alpha = (float)(0.1 + ((support1 + support2)/2.0)*0.9);
 		g.setComposite(AlphaComposite.SrcOver.derive(alpha));
-		x = off + (w-2*off) * h1 / maxHeight;
-		y = h-off - (h-2*off) * h2/ maxHeight;
+		x = w-off - (w-2*off) * h1 / maxHeight;
+		y = off + (h-2*off) * h2/ maxHeight;
 		r = 3 + Math.max(support1, support2) * 13;
 		g.fillOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		
 		
 		if ((support1 + support2) > 0.1) {
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * alpha));
-			int x1 = (int)(off + (w-2*off) * lo1 / maxHeight);
-			int y1 = (int)(h-off - (h-2*off) * h2/ maxHeight);
-			int x2 = (int)(off + (w-2*off) * hi1 / maxHeight);
-			int y2 = (int)(h-off - (h-2*off) * h2/ maxHeight);
+			int x1 = (int)(w-off - (w-2*off) * lo1 / maxHeight);
+			int y1 = (int)(off + (h-2*off) * h2/ maxHeight);
+			int x2 = (int)(w - off - (w-2*off) * hi1 / maxHeight);
+			int y2 = y1;
 			g.drawLine(x1, y1, x2, y2);
-			x1 = (int)(off + (w-2*off) * h1 / maxHeight);
-			y1 = (int)(h-off - (h-2*off) * lo2/ maxHeight);
-			x2 = (int)(off + (w-2*off) * h1 / maxHeight);
-			y2 = (int)(h-off - (h-2*off) * hi2/ maxHeight);
+			x1 = (int)(w - off - (w-2*off) * h1 / maxHeight);
+			y1 = (int)(off + (h-2*off) * lo2/ maxHeight);
+			x2 = x1;
+			y2 = (int)(off + (h-2*off) * hi2/ maxHeight);
 			g.drawLine(x1, y1, x2, y2);
 		}
 		

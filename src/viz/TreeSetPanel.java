@@ -778,6 +778,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			}
 		}
 		m_dt.treeData.m_cladeSelection.clear();
+		if (m_dt.treeData2 != null) {
+			m_dt.treeData2.m_cladeSelection.clear();
+		}
 		m_dt.resetCladeSelection();			
 	}
 
@@ -807,9 +810,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				rotationPoint.y = m_rotationPoints[i].m_nY;
 				if (r.intersects(rotationPoint)) { 
 					if (m_dt.treeData.m_cladeSelection.contains(i)) {
-						m_dt.treeData.m_cladeSelection.remove(i);
+						m_dt.addCladeToSelection(i);
+						// m_dt.treeData.m_cladeSelection.remove(i);						
 					} else {
-						m_dt.treeData.m_cladeSelection.add(i);
+						m_dt.removeCladeFromselection(i);
+						// m_dt.treeData.m_cladeSelection.add(i);
 					}
 				}
 			}
@@ -842,8 +847,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			for (int i = 0; i < m_rotationPoints.length; i++) {
 				rotationPoint.x = m_rotationPoints[i].m_nX;
 				rotationPoint.y = m_rotationPoints[i].m_nY;
-				if (r.intersects(rotationPoint) && m_dt.treeData.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) { 
-					m_dt.treeData.m_cladeSelection.add(i);
+				if (r.intersects(rotationPoint) && m_dt.treeData.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
+					m_dt.addCladeToSelection(i);
+					// m_dt.treeData.m_cladeSelection.add(i);
 				}
 			}
 			

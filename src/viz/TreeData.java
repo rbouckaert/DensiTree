@@ -612,7 +612,9 @@ public class TreeData {
 
 	void resetCladeSelection() {
 		m_bAllowCladeSelection = false;
-		m_cladelist.clearSelection();
+		if (m_cladelist != null) {
+			m_cladelist.clearSelection();
+		}
 		for (int i : m_cladeSelection) {
 			m_cladelist.addSelectionInterval(i, i);
 			if (m_cladeSelection.size() == 1) {

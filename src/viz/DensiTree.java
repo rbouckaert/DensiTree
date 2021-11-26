@@ -106,6 +106,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public TreeData treeData = new TreeData(this, settings);
 	public TreeData treeData2;
 	
+	
+	
+	/** used for finding clade from treeData in clade set of treeData2 **/ 
+	Map<String,Integer> m_mirrorCladeToCladeMap = null;
+
+	
 	static float GEO_OFFSET = 3.0f;
 	
 	/** flag for testing summary tree optimisation **/
@@ -621,6 +627,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_jStatusBar.setText("Calculating clades");
 			treeData.calcClades();
 			treeData.m_bCladesReady = true;
+			
+			if (treeData.drawMode == TreeData.MODE_RIGHT) {
+				m_mirrorCladeToCladeMap = new HashMap<>();
+				for (int i = 0; i < treeData2.m_clades.size(); i++) {
+					m_mirrorCladeToCladeMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
+				}
+			}
+			
 			m_jStatusBar.setText("Optimising node order");
 			int [] oldOrder = settings.m_nOrder.clone();
 			if (!settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
@@ -915,15 +929,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	public void updateCladeModel() {
 		treeData.updateCladeModel();
+		if (treeData2 != null) {
+			treeData2.updateCladeModel();
+		}
 	}
 
 	void resetCladeSelection() {
 		treeData.resetCladeSelection();
+		if (treeData2 != null) {
+			treeData2.resetCladeSelection();
+		}
 	}
 	
 	public void calcCladeIDForNode(Node tree, Map<String, Integer> mapCladeToIndex) {
 		treeData.calcCladeIDForNode(tree, mapCladeToIndex);
-		
 	}
 	
 	public void resetCladeNr(Node tree, Integer[] reverseindex) {
@@ -2092,6 +2111,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} else {
 			m_bIsDirty = true;
 		}
+		m_cladeSetComparisonPanel.repaint();
 		repaint();
 	}
 
@@ -3676,9 +3696,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			public void valueChanged(ListSelectionEvent e) {
 				if (treeData.m_bAllowCladeSelection) {
 	 				treeData.m_cladeSelection.clear();
+	 				if (treeData2!=null) {
+		 				treeData2.m_cladeSelection.clear();
+	 				}
 					for (int i : treeData.m_cladelist.getSelectedIndices()) {
 						if (treeData.m_cladeWeight.get(i) > 0.01 && ((settings.m_Xmode == 1 && treeData.m_clades.get(i).length > 1) || (settings.m_Xmode == 2 && treeData.m_clades.get(i).length == 1))) {
-							treeData.m_cladeSelection.add(i);
+							addCladeToSelection(i);
+							removeCladeFromselection(i);
 						}
 					}
 					resetCladeSelection();
@@ -3687,6 +3711,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					repaint();
 				}
 			}
+
 		});
 		JScrollPane scrollingList = new JScrollPane(treeData.m_cladelist);
 		//scrollingList.setPreferredSize(new Dimension(1200,600));
@@ -3697,6 +3722,31 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_jTbCladeTools.setVisible(false);
 	} // makeToolbar
 
+	
+	protected void removeCladeFromselection(int i) {
+		treeData.m_cladeSelection.add(i);
+		
+			if (treeData2!=null) {
+			String clade = Arrays.toString(treeData.m_clades.get(i));
+			Integer j = m_mirrorCladeToCladeMap.get(clade);
+			if (j != null) {
+				treeData2.m_cladeSelection.remove(j);
+			}
+			}
+	}
+
+	protected void addCladeToSelection(int i) {
+		treeData.m_cladeSelection.add(i);
+		
+			if (treeData2!=null) {
+			String clade = Arrays.toString(treeData.m_clades.get(i));
+			Integer j = m_mirrorCladeToCladeMap.get(clade);
+			if (j != null) {
+				treeData2.m_cladeSelection.remove(j);
+			}
+			}
+	}
+	
 	private JButton createToolBarButton(Action action) {
 		// Add a button to the toolbar; remove the label and margin before adding
 		JButton c1 = new JButton(action);
