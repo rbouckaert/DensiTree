@@ -49,7 +49,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	Thread[] m_drawThread;
 
 	/** image in memory containing tree set drawing **/
-	private BufferedImageF m_image1, m_image2;
+	BufferedImageF m_image1;
+	private BufferedImageF m_image2;
 	
 	private BufferedImage m_selectedImage;
 
@@ -525,9 +526,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_image == null) {
 				System.err.println("Setting up new image");
 				if (!m_dt.settings.m_bShowBounds) {
-					m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
+					m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 				} else {
-					m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2),
+					m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2),
 							(int) (getHeight() * m_dt.m_fScale));
 				}
 				if (treeData.drawMode == TreeData.MODE_RIGHT) {
@@ -660,9 +661,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 																				// ViewMode.BROWSE)
 																				// {
 			if (!m_dt.settings.m_bShowBounds) {
-				m_image = new BufferedImageF((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
+				m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			} else {
-				m_image = new BufferedImageBounded((int) (getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
+				m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			}
 			if (treeData.drawMode == TreeData.MODE_RIGHT) {
 				m_image2 = m_image;

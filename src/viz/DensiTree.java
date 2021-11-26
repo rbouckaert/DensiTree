@@ -214,6 +214,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * can be reloaded
 	 */
 	public String m_sFileName;
+	// file name of mirror set
+	public String m_sFileName2;
 	
 
 	
@@ -265,6 +267,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		this.setLayout(new BorderLayout());
 		this.add(m_jScrollPane, BorderLayout.CENTER);
 
+		m_cladeSetComparisonPanel = new CladeSetComparisonPanel(this);
+		m_cladeSetComparisonPanel.setVisible(false);
+		this.add(m_jScrollPane, BorderLayout.WEST);
+		
+		
 		a_zoomout.setEnabled(false);
 		a_zoomouttree.setEnabled(false);
 
@@ -1865,7 +1872,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fScaleY = 10;
 		int nW = (int) (getWidth() / m_fScale) - 24;
 		int nH = (int) (getHeight() / m_fScale) - 24;
-		nW = getWidth() - 24;
+		nW = getWidth();// - 24;
 		nH = getHeight() - 24;
 		if (m_treeDrawer.m_bRootAtTop) {
 			m_fScaleX = (nW + 0.0f) / settings.m_sLabels.size();
@@ -2031,6 +2038,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	JScrollPane m_jScrollPane;
 	/** panel for drawing the trees **/
 	public TreeSetPanel m_Panel = null;
+	/** panel to display pairwise clade set comparison **/
+	public CladeSetComparisonPanel m_cladeSetComparisonPanel = null;
 	/** the menu bar for this application. */
 	JMenuBar m_menuBar;
 	/** status bar at bottom of window */
@@ -2459,7 +2468,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						return;
 					}
 					if (sFileName.toLowerCase().endsWith(".svg")) {
-						m_Panel.toSVG(sFileName);
+						m_Panel.toSVG(sFileName, m_Panel.m_image1);
 						return;
 					}
 					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
@@ -2576,7 +2585,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				treeData2 = null;
 				return;
 			}
-			m_sFileName = sFileName;
+			m_sFileName2 = sFileName;
 			treeData.drawMode = TreeData.MODE_LEFT;
 			treeData2.drawMode = TreeData.MODE_RIGHT;
 
@@ -3025,6 +3034,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} // actionPerformed
 	}; // class ActionViewToolbar
 
+	Action a_viewCladeComparison = new MyAction("View clade comparison", "View pairwise clade comparison", "cladecomparison", -1) {
+		private static final long serialVersionUID = -1;
+
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			m_cladeSetComparisonPanel.setVisible(!m_cladeSetComparisonPanel.isVisible());
+				if (m_cladeSetComparisonPanel.isVisible()) {
+					Container c = m_cladeSetComparisonPanel.getParent();
+					if (c instanceof JSplitPane) {
+						((JSplitPane)c).setDividerLocation(0.3);
+					}
+				}
+		} // actionPerformed
+	}; // class ActionViewCladeComparison
+
+	
 	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_EQUALS) {
 		private static final long serialVersionUID = -2038911085935515L;
 
@@ -3853,6 +3878,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		windowMenu.add(a_viewtoolbar);
 		windowMenu.add(a_viewtoolbar2);
 		windowMenu.add(a_viewcladetoolbar);
+		windowMenu.add(a_viewCladeComparison);
 		windowMenu.addSeparator();
 		windowMenu.add(a_zoomin);
 		windowMenu.add(a_zoomout);
@@ -3936,7 +3962,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 		f.setJMenuBar(menuBar);
 		f.add(a.m_jTbTools, BorderLayout.NORTH);
 		f.add(a.m_jTbTools2, BorderLayout.EAST);
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, a, a.m_jTbCladeTools);
+		
+		
+		JSplitPane splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, a.m_cladeSetComparisonPanel, a);
+		splitPane2.setDividerLocation(0.4);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane2, a.m_jTbCladeTools);
 		splitPane.setDividerLocation(0.9);
 
 //		JSplitPane splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, a.m_jTbTools2, splitPane);
@@ -3947,6 +3978,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		Dimension dim = a.getSize();
 		f.setSize(dim.width + 31, dim.height + 40 + 84);
 		f.setLocation(DensiTree.instances * 10 , DensiTree.instances * 10);
+		
+		
+		//f.add(a.m_cladeSetComparisonPanel, BorderLayout.WEST);
+
+		
 		a.fitToScreen();
 		java.net.URL tempURL = ClassLoader.getSystemResource(DensiTree.ICONPATH + "DensiTree.png");
 		try {
