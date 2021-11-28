@@ -110,8 +110,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	/** used for finding clade from treeData in clade set of treeData2 **/ 
 	Map<String,Integer> m_mirrorCladeToIDMap = null;
-	/** used for finding clade from treeData2 in clade set of treeData **/ 
-	Map<String,Integer> m_cladeToIDMap = null;
+//	/** used for finding clade from treeData2 in clade set of treeData **/ 
+//	Map<String,Integer> m_cladeToIDMap = null;
 
 	
 	static float GEO_OFFSET = 3.0f;
@@ -634,10 +634,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_mirrorCladeToIDMap = new HashMap<>();
 				for (int i = 0; i < treeData2.m_clades.size(); i++) {
 					m_mirrorCladeToIDMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
-				}
-				m_cladeToIDMap = new HashMap<>();
-				for (int i = 0; i < treeData.m_clades.size(); i++) {
-					m_cladeToIDMap.put(Arrays.toString(treeData.m_clades.get(i)), i);
 				}
 			}
 			
@@ -3737,19 +3733,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (!reverse) {
 			treeData.getCladeSelection().remove(i);
 			
-			if (treeData2!=null) {
-				String clade = Arrays.toString(treeData.m_clades.get(i));
-				Integer j = m_mirrorCladeToIDMap.get(clade);
-				if (j != null) {
-					treeData2.getCladeSelection().remove(j);
-				}
+			int [] clade = treeData.m_clades.get(i);
+			int j = findClade(treeData2, clade);
+			if (j >= 0) {
+				treeData2.getCladeSelection().remove(j);
 			}
+
 		} else {
 			treeData2.getCladeSelection().remove(i);
 			
-			String clade = Arrays.toString(treeData2.m_clades.get(i));
-			Integer j = m_cladeToIDMap.get(clade);
-			if (j != null) {
+			int [] clade2 = treeData2.m_clades.get(i);
+			int j = findClade(treeData, clade2);
+			if (j >= 0) {
 				treeData.getCladeSelection().remove(j);
 			}
 		}
@@ -3759,21 +3754,66 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (!reverse) {
 			this.treeData.getCladeSelection().add(i);
 			
-			if (treeData2!=null) {
-				String clade = Arrays.toString(treeData2.m_clades.get(i));
-				Integer j = m_mirrorCladeToIDMap.get(clade);
-				if (j != null) {
-					treeData2.getCladeSelection().add(j);
-				}
+
+			int [] clade = treeData.m_clades.get(i);
+			int j = findClade(treeData2, clade);
+			if (j >= 0) {
+				treeData2.getCladeSelection().add(j);
 			}
 		} else {
 			this.treeData2.getCladeSelection().add(i);
-			String clade = Arrays.toString(treeData.m_clades.get(i));
-			Integer j = m_cladeToIDMap.get(clade);
-			if (j != null) {
+			int [] clade2 = treeData2.m_clades.get(i);
+			int j = findClade(treeData, clade2);
+			
+
+			if (j >= 0) {
 				treeData.getCladeSelection().add(j);
 			}
+			
+//			System.out.print("selected2: ");
+//			for (int j : treeData2.m_clades.get(i)) {
+//				System.out.println(settings.m_sLabels.get(j) + " ");
+//			}
+//			System.out.println();
+//
+//			
+//			String clade = Arrays.toString(treeData2.m_clades.get(i));
+//			Integer j = m_cladeToIDMap.get(clade);
+//			
+//			System.out.print("selected3: ");
+//			for (int k : treeData.m_clades.get(j)) {
+//				System.out.println(settings.m_sLabels.get(k) + " ");
+//			}
+//			System.out.println();
+//
+//			
+//			if (j != null) {
+//				treeData.getCladeSelection().add(j);
+//			}
 		}
+	}
+	
+	
+	private int findClade(TreeData treeData, int[] clade2) {
+		if (treeData == null) {
+			return -1;
+		}
+		for (int j = 0; j < treeData.m_clades.size(); j++) {
+			int [] clade1 = treeData.m_clades.get(j);
+			if (clade1.length == clade2.length) {
+				boolean matches = true;
+				for (int k = 0; k < clade1.length; k++) {
+					if (clade1[k] != clade2[k]) {
+						matches = false;
+						break;
+					}
+				}
+				if (matches) {
+					return j;
+				}
+			}
+		}
+		return -1;
 	}
 	
 	private JButton createToolBarButton(Action action) {

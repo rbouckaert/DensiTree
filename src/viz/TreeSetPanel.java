@@ -868,8 +868,19 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				rotationPoint.x = rotationPoints[i].m_nX;
 				rotationPoint.y = rotationPoints[i].m_nY;
 				if (r.intersects(rotationPoint) && m_dt.treeData.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
-					m_dt.addCladeToSelection(i);
+					m_dt.addCladeToSelection(i, false);
 					// m_dt.treeData.m_cladeSelection.add(i);
+				}
+			}
+			if (m_dt.treeData2 != null) {
+				rotationPoints =  m_dt.treeData2.m_rotationPoints;
+				for (int i = 0; i < rotationPoints.length; i++) {
+					rotationPoint.x = rotationPoints[i].m_nX;
+					rotationPoint.y = rotationPoints[i].m_nY;
+					if (r.intersects(rotationPoint) && m_dt.treeData2.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
+						m_dt.addCladeToSelection(i, true);
+						// m_dt.treeData.m_cladeSelection.add(i);
+					}
 				}
 			}
 			
