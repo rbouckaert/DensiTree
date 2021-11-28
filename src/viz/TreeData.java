@@ -45,6 +45,9 @@ public class TreeData {
 	/** contains summary trees, root canal refers to one of those **/
 	public List<Node> m_summaryTree = new ArrayList<Node>();
 
+	
+	RotationPoint[] m_rotationPoints = null;
+
 	/**
 	 * Trees represented as lines for drawing block trees Units are tree lengths
 	 * as represented in the Newick file The lines come in quartets
@@ -139,8 +142,8 @@ public class TreeData {
 	public boolean m_bSelectionChanged;
 
 	boolean m_bAllowCladeSelection = true;
-	public Set<Integer> m_cladeSelection = new HashSet<Integer>();
-
+	private Set<Integer> m_cladeSelection = new HashSet<Integer>();
+	public Set<Integer> getCladeSelection() {return m_cladeSelection;}
 	
 	
 	public void calcPositions() {
@@ -614,14 +617,14 @@ public class TreeData {
 		m_bAllowCladeSelection = false;
 		if (m_cladelist != null) {
 			m_cladelist.clearSelection();
-		}
-		for (int i : m_cladeSelection) {
-			m_cladelist.addSelectionInterval(i, i);
-			if (m_cladeSelection.size() == 1) {
-				m_cladelist.ensureIndexIsVisible(i);
+			for (int i : m_cladeSelection) {
+				m_cladelist.addSelectionInterval(i, i);
+				if (m_cladeSelection.size() == 1) {
+					m_cladelist.ensureIndexIsVisible(i);
+				}
 			}
 		}
-
+		
 		if (m_cladeSelection.size() > 0) {
 		Arrays.fill(m_bSelection, false);
 			for (int i : m_cladeSelection) {
@@ -1880,5 +1883,10 @@ public class TreeData {
 			}
 		}
 		target.m_fLength += src.m_fLength;
+	}
+
+
+	public boolean reverse() {		
+		return drawMode == MODE_RIGHT;
 	}
 }

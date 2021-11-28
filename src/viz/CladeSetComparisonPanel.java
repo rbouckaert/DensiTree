@@ -1,24 +1,28 @@
 package viz;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JPanel;
 
-public class CladeSetComparisonPanel extends JPanel {
+public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;
 	
 	DensiTree m_dt;
 	
 	CladeSetComparisonPanel(DensiTree dt) {
 		m_dt = dt;
+		addMouseListener(this);
 	}
 	
 	@Override
@@ -26,8 +30,9 @@ public class CladeSetComparisonPanel extends JPanel {
 		
 		g.setColor(Color.white);
 		g.clearRect(0, 0, getWidth(), getHeight());
-		g.setColor(Color.blue);
-		if (m_dt.treeData2 == null || m_dt.m_mirrorCladeToCladeMap == null) {
+
+		if (m_dt.treeData2 == null || m_dt.m_mirrorCladeToIDMap == null) {
+			g.setColor(Color.blue);
 			g.drawString(" Can only draw comparison", 0, getHeight()/2 - 15);
 			g.drawString(" when mirror set is loaded", 0, getHeight()/2);
 			g.drawString(" using File/Load mirror menu", 0, getHeight()/2 + 15);
@@ -37,12 +42,12 @@ public class CladeSetComparisonPanel extends JPanel {
 		
 		initGraph(g2);
 		
-		Map<String,Integer> map = m_dt.m_mirrorCladeToCladeMap;
+		Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
 		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
 			output(g2, i, map, false);
 		}
 		
-		for (int i : m_dt.treeData.m_cladeSelection) {
+		for (int i : m_dt.treeData.getCladeSelection()) {
 			output(g2, i, map, true);
 		}
 	}
@@ -125,14 +130,16 @@ public class CladeSetComparisonPanel extends JPanel {
 		double x = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
 		double y = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);
 		double r = 1+(support1 + support2) * 10; 
+		g.setColor(Color.red);
+		g.setComposite(AlphaComposite.SrcOver.derive(0.25f));
+		g.fillOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		if (highlight) {
 			g.setColor(Color.black);
 			g.setComposite(AlphaComposite.SrcOver.derive(0.99f));
-		} else {
-			g.setColor(Color.red);
-			g.setComposite(AlphaComposite.SrcOver.derive(0.25f));
+			BasicStroke stroke = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+			((Graphics2D) g).setStroke(stroke);
+			g.drawOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		}
-		g.fillOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		
 		if (highlight) {
 			g.setColor(Color.black);
@@ -143,7 +150,7 @@ public class CladeSetComparisonPanel extends JPanel {
 		g.setComposite(AlphaComposite.SrcOver.derive(alpha));
 		x = w-off - (w-2*off) * h1 / maxHeight;
 		y = off + (h-2*off) * h2/ maxHeight;
-		r = 3 + Math.max(support1, support2) * 13;
+		r = 3 + Math.max(support1, support2) * 8;
 		g.fillOval((int)(x-r/2), (int)(y-r/2), (int) r, (int) r);
 		
 		
@@ -163,4 +170,73 @@ public class CladeSetComparisonPanel extends JPanel {
 		
 	}
 
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		if (m_dt.treeData2 == null) {
+			return;
+		}
+		
+		int x = e.getX();
+		int y = e.getY();
+		
+		// find closest clade
+		Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
+		int closestClade = -1;
+		double closestDistance = Integer.MAX_VALUE;
+		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
+			double support1 = m_dt.treeData.m_cladeWeight.get(i);
+			int [] clade = m_dt.treeData.m_clades.get(i);
+			Integer j = map.get(Arrays.toString(clade));
+			if (j != null) {
+				double support2 = m_dt.treeData2.m_cladeWeight.get(j);
+				double x2 = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
+				double y2 = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);
+				double d = (x-x2) * (x-x2) + (y-y2) * (y-y2);
+				if (d < closestDistance) {
+					closestDistance = d;
+					closestClade = i;
+				}
+			}
+		}
+		
+		if (closestClade >= 0 && closestDistance < 100) {
+			if (m_dt.treeData.getCladeSelection().contains(closestClade)) {
+				m_dt.removeCladeFromselection(closestClade, false);
+			} else {
+				if ((e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == 0) {
+					m_dt.treeData.getCladeSelection().clear();
+					m_dt.treeData2.getCladeSelection().clear();
+				}
+				m_dt.resetCladeSelection();
+				m_dt.addCladeToSelection(closestClade, false);
+			}
+			m_dt.makeDirty();
+		}
+
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }

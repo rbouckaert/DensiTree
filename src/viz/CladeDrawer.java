@@ -10,6 +10,7 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Set;
 
 
 public class CladeDrawer {
@@ -36,6 +37,7 @@ public class CladeDrawer {
 	
 	/** show all clades **/
 	void viewClades(Graphics g, TreeData treeData) {
+		boolean reverseText = treeData.reverse();
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;
 		g.setFont(m_font);
@@ -56,8 +58,8 @@ public class CladeDrawer {
 		int h = m_dt.m_rotate.getHeight(null);
 		int w = m_dt.m_rotate.getWidth(null);
 		boolean bUpdatePoints = false;
-		if (m_dt.m_Panel.m_rotationPoints == null) {
-			m_dt.m_Panel.m_rotationPoints = new RotationPoint[treeData.m_cladeHeight.size()];
+		if (treeData.m_rotationPoints == null) {
+			treeData.m_rotationPoints = new RotationPoint[treeData.m_cladeHeight.size()];
 			bUpdatePoints = true;
 		}
 		String format = (m_nSignificantDigits > 0 ? "##.": "##");
@@ -68,6 +70,7 @@ public class CladeDrawer {
 		formatter.setMinimumFractionDigits(m_nSignificantDigits);
 		formatter.setMaximumFractionDigits(m_nSignificantDigits);
 		DecimalFormat supportFormatter = new DecimalFormat(format);//"##.#");
+		Set<Integer> m_cladeSelection = treeData.getCladeSelection();
 		for (int i = 0/* m_dt.m_sLabels.size() */; i < treeData.m_cladeHeight.size(); i++) {
 			if (treeData.m_cladeWeight.get(i) > m_dt.settings.m_smallestCladeSupport && (
 					(m_dt.settings.m_Xmode == 1 && (treeData.m_clades.get(i).length > 1 || m_dt.m_bLeafCladeSelection)) 
@@ -75,26 +78,26 @@ public class CladeDrawer {
 				if (!m_dt.m_treeDrawer.m_bRootAtTop) {
 					x = (int) ((treeData.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
 					y = (int) (treeData.m_cladePosition[i] * fScaleY);
-					if (m_bDrawMean && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
+					if (m_bDrawMean && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
 						g.drawLine(x, y- 3, x, y+6);
 					}
-					if (m_bTextMean && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format((m_dt.m_gridDrawer.m_fGridOrigin + m_dt.m_fHeight - treeData.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1);
+					if (m_bTextMean && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+						drawString(g, formatter.format((m_dt.m_gridDrawer.m_fGridOrigin + m_dt.m_fHeight - treeData.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1, reverseText);
 					}
-					if (m_bTextSupport && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-						g.drawString(supportFormatter.format(100*treeData.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
+					if (m_bTextSupport && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+						drawString(g, supportFormatter.format(100*treeData.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1, reverseText);
 					}
 				} else {
 					x = (int) (treeData.m_cladePosition[i] * fScaleX);
 					y = /*nHeight -*/ (int) ((treeData.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
-					if (m_bDrawMean && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
+					if (m_bDrawMean && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
 						g.drawLine(x -3, y, x + 3, y);
 					}
-					if (m_bTextMean && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-						g.drawString(formatter.format((m_dt.m_gridDrawer.m_fGridOrigin + m_dt.m_fHeight - treeData.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1);
+					if (m_bTextMean && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+						drawString(g, formatter.format((m_dt.m_gridDrawer.m_fGridOrigin + m_dt.m_fHeight - treeData.m_cladeHeight.get(i)) * m_dt.m_fUserScale), x, y - 1, reverseText);
 					}
-					if (m_bTextSupport && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-						g.drawString(supportFormatter.format(100*treeData.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1);
+					if (m_bTextSupport && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+						drawString(g, supportFormatter.format(100*treeData.m_cladeWeight.get(i)), x, y + g.getFont().getSize() + 1, reverseText);
 					}
 				}
 			} else {
@@ -103,12 +106,16 @@ public class CladeDrawer {
 			}
 			w = (int)(10 +  treeData.m_cladeWeight.get(i)*10);
 			h = w;
-			if (m_bDrawSupport && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
+			if (m_bDrawSupport && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
 				g.drawOval(x- w / 2, y- h / 2, w, h);
 			}
 			//g.drawImage(m_dt.m_rotate, x - w / 2, y - h / 2, x + h / 2, y + w / 2, 0, 0, h, w, null);
 			if (bUpdatePoints) {
-				m_dt.m_Panel.m_rotationPoints[i] = new RotationPoint(x, y);
+				if (treeData.reverse()) {
+					treeData.m_rotationPoints[i] = new RotationPoint(m_dt.getWidth() - x, y);
+				} else {
+					treeData.m_rotationPoints[i] = new RotationPoint(x, y);
+				}
 			}
 			
 			if (!m_dt.m_treeDrawer.m_bRootAtTop) {
@@ -116,30 +123,37 @@ public class CladeDrawer {
 				//y = (int) (m_dt.m_cladePosition[i] * fScaleY);
 				w = - x + (int) ((treeData.m_cladeHeight95HPDup.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
 				h = 3;
-				if (m_bText95HPD && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-					g.drawString(formatter.format((treeData.m_cladeHeight95HPDup.get(i) - treeData.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1);
+				if (m_bText95HPD && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+					drawString(g, formatter.format((treeData.m_cladeHeight95HPDup.get(i) - treeData.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1, reverseText);
 				}
 			} else {
 				//x = (int) (m_dt.m_cladePosition[i] * fScaleX);
 				y = (int) ((treeData.m_cladeHeight95HPDdown.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
 				w = 3;
 				h = - y + (int) ((treeData.m_cladeHeight95HPDup.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
-				if (m_bText95HPD && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
-					g.drawString(formatter.format((treeData.m_cladeHeight95HPDup.get(i) - treeData.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1);
+				if (m_bText95HPD && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
+					drawString(g, formatter.format((treeData.m_cladeHeight95HPDup.get(i) - treeData.m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale), x, y- 1, reverseText);
 				}
 			}
-			if (m_bDraw95HPD && (!m_bSelectedOnly || treeData.m_cladeSelection.contains(i))) {
+			if (m_bDraw95HPD && (!m_bSelectedOnly || m_cladeSelection.contains(i))) {
 				g.drawRect(x, y, w, h);
 			}
 			
 		}
 
+		
+		if (treeData == m_dt.treeData2) {
+			int xx = 4;
+			xx--;
+		}
+		
+		
 		// draw selection
 		if (!m_bSelectedOnly) {
 			stroke = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 			((Graphics2D) g).setStroke(stroke);
 			((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-			for (int i :  treeData.m_cladeSelection) {
+			for (int i :  treeData.getCladeSelection()) {
 				if (!m_dt.m_treeDrawer.m_bRootAtTop) {
 					x = (int) ((treeData.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
 					y = (int) (treeData.m_cladePosition[i] * fScaleY);
@@ -173,6 +187,18 @@ public class CladeDrawer {
 			}
 		}
 	
+	}
+	
+	void drawString(Graphics g, String str, int x, int y, boolean reverseText) {
+		if (reverseText) {
+			AffineTransform org = ((Graphics2D)g).getTransform();
+			double w = org.getTranslateX();
+			((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
+			g.drawString(str, (int)w-x, y);
+			((Graphics2D)g).setTransform(org);
+		} else {
+			g.drawString(str, x, y);
+		}
 	}
 
 }

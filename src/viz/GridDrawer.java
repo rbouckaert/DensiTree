@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.text.DecimalFormat;
 
 public class GridDrawer {
@@ -175,7 +176,7 @@ public class GridDrawer {
 
 
 	/** draw height bar and/or height grid if desired **/
-	void paintHeightInfo(Graphics g) {
+	void paintHeightInfo(Graphics g, boolean reverseText) {
 		if (m_nGridMode != GridMode.NONE && m_dt.m_fHeight > 0) {
 			String format = "##.";
 			for (int i = 0; i < m_nGridDigits; i++) {
@@ -254,7 +255,13 @@ public class GridDrawer {
 								//)
 								;
 						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
-						g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						if (reverseText) {
+							((Graphics2D)g).setTransform(new AffineTransform(-1,0,0,1, 2*x+4, 0));
+							g.drawString(sStr, x+4, strPos - m_gridfont.getSize());
+							((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
+						} else {
+							g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						}
 						g.drawLine(x, maxH, x, nH);
 					}
 				} else {
@@ -266,7 +273,13 @@ public class GridDrawer {
 								//)
 								;
 						int x = m_dt.getPosX((m_dt.m_fHeight - fHeight / fUserScale - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
-						g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						if (reverseText) {
+							((Graphics2D)g).setTransform(new AffineTransform(-1,0,0,1, 2*x+4, 0));
+							g.drawString(sStr, x+4, strPos - m_gridfont.getSize());
+							((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
+						} else {
+							g.drawString(sStr, x+2, strPos - m_gridfont.getSize());
+						}
 						g.drawLine(x, maxH, x, nH);
 						fHeight += Math.abs(m_fGridTicks);
 					}

@@ -109,7 +109,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	/** used for finding clade from treeData in clade set of treeData2 **/ 
-	Map<String,Integer> m_mirrorCladeToCladeMap = null;
+	Map<String,Integer> m_mirrorCladeToIDMap = null;
+	/** used for finding clade from treeData2 in clade set of treeData **/ 
+	Map<String,Integer> m_cladeToIDMap = null;
 
 	
 	static float GEO_OFFSET = 3.0f;
@@ -629,9 +631,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			treeData.m_bCladesReady = true;
 			
 			if (treeData.drawMode == TreeData.MODE_RIGHT) {
-				m_mirrorCladeToCladeMap = new HashMap<>();
+				m_mirrorCladeToIDMap = new HashMap<>();
 				for (int i = 0; i < treeData2.m_clades.size(); i++) {
-					m_mirrorCladeToCladeMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
+					m_mirrorCladeToIDMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
+				}
+				m_cladeToIDMap = new HashMap<>();
+				for (int i = 0; i < treeData.m_clades.size(); i++) {
+					m_cladeToIDMap.put(Arrays.toString(treeData.m_clades.get(i)), i);
 				}
 			}
 			
@@ -2105,14 +2111,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 	ViewMode m_viewMode = ViewMode.DRAW;
 
 	public void makeDirty() {
-		m_Panel.m_rotationPoints = null;
+		treeData.m_rotationPoints = null;
+		if (treeData2 != null) {
+			treeData2.m_rotationPoints = null;
+		}
 		if (m_bAutoRefresh) {
 			m_Panel.clearImage();
 		} else {
 			m_bIsDirty = true;
 		}
-		m_cladeSetComparisonPanel.repaint();
 		repaint();
+		
+		m_cladeSetComparisonPanel.repaint();
 	}
 
 	public JMenuBar getMenuBar() {
@@ -3695,14 +3705,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (treeData.m_bAllowCladeSelection) {
-	 				treeData.m_cladeSelection.clear();
+	 				treeData.getCladeSelection().clear();
 	 				if (treeData2!=null) {
-		 				treeData2.m_cladeSelection.clear();
+		 				treeData2.getCladeSelection().clear();
 	 				}
 					for (int i : treeData.m_cladelist.getSelectedIndices()) {
 						if (treeData.m_cladeWeight.get(i) > 0.01 && ((settings.m_Xmode == 1 && treeData.m_clades.get(i).length > 1) || (settings.m_Xmode == 2 && treeData.m_clades.get(i).length == 1))) {
-							addCladeToSelection(i);
-							removeCladeFromselection(i);
+							addCladeToSelection(i, false);
+							removeCladeFromselection(i, false);
 						}
 					}
 					resetCladeSelection();
@@ -3723,28 +3733,47 @@ public class DensiTree extends JPanel implements ComponentListener {
 	} // makeToolbar
 
 	
-	protected void removeCladeFromselection(int i) {
-		treeData.m_cladeSelection.add(i);
-		
+	protected void removeCladeFromselection(int i, boolean reverse) {
+		if (!reverse) {
+			treeData.getCladeSelection().remove(i);
+			
 			if (treeData2!=null) {
-			String clade = Arrays.toString(treeData.m_clades.get(i));
-			Integer j = m_mirrorCladeToCladeMap.get(clade);
+				String clade = Arrays.toString(treeData.m_clades.get(i));
+				Integer j = m_mirrorCladeToIDMap.get(clade);
+				if (j != null) {
+					treeData2.getCladeSelection().remove(j);
+				}
+			}
+		} else {
+			treeData2.getCladeSelection().remove(i);
+			
+			String clade = Arrays.toString(treeData2.m_clades.get(i));
+			Integer j = m_cladeToIDMap.get(clade);
 			if (j != null) {
-				treeData2.m_cladeSelection.remove(j);
+				treeData.getCladeSelection().remove(j);
 			}
-			}
+		}
 	}
 
-	protected void addCladeToSelection(int i) {
-		treeData.m_cladeSelection.add(i);
-		
+	protected void addCladeToSelection(int i, boolean reverse) {
+		if (!reverse) {
+			this.treeData.getCladeSelection().add(i);
+			
 			if (treeData2!=null) {
+				String clade = Arrays.toString(treeData2.m_clades.get(i));
+				Integer j = m_mirrorCladeToIDMap.get(clade);
+				if (j != null) {
+					treeData2.getCladeSelection().add(j);
+				}
+			}
+		} else {
+			this.treeData2.getCladeSelection().add(i);
 			String clade = Arrays.toString(treeData.m_clades.get(i));
-			Integer j = m_mirrorCladeToCladeMap.get(clade);
+			Integer j = m_cladeToIDMap.get(clade);
 			if (j != null) {
-				treeData2.m_cladeSelection.remove(j);
+				treeData.getCladeSelection().add(j);
 			}
-			}
+		}
 	}
 	
 	private JButton createToolBarButton(Action action) {
