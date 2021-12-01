@@ -10,115 +10,45 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
-import java.util.Arrays;
-import java.util.Map;
 
 import javax.swing.JPanel;
+
 
 public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;
 	
-	final static double [] bounds = {0.0,	0.0,	
-			0.0,	0.010408163265306124,	
-			0.0,	0.030816326530612247,	
-			0.0,	0.05122448979591837,	
-			0.0,	0.06142857142857144,	
-			0.0,	0.08183673469387756,	
-			2.0408163265306194E-4,	0.09204081632653062,	
+
+//  The following code was used to generate the bounds shown below.
+//  These are based on 100 binomial trials with p varying from 0 to 1 in 100 steps.	
+//  NB: output was edited to get rid of numerical errors (negative bounds, bounds > 1)
+//	
+//	int trials = 100; 
+//	int steps = 100;
+//	for (int i = 0; i <= steps; i++) {
+//		double p =(double)(i)/steps;
+//		BinomialDistribution binom = new BinomialDistributionImpl(trials, p);
+//		double pLow95 = (double)(-1.0/trials + (trials)/(trials-2.0)*binom.inverseCumulativeProbability(0.025) / trials);
+//		double pUp95 = (double)(-1.0/trials + (trials)/(trials-2.0)*binom.inverseCumulativeProbability(0.975) / trials);
+//		// System.out.println(p + ",\t" + pLow95 + ",\t" + pUp95 + ",\t");
+//		System.out.println( pLow95 + ",\t" + pUp95 + ",\t");
+//	}
+
+	final static double [] bounds = {0.0,	0.0,
 			2.0408163265306194E-4,	0.10224489795918368,	
-			0.010408163265306124,	0.12265306122448981,	
-			0.020612244897959188,	0.13285714285714287,	
-			0.030816326530612247,	0.1430612244897959,	
-			0.030816326530612247,	0.15326530612244899,	
-			0.041020408163265305,	0.1736734693877551,	
 			0.05122448979591837,	0.18387755102040815,	
-			0.06142857142857144,	0.19408163265306122,	
-			0.06142857142857144,	0.2042857142857143,	
-			0.0716326530612245,	0.21448979591836734,	
-			0.08183673469387756,	0.23489795918367348,	
-			0.09204081632653062,	0.24510204081632653,	
-			0.10224489795918368,	0.2553061224489796,	
 			0.10224489795918368,	0.2655102040816326,	
-			0.11244897959183675,	0.27571428571428575,	
-			0.12265306122448981,	0.28591836734693876,	
-			0.13285714285714287,	0.29612244897959183,	
-			0.1430612244897959,	0.316530612244898,	
-			0.15326530612244899,	0.32673469387755105,	
-			0.16346938775510203,	0.33693877551020407,	
-			0.1736734693877551,	0.34714285714285714,	
-			0.1736734693877551,	0.3573469387755102,	
-			0.18387755102040815,	0.36755102040816323,	
-			0.19408163265306122,	0.3777551020408163,	
-			0.2042857142857143,	0.38795918367346943,	
-			0.21448979591836734,	0.39816326530612245,	
-			0.2246938775510204,	0.4083673469387755,	
-			0.23489795918367348,	0.4185714285714286,	
-			0.24510204081632653,	0.4287755102040816,	
-			0.2553061224489796,	0.4491836734693878,	
-			0.2655102040816326,	0.45938775510204083,	
-			0.27571428571428575,	0.4695918367346939,	
-			0.28591836734693876,	0.479795918367347,	
+			0.16346938775510203,	0.34714285714285714,	
+			0.2246938775510204,	0.4185714285714286,	
 			0.29612244897959183,	0.49,	
-			0.29612244897959183,	0.5002040816326531,	
-			0.3063265306122449,	0.5104081632653061,	
-			0.316530612244898,	0.5206122448979592,	
-			0.32673469387755105,	0.5308163265306123,	
-			0.33693877551020407,	0.5410204081632652,	
-			0.34714285714285714,	0.5512244897959183,	
-			0.3573469387755102,	0.5614285714285715,	
-			0.36755102040816323,	0.5716326530612245,	
-			0.3777551020408163,	0.5818367346938775,	
-			0.38795918367346943,	0.5920408163265306,	
-			0.39816326530612245,	0.6022448979591837,	
-			0.4083673469387755,	0.6124489795918368,	
-			0.4185714285714286,	0.6226530612244898,	
-			0.4287755102040816,	0.6328571428571429,	
-			0.4389795918367347,	0.643061224489796,	
-			0.4491836734693878,	0.6532653061224489,	
-			0.45938775510204083,	0.6634693877551021,	
-			0.4695918367346939,	0.6736734693877551,	
-			0.479795918367347,	0.6838775510204081,	
+			0.3573469387755102,	0.5512244897959183,	
+			0.4287755102040816,	0.6226530612244898,	
 			0.49,	0.6838775510204081,	
-			0.5002040816326531,	0.6940816326530613,	
-			0.5104081632653061,	0.7042857142857143,	
-			0.5206122448979592,	0.7144897959183674,	
-			0.5308163265306123,	0.7246938775510204,	
-			0.5512244897959183,	0.7348979591836735,	
-			0.5614285714285715,	0.7451020408163265,	
-			0.5716326530612245,	0.7553061224489797,	
-			0.5818367346938775,	0.7655102040816326,	
-			0.5920408163265306,	0.7757142857142857,	
-			0.6022448979591837,	0.7859183673469389,	
-			0.6124489795918368,	0.7961224489795918,	
-			0.6226530612244898,	0.8063265306122449,	
-			0.6328571428571429,	0.8063265306122449,	
-			0.643061224489796,	0.816530612244898,	
-			0.6532653061224489,	0.826734693877551,	
-			0.6634693877551021,	0.836938775510204,	
-			0.6838775510204081,	0.8471428571428572,	
-			0.6940816326530613,	0.8573469387755103,	
-			0.7042857142857143,	0.8675510204081632,	
+			0.5614285714285715,	0.7553061224489797,	
+			0.6328571428571429,	0.816530612244898,	
 			0.7144897959183674,	0.8777551020408164,	
-			0.7246938775510204,	0.8777551020408164,	
-			0.7348979591836735,	0.8879591836734694,	
-			0.7451020408163265,	0.8981632653061224,	
-			0.7655102040816326,	0.9083673469387756,	
-			0.7757142857142857,	0.9185714285714286,	
-			0.7859183673469389,	0.9185714285714286,	
 			0.7961224489795918,	0.9287755102040817,	
-			0.8063265306122449,	0.9389795918367347,	
-			0.826734693877551,	0.9491836734693878,	
-			0.836938775510204,	0.9491836734693878,	
-			0.8471428571428572,	0.9593877551020408,	
-			0.8573469387755103,	0.969591836734694,	
-			0.8777551020408164,	0.979795918367347,	
-			0.8879591836734694,	0.979795918367347,	
-			0.8981632653061224,	0.99,	
-			0.9185714285714286,	0.99,	
-			0.9287755102040817,	1.0,	
-			0.9491836734693878,	1.0,	
-			0.969591836734694,	1.0,	
-			1.0,	1.0
+			0.8977551020408164,	0.99795918367347,	
+			1.0,	1.0	
 	};
 	
 	private int [] boundsPolygonX = new int[bounds.length/2];
@@ -148,25 +78,23 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		
 		initGraph(g2);
 		
-		Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
+		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
+		int [] revmap = m_dt.m_cladeToIDMap;
 		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
-			output(g2, i, map, false);
+			output(g2, i, revmap[i], false);
 		}
 		
 		for (int i : m_dt.treeData.getCladeSelection()) {
-			output(g2, i, map, true);
+			output(g2, i, revmap[i], true);
 		}
 	}
 
-	
-	private void output(Graphics2D g2, int i, Map<String,Integer> map, boolean highlight) {
+	private void output(Graphics2D g2, int i, int j, boolean highlight) {
 		double h1 = m_dt.treeData.m_cladeHeight.get(i);
 		double lo1 = m_dt.treeData.m_cladeHeight95HPDdown.get(i);
 		double hi1 = m_dt.treeData.m_cladeHeight95HPDup.get(i);
 		double support1 = m_dt.treeData.m_cladeWeight.get(i);
-		int [] clade = m_dt.treeData.m_clades.get(i);
-		Integer j = map.get(Arrays.toString(clade));
-		if (j != null) {
+		if (j >= 0) {
 			double h2 = m_dt.treeData2.m_cladeHeight.get(j);
 			double lo2 = m_dt.treeData2.m_cladeHeight95HPDdown.get(j);
 			double hi2 = m_dt.treeData2.m_cladeHeight95HPDup.get(j);
@@ -176,8 +104,7 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 			output(g2, m_dt.m_fHeight, h1, lo1, hi1, 0.0, 0.0, 0.0, support1, 0.0, highlight);
 		}
 	}
-
-
+	
 	private int w; // width of  panel including labels
 	private int h; // height of panel including labels
 	private int off; // offset space for labels
@@ -279,10 +206,10 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 			g.setComposite(AlphaComposite.SrcOver.derive(alpha * alpha));
 			int x1 = (int)(w-off - (w-2*off) * lo1 / maxHeight);
 			int y1 = (int)(off + (h-2*off) * h2/ maxHeight);
-			int x2 = (int)(w - off - (w-2*off) * hi1 / maxHeight);
+			int x2 = (int)(w-off - (w-2*off) * hi1 / maxHeight);
 			int y2 = y1;
 			g.drawLine(x1, y1, x2, y2);
-			x1 = (int)(w - off - (w-2*off) * h1 / maxHeight);
+			x1 = (int)(w-off - (w-2*off) * h1 / maxHeight);
 			y1 = (int)(off + (h-2*off) * lo2/ maxHeight);
 			x2 = x1;
 			y2 = (int)(off + (h-2*off) * hi2/ maxHeight);
@@ -301,14 +228,15 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		int y = e.getY();
 		
 		// find closest clade
-		Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
+		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
 		int closestClade = -1;
 		double closestDistance = Integer.MAX_VALUE;
 		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
 			double support1 = m_dt.treeData.m_cladeWeight.get(i);
 			int [] clade = m_dt.treeData.m_clades.get(i);
-			Integer j = map.get(Arrays.toString(clade));
-			if (j != null) {
+			//Integer j = map.get(Arrays.toString(clade));
+			int j = m_dt.m_cladeToIDMap[i];
+			if (j >= 0) {
 				double support2 = m_dt.treeData2.m_cladeWeight.get(j);
 				double x2 = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
 				double y2 = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);

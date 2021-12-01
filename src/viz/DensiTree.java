@@ -108,8 +108,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	
-	/** used for finding clade from treeData in clade set of treeData2 **/ 
-	Map<String,Integer> m_mirrorCladeToIDMap = null;
+	/** used for finding clade from treeData in clade set of treeData2 **/
+	int [] m_mirrorCladeToIDMap = null, m_cladeToIDMap = null;
+//	Map<String,Integer> m_mirrorCladeToIDMap = null;
 //	/** used for finding clade from treeData2 in clade set of treeData **/ 
 //	Map<String,Integer> m_cladeToIDMap = null;
 
@@ -619,9 +620,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	class MetaDataThread extends Thread {
 		TreeData treeData;
+		DensiTree m_dt;
 		
-		MetaDataThread(TreeData treeData) {
+		MetaDataThread(TreeData treeData, DensiTree dt) {
 			this.treeData = treeData;
+			this.m_dt = dt;
 		}
 		
 		@Override
@@ -631,10 +634,20 @@ public class DensiTree extends JPanel implements ComponentListener {
 			treeData.m_bCladesReady = true;
 			
 			if (treeData.drawMode == TreeData.MODE_RIGHT) {
-				m_mirrorCladeToIDMap = new HashMap<>();
-				for (int i = 0; i < treeData2.m_clades.size(); i++) {
-					m_mirrorCladeToIDMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
+//				m_mirrorCladeToIDMap = new HashMap<>();
+//				for (int i = 0; i < treeData2.m_clades.size(); i++) {
+//					m_mirrorCladeToIDMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
+//				}
+				m_cladeToIDMap = new int[m_dt.treeData.m_clades.size()];
+				for (int i = 0; i < m_dt.treeData.m_clades.size(); i++) {
+					m_cladeToIDMap[i] = findClade(m_dt.treeData2, m_dt.treeData.m_clades.get(i));
 				}
+				m_mirrorCladeToIDMap = new int[m_dt.treeData2.m_clades.size()];
+				for (int i = 0; i < m_dt.treeData2.m_clades.size(); i++) {
+					m_mirrorCladeToIDMap[i] = findClade(m_dt.treeData, m_dt.treeData2.m_clades.get(i));
+				}
+				
+				
 			}
 			
 			m_jStatusBar.setText("Optimising node order");
@@ -789,7 +802,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			calcPositions();
 			
 			treeData.m_bMetaDataReady = false;			
-			thread = new MetaDataThread(treeData);
+			thread = new MetaDataThread(treeData, this);
 			thread.start();
 			
 			settings.m_metaDataTags = new ArrayList<String>();
@@ -2622,7 +2635,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					// ignore
 				}
 			}
-			thread = new MetaDataThread(treeData2);
+			thread = new MetaDataThread(treeData2, this);
 			thread.start();
 			
 		} catch (Exception e) {
