@@ -45,6 +45,8 @@ public class TreeFileParser {
 	float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
 	/** nr of labels in dataset **/
 	int m_nNrOfLabels;
+	/** maps taxon number in mirror set to taxon number in original set **/
+	int [] m_iLabelMap;
 	/** burn in = nr of trees ignored at the start of tree file, can be set by command line option **/
 	int m_nBurnIn = 0;
 	boolean m_bBurnInIsPercentage = true;
@@ -101,6 +103,7 @@ public class TreeFileParser {
 		m_bIsLabelledNewick = false;
 		m_nNrOfLabels = m_sLabels.size();
 		boolean bAddLabels = (m_nNrOfLabels == 0);
+		Vector<String> sLabelsFound  = new Vector<>();
 		if (sStr.toLowerCase().indexOf("translate") < 0) {
 			m_bIsLabelledNewick = true;
 			// could not find translate block, assume it is a list of Newick trees instead of Nexus file
@@ -228,12 +231,36 @@ public class TreeFileParser {
 				if (bAddLabels) {
 					m_sLabels.add(sLabel);
 					m_nNrOfLabels++;
+				} else {
+					sLabelsFound.add(sLabel);
 				}
 				if (!bLastLabel) {
 					sStr = fin.readLine();
 					nFileSize -= sStr.length(); 
 				}
 			}
+			
+			m_iLabelMap = new int[m_nNrOfLabels];
+			if (sLabelsFound.size() > 0) {
+				for (int i = 0; i < m_nNrOfLabels; i++) {
+					String label = sLabelsFound.get(i);
+					boolean found = false;
+					for (int j = 0; j < m_nNrOfLabels; j++) {
+						if (m_sLabels.get(j).equals(label)) {
+							m_iLabelMap[i] = j;
+							found = true;
+						}
+					}
+					if (!found) {
+						throw new IllegalArgumentException("Taxon " + label + " found in mirror set that was not in original set");
+					}
+				}
+			} else {
+				for (int i = 0; i < m_nNrOfLabels; i++) {
+					m_iLabelMap[i] = i;
+				}
+			}
+			
 			
 			// read trees
 			int nBurnIn = m_nBurnIn;
@@ -468,7 +495,8 @@ public class TreeFileParser {
 	private int getLabelIndex(String sStr) throws Exception {
 		if (!m_bIsLabelledNewick) {
 			try {
-				return Integer.parseInt(sStr) - m_nOffset;
+				int i = Integer.parseInt(sStr) - m_nOffset;
+				return m_iLabelMap[i];
 			} catch (Exception e) {
 			}
 		}
