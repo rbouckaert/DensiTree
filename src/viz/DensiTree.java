@@ -766,7 +766,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			settings.m_fMaxLong = 0;
 			settings.m_nOrder = null;
 
-			treeData.loadFromFile(sFile);
+			treeData.loadFromFile(sFile, true);
 			
 			// initialise drawing order of x-axis according to most prevalent
 			// tree
@@ -2620,7 +2620,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		try {
 			treeData2 = new TreeData(this, this.settings);
-			if (!treeData2.loadFromFile(sFileName)) {
+			if (!treeData2.loadFromFile(sFileName, false)) {
 				treeData2 = null;
 				return;
 			}

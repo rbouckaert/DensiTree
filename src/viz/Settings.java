@@ -24,7 +24,6 @@ public class Settings {
 	/** whether to optimise branch lengths on root canal tree or not **/
 	boolean m_bOptimiseRootCanalTree = false;
 
-//	public Vector<String> m_sLabels;
 	public int m_nImageSize = 20;
 	public boolean m_bHideLabels = false;
 

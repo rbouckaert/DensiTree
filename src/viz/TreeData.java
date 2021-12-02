@@ -1697,7 +1697,7 @@ public class TreeData {
 		return iPos;
 	} // collectMetaData
 
-	public boolean loadFromFile(String sFile) {
+	public boolean loadFromFile(String sFile, boolean resetHeight) {
 		TreeFileParser parser = new TreeFileParser(m_dt);
 		try {
 			m_trees = parser.parseFile(sFile);
@@ -1749,9 +1749,13 @@ public class TreeData {
 
 		// reserve memory for nodes of m_trees
 		float[] fHeights = new float[m_trees.length];
+		float maxHeight = m_dt.m_fHeight;
 		for (int i = 0; i < m_trees.length; i++) {
 			fHeights[i] = positionHeight(m_trees[i], 0);
-			m_dt.m_fHeight = Math.max(m_dt.m_fHeight, fHeights[i]);
+			maxHeight = Math.max(maxHeight, fHeights[i]);
+		}
+		if (resetHeight) {
+			m_dt.m_fHeight = maxHeight;
 		}
 		for (int i = 0; i < m_trees.length; i++) {
 			offsetHeight(m_trees[i], m_dt.m_fHeight - fHeights[i]);
