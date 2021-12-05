@@ -565,7 +565,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 								e.printStackTrace();
 							}
 						}
-						exportPDF(m_asPDF);
+						exportPDF(m_asPDF, m_Panel);
 						System.exit(0);
 					};
 				}.start();
@@ -1731,7 +1731,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g, TreeData treeData) {
-		if (settings.m_bHideLabels) {
+		if (settings.m_bHideLabels || treeData.reverse()) {
 			return;
 		}
 		g.setFont(m_font);
@@ -2402,7 +2402,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		abstract public String getExtention();
 	}
 
-	Action a_export = new MyAction("Export", "Export", "export", -1) {
+	Action a_export = new MyAction("Export", "Export DensiTree", "export", -1) {
 		private static final long serialVersionUID = -1;
 
 		@Override
@@ -2461,7 +2461,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 					return "Standard Vector Graphics files";
 				}
 			});
-			fc.setDialogTitle("Export DensiTree As");
+			fc.setDialogTitle("Export DensiTree As");			
 			int rval = fc.showSaveDialog(m_Panel);
 			if (rval == JFileChooser.APPROVE_OPTION) {
 				// System.out.println("Saving to file \""+
@@ -2478,8 +2478,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 
                     if (sFileName.toLowerCase().endsWith(".pdf")) {
-                    	exportPDF(sFileName);
-                       repaint();
+                    	exportPDF(sFileName, m_Panel);
+                        repaint();
                     	return;
                     } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
 							|| sFileName.toLowerCase().endsWith(".bmp")) {
@@ -2517,30 +2517,143 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}; // class ActionExport
 	
-	void exportPDF(String sFileName) {
+	void exportPDF(String sFileName, JComponent panel) {
 		try {
 			com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
 			PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
 			doc.setPageSize(new com.itextpdf.text.Rectangle(m_Panel.getWidth(), m_Panel.getHeight()));
 			doc.open();
 			PdfContentByte cb = writer.getDirectContent();
-			Graphics2D g = new PdfGraphics2D(cb, m_Panel.getWidth(), m_Panel.getHeight());
+			Graphics2D g = new PdfGraphics2D(cb, panel.getWidth(), panel.getHeight());
 			 
 			//BufferedImage bi;
 			//bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
 			//g = bi.getGraphics();
 			g.setPaintMode();
 			g.setColor(getBackground());
-			g.fillRect(0, 0, m_Panel.getWidth(), m_Panel.getHeight());
-			m_Panel.paint(g);
+			g.fillRect(0, 0, panel.getWidth(), panel.getHeight());
+			panel.paint(g);
 			//m_Panel.printAll(g);
 		
 			g.dispose();
 			doc.close();
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(m_Panel, "Export may have failed: " + e.getMessage());
+			JOptionPane.showMessageDialog(panel, "Export may have failed: " + e.getMessage());
 		}
 	}
+
+	
+	Action a_exportCladeComparison = new MyAction("Export comparison", "Export clade comparison panel", "exportcc", -1) {
+		private static final long serialVersionUID = -1;
+
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			if (treeData2 == null || !m_cladeSetComparisonPanel.isVisible()) {
+				JOptionPane.showMessageDialog(m_Panel, "Load mirror tree set and open clade set comparison panel before exporting");
+				return;
+			}
+			
+			
+			JFileChooser fc = new JFileChooser(settings.m_sDir);
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
+				public String getExtention() {
+					return ".bmp";
+				}
+
+				@Override
+				public String getDescription() {
+					return "Bitmap files (*.bmp)";
+				}
+			});
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
+				public String getExtention() {
+					return ".jpg";
+				}
+
+				@Override
+				public String getDescription() {
+					return "JPEG bitmap files (*.jpg)";
+				}
+			});
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
+				public String getExtention() {
+					return ".png";
+				}
+
+				@Override
+				public String getDescription() {
+					return "PNG bitmap files (*.png)";
+				}
+			});
+			fc.addChoosableFileFilter(new MyFileFilter() {
+				@Override
+				public String getExtention() {
+					return ".pdf";
+				}
+
+				@Override
+				public String getDescription() {
+					return "PDF files (*.pdf)";
+				}
+			});
+			fc.setDialogTitle("Export Clade Comparison As");			
+			int rval = fc.showSaveDialog(m_Panel);
+			if (rval == JFileChooser.APPROVE_OPTION) {
+				// System.out.println("Saving to file \""+
+				// f.getAbsoluteFile().toString()+"\"");
+				String sFileName = fc.getSelectedFile().toString();
+				if (sFileName.lastIndexOf('/') > 0) {
+					settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+				}
+				if (sFileName != null && !sFileName.equals("")) {
+					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+							|| sFileName.toLowerCase().endsWith(".pdf")
+							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
+						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
+					}
+
+                    if (sFileName.toLowerCase().endsWith(".pdf")) {
+                    	exportPDF(sFileName, m_cladeSetComparisonPanel);
+                        repaint();
+                    	return;
+                    } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+							|| sFileName.toLowerCase().endsWith(".bmp")) {
+						BufferedImage bi;
+						Graphics g;
+						bi = new BufferedImage(m_cladeSetComparisonPanel.getWidth(), m_cladeSetComparisonPanel.getHeight(), BufferedImage.TYPE_INT_RGB);
+						g = bi.getGraphics();
+						g.setPaintMode();
+						g.setColor(getBackground());
+						g.fillRect(0, 0, m_Panel.getWidth(), m_cladeSetComparisonPanel.getHeight());
+						m_cladeSetComparisonPanel.printAll(g);
+						try {
+							if (sFileName.toLowerCase().endsWith(".png")) {
+								ImageIO.write(bi, "png", new File(sFileName));
+							} else if (sFileName.toLowerCase().endsWith(".jpg")) {
+								ImageIO.write(bi, "jpg", new File(sFileName));
+							} else if (sFileName.toLowerCase().endsWith(".bmp")) {
+								ImageIO.write(bi, "bmp", new File(sFileName));
+							}
+						} catch (Exception e) {
+							JOptionPane.showMessageDialog(null,
+									sFileName + " was not written properly: " + e.getMessage());
+							e.printStackTrace();
+						}
+						return;
+					}
+//					if (sFileName.toLowerCase().endsWith(".svg")) {
+//						m_Panel.toSVG(sFileName, m_Panel.m_image1);
+//						return;
+//					}
+					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
+							+ " not recognized as png,bmp,jpg or pdf file");
+				}
+			}
+		}
+	}; // class ActionExport
 
 
 	Action a_print = new MyAction("Print", "Print Graph", "print", KeyEvent.VK_P) {
@@ -3203,6 +3316,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 				// m_bSelection[i] = m_fLatitude.get(i)==0 &&
 				// m_fLongitude.get(i)==0;
 			}
+			if (treeData2 != null) {
+				for (int i = 0; i < treeData2.m_bSelection.length; i++) {
+					treeData2.m_bSelection[i] = true;
+				}
+			}
 			repaint();
 		} // actionPerformed
 	};// class ActionSelectAll
@@ -3860,8 +3978,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		fileMenu.addSeparator();
 		fileMenu.add(a_print);
-		// fileMenu.add(a_export);
 		fileMenu.add(a_export);
+		fileMenu.add(a_exportCladeComparison);
 		if (!viz.util.Util.isMac()) {
 			fileMenu.addSeparator();
 			fileMenu.add(a_quit);

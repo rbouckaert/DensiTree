@@ -572,9 +572,12 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				int y = m_dt.m_nSelectedRect.y + (m_dt.m_treeDrawer.m_bRootAtTop ? 0 : m_dt.m_nSelectedRect.height);
 				g.drawImage(m_dt.m_rotate, x - w / 2, y - h / 2, x + h / 2, y + w / 2, 0, 0, h, w, null);
 			} else {
+				AffineTransform t = g.getTransform();
+				g.setTransform(new AffineTransform(1,0,0,1, 0, 0));
 				g.drawRect(m_dt.m_nSelectedRect.x + Math.min(m_dt.m_nSelectedRect.width, 0),
 						m_dt.m_nSelectedRect.y + Math.min(m_dt.m_nSelectedRect.height, 0),
 						(Math.abs(m_dt.m_nSelectedRect.width)), (Math.abs(m_dt.m_nSelectedRect.height)));
+				g.setTransform(t);
 			}
 		}
 		// need this here so that the screen is updated when selection of
@@ -896,6 +899,12 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			}
 		}
 		System.out.println();
+		System.out.print("selected2: ");
+		for (int i = 0; i < m_dt.treeData2.m_bSelection.length; i++) {
+			if (m_dt.treeData2.m_bSelection[i]) {
+				System.out.println(m_dt.settings.m_sLabels.get(i) + " ");
+			}
+		}
 	}
 
 	@Override
