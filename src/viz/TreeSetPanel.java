@@ -46,7 +46,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	/** number of threads used for drawing **/
 	int m_nDrawThreads = 2;
 	/** the set of actual threads **/
-	Thread[] m_drawThread;
+	Thread[][] m_drawThread;
 
 	/** image in memory containing tree set drawing **/
 	BufferedImageF m_image1;
@@ -59,20 +59,24 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		m_dt = dt;
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		m_drawThread = new Thread[2];
+		m_drawThread = new Thread[2][2];
 	}
 
 	/** stop drawing thread, if any is running */
 	void stopDrawThreads() {
 		try {
 			for (int i = 0; i < m_nDrawThreads; i++) {
-				if (m_drawThread[i] != null) {
-					((DrawThread) m_drawThread[i]).m_bStop = true;
+				for (int k = 0; k < 1; k++) {
+					if (m_drawThread[k][i] != null) {
+						((DrawThread) m_drawThread[k][i]).m_bStop = true;
+					}
 				}
 			}
 			for (int i = 0; i < m_nDrawThreads; i++) {
-				if (m_drawThread[i] != null) {
-					m_drawThread[i].join();
+				for (int k = 0; k < 1; k++) {
+					if (m_drawThread[k][i] != null) {
+						m_drawThread[k][i].join();
+					}
 				}
 			}
 		} catch (InterruptedException e) {
@@ -90,8 +94,10 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	/** return true if any drawing thread is active **/
 	boolean isDrawing() {
 		for (int i = 0; i < m_nDrawThreads; i++) {
-			if (m_drawThread[i] != null) {
-				return true;
+			for (int k = 0; k < 1; k++) {
+				if (m_drawThread[k][i] != null) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -215,7 +221,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				}
 
 				if (m_dt.m_viewMode == ViewMode.DRAW) {
-					m_drawThread[m_nFrom] = null;
+					m_drawThread[treeData.reverse() ? 1 : 0][m_nFrom] = null;
 					if (!isDrawing()) {
 						if (m_dt.settings.m_bShowRootCanalTopology) {
 							drawRootCanalTree(g, treeData);
@@ -240,7 +246,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				e.printStackTrace();
 				System.err.println("DRAWING ERROR -- IGNORED");
 			}
-			m_drawThread[m_nFrom] = null;
+			m_drawThread[treeData.reverse() ? 1 : 0][m_nFrom] = null;
 		}
 	} // DrawThread
 
@@ -548,10 +554,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				}
 
 				int nDrawThreads = Math.min(m_nDrawThreads, treeData.m_trees.length);
+				int k = treeData.reverse() ? 1 : 0;
 				for (int i = 0; i < nDrawThreads; i++) {
-					m_drawThread[i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, nDrawThreads,
+					m_drawThread[k][i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, nDrawThreads,
 							m_dt.m_treeDrawer, treeData, m_image);
-					m_drawThread[i].start();
+					m_drawThread[k][i].start();
 				}
 				if (m_dt.settings.m_bShowRootCanalTopology) {
 					drawRootCanalTree(g, treeData);
@@ -691,10 +698,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			m_image.SyncIntToRGBImage();
 		}
 
+		int k = treeData.reverse() ? 1 : 0;
 		for (int i = 0; i < m_nDrawThreads; i++) {
-			m_drawThread[i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, m_nDrawThreads, m_dt.m_iAnimateTree,
+			m_drawThread[k][i] = new DrawThread("draw thread", i, treeData.m_trees.length + i, m_nDrawThreads, m_dt.m_iAnimateTree,
 					m_dt.m_treeDrawer, treeData, m_image);
-			m_drawThread[i].start();
+			m_drawThread[k][i].start();
 		}
 
 		while (isDrawing()) {

@@ -744,7 +744,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_doActions = new Vector<DoAction>();
 		m_iUndo = 0;
 		settings.m_random = new Random();
-		m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
+		m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
 
 		treeData.m_rootcanaltree = null;
 		
@@ -2315,13 +2315,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (m_sName.equals("Drawing Threads+")) {
 				m_Panel.stopDrawThreads();
 				m_Panel.m_nDrawThreads++;
-				m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
+				m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
 			}
 			if (m_sName.equals("Drawing Threads-")) {
 				if (m_Panel.m_nDrawThreads > 1) {
 					m_Panel.stopDrawThreads();
 					m_Panel.m_nDrawThreads--;
-					m_Panel.m_drawThread = new Thread[m_Panel.m_nDrawThreads];
+					m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
 				}
 			}
 			if (m_sName.equals("Animation Speed-")) {
