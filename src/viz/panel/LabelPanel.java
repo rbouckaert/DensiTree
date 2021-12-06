@@ -64,12 +64,12 @@ public class LabelPanel extends JPanel {
 		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_LABEL_WIDTH));
 		textField.addActionListener(e-> {
 				try{
-				m_dt.settings.m_nLabelWidth = Integer.parseInt(textField.getText());
+				m_dt.m_settings.m_nLabelWidth = Integer.parseInt(textField.getText());
 				} catch (Exception ex) {
 				}
 				m_dt.fitToScreen();
 			});
-		textField.setText(m_dt.settings.m_nLabelWidth+"");
+		textField.setText(m_dt.m_settings.m_nLabelWidth+"");
 		GridBagConstraints gbc_width = new GridBagConstraints();
 		gbc_width.anchor = GridBagConstraints.WEST;
 		gbc_width.insets = new Insets(0, 0, 5, 0);
@@ -82,7 +82,7 @@ public class LabelPanel extends JPanel {
 		chckbxRotate.setToolTipText(Util.formatToolTipAsHtml(HELP_ROTATE));
 		chckbxRotate.addActionListener(e-> {
 				JCheckBox button = (JCheckBox) e.getSource();
-				m_dt.settings.m_bRotateTextWhenRootAtTop = button.isSelected();
+				m_dt.m_settings.m_bRotateTextWhenRootAtTop = button.isSelected();
 				m_dt.fitToScreen();
 			});
 		
@@ -94,12 +94,12 @@ public class LabelPanel extends JPanel {
 		gbc_lblIndent.gridy = 1;
 		add(lblIndent, gbc_lblIndent);
 		
-		textField_2 = new JTextField(m_dt.settings.m_fLabelIndent + "");
+		textField_2 = new JTextField(m_dt.m_settings.m_fLabelIndent + "");
 		textField_2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try{
-					m_dt.settings.m_fLabelIndent = Float.parseFloat(textField.getText());
+					m_dt.m_settings.m_fLabelIndent = Float.parseFloat(textField.getText());
 				} catch (Exception ex) {
 				}
 				m_dt.fitToScreen();
@@ -123,9 +123,9 @@ public class LabelPanel extends JPanel {
 		JButton btnColor = new RoundedButton("Color");
 		btnColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 		btnColor.addActionListener(e-> {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.settings.m_color[DensiTree.LABELCOLOR]);
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_settings.m_color[DensiTree.LABELCOLOR]);
 				if (newColor != null) {
-					m_dt.settings.m_color[DensiTree.LABELCOLOR] = newColor;
+					m_dt.m_settings.m_color[DensiTree.LABELCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();
@@ -163,7 +163,7 @@ public class LabelPanel extends JPanel {
 		JCheckBox chckbxHide = new JCheckBox("Hide");
 		chckbxHide.setToolTipText(Util.formatToolTipAsHtml(HELP_HIDE));
 		chckbxHide.addActionListener(e-> {
-				m_dt.settings.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.m_settings.m_bHideLabels = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
 			});
 		GridBagConstraints gbc_chckbxHide = new GridBagConstraints();
@@ -237,9 +237,9 @@ public class LabelPanel extends JPanel {
 				try {
 					String sPattern = ".*" + textField_1.getText() + ".*";
 					Pattern pattern = Pattern.compile(sPattern);
-					for (int i = 0; i < m_dt.settings.m_sLabels.size(); i++) {
-						Matcher m = pattern.matcher(m_dt.settings.m_sLabels.get(i));
-						m_dt.treeData.m_bSelection[i] = m.find();
+					for (int i = 0; i < m_dt.m_settings.m_sLabels.size(); i++) {
+						Matcher m = pattern.matcher(m_dt.m_settings.m_sLabels.get(i));
+						m_dt.m_treeData.m_bSelection[i] = m.find();
 					}
 					//m_dt.m_bSelectionChanged = true;
 					m_dt.m_Panel.repaint();

@@ -81,9 +81,9 @@ public class CladePanel extends JPanel implements ChangeListener {
 			});
 		
 		chckbxShowClades.addActionListener(e-> {
-				boolean bPrev = m_dt.settings.m_bViewClades;
-				m_dt.settings.m_bViewClades = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.settings.m_bViewClades) {
+				boolean bPrev = m_dt.m_settings.m_bViewClades;
+				m_dt.m_settings.m_bViewClades = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_settings.m_bViewClades) {
 					m_dt.makeDirty();
 				}
 			});
@@ -325,11 +325,11 @@ public class CladePanel extends JPanel implements ChangeListener {
 		gbc_lblNewLabel.gridy = 9;
 		lblNewLabel.setToolTipText("Smallest clade support to be considered a clade");
 		add(lblNewLabel, gbc_lblNewLabel);
-		textFieldSmallestClade.setText(m_dt.settings.m_smallestCladeSupport + "");
+		textFieldSmallestClade.setText(m_dt.m_settings.m_smallestCladeSupport + "");
 		textFieldSmallestClade.setColumns(3);
 		textFieldSmallestClade.addActionListener(e-> {
 			try {
-				m_dt.settings.m_smallestCladeSupport = Double.parseDouble(textFieldSmallestClade.getText());
+				m_dt.m_settings.m_smallestCladeSupport = Double.parseDouble(textFieldSmallestClade.getText());
 				m_dt.updateCladeModel();
 			} catch (Exception e2) {}
 		});
@@ -347,17 +347,17 @@ public class CladePanel extends JPanel implements ChangeListener {
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		this.setEnabled(m_dt.settings.m_Xmode != 0);
-		chckbxSelectionOnly.setEnabled(m_dt.settings.m_Xmode != 0);
-		chckbxShowClades.setEnabled(m_dt.settings.m_Xmode != 0);
-		chckbxMean.setEnabled(m_dt.settings.m_Xmode != 0);
-		checkBox.setEnabled(m_dt.settings.m_Xmode != 0);
-		chckbxhpd.setEnabled(m_dt.settings.m_Xmode != 0);
-		checkBox_1.setEnabled(m_dt.settings.m_Xmode != 0);
-		chckbxSupport.setEnabled(m_dt.settings.m_Xmode != 0);
-		checkBox_2.setEnabled(m_dt.settings.m_Xmode != 0);
-		btnFont.setEnabled(m_dt.settings.m_Xmode != 0);;
-		spinner.setEnabled(m_dt.settings.m_Xmode != 0);;
-		btnColor.setEnabled(m_dt.settings.m_Xmode != 0);;
+		this.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		chckbxSelectionOnly.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		chckbxShowClades.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		chckbxMean.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		checkBox.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		chckbxhpd.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		checkBox_1.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		chckbxSupport.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		checkBox_2.setEnabled(m_dt.m_settings.m_Xmode != 0);
+		btnFont.setEnabled(m_dt.m_settings.m_Xmode != 0);;
+		spinner.setEnabled(m_dt.m_settings.m_Xmode != 0);;
+		btnColor.setEnabled(m_dt.m_settings.m_Xmode != 0);;
 	}
 }

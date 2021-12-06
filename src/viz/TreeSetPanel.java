@@ -148,7 +148,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				m_image.scale(g, m_dt.m_fScale, m_dt.m_fScale);
 				float fScaleX = m_dt.m_fScaleX;
 				float fScaleY = m_dt.m_fScaleY;
-				if (m_dt.settings.m_bUseLogScale) {
+				if (m_dt.m_settings.m_bUseLogScale) {
 					if (m_treeDrawer.m_bRootAtTop) {
 						fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 					} else {
@@ -159,11 +159,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				// draw all individual trees if necessary
 				if (m_dt.m_bViewAllTrees && m_nTo >= m_nEvery) {
 					int iStart = m_nTo - m_nEvery;
-					float fAlpha = Math.min(1.0f, 20.0f / iStart * m_dt.settings.m_fTreeIntensity);
+					float fAlpha = Math.min(1.0f, 20.0f / iStart * m_dt.m_settings.m_fTreeIntensity);
 					g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fAlpha));
-					Stroke stroke = new BasicStroke(m_dt.settings.m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+					Stroke stroke = new BasicStroke(m_dt.m_settings.m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 					g.setStroke(stroke);
-					m_dt.m_treeDrawer.setJitter(m_dt.settings.m_nJitter);
+					m_dt.m_treeDrawer.setJitter(m_dt.m_settings.m_nJitter);
 					for (int i = iStart; i >= m_nFrom; i -= m_nEvery) {
 						if (m_bStop) {
 							return;
@@ -196,7 +196,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				if (m_dt.m_bViewCTrees) {
 					m_dt.m_jStatusBar.setText("Drawing consensus trees");
 //					g.setColor(m_dt.m_color[DensiTree.CONSCOLOR]);
-					Stroke stroke = new BasicStroke(m_dt.settings.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+					Stroke stroke = new BasicStroke(m_dt.m_settings.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 					g.setStroke(stroke);
 					g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 					g.setClip(0, 0, getWidth(), getHeight());
@@ -209,7 +209,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //							g.setColor(m_dt.m_color[9 + (i % (m_dt.m_color.length - 9))]);						}
 						if (m_iTreeTopology < 0 || m_iTreeTopology == i) {
 							g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-									Math.min(1.0f, 0.5f * m_dt.settings.m_fCTreeIntensity * treeData.m_fTreeWeight[i])));
+									Math.min(1.0f, 0.5f * m_dt.m_settings.m_fCTreeIntensity * treeData.m_fTreeWeight[i])));
 							m_dt.m_treeDrawer.draw(i, treeData.m_fCLinesX, treeData.m_fCLinesY, treeData.m_fCLineWidth, treeData.m_fTopCLineWidth, treeData.m_nCLineColor, g,
 									fScaleX, fScaleY);
 							if (i % 100 == 0) {
@@ -223,7 +223,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				if (m_dt.m_viewMode == ViewMode.DRAW) {
 					m_drawThread[treeData.reverse() ? 1 : 0][m_nFrom] = null;
 					if (!isDrawing()) {
-						if (m_dt.settings.m_bShowRootCanalTopology) {
+						if (m_dt.m_settings.m_bShowRootCanalTopology) {
 							drawRootCanalTree(g, treeData);
 						}
 						double fEntropy = calcImageEntropy(m_image);
@@ -254,8 +254,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	void drawLabelsSVG(Node node, StringBuffer buf) {
 		if (node.isLeaf()) {
 			Color color = null;
-			if (m_dt.treeData.m_bSelection[node.m_iLabel]) {
-				color = m_dt.settings.m_color[DensiTree.LABELCOLOR];
+			if (m_dt.m_treeData.m_bSelection[node.m_iLabel]) {
+				color = m_dt.m_settings.m_color[DensiTree.LABELCOLOR];
 			} else {
 				color = Color.GRAY;
 			}
@@ -272,7 +272,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					+ "font-size='" + m_dt.m_font.getSize() + "pt' " + "font-style='"
 					+ (m_dt.m_font.isBold() ? "oblique" : "") + (m_dt.m_font.isItalic() ? "italic" : "") + "' "
 					+ "stroke='rgb(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ")' "
-					+ ">" + m_dt.settings.m_sLabels.elementAt(node.m_iLabel) + "</text>\n");
+					+ ">" + m_dt.m_settings.m_sLabels.elementAt(node.m_iLabel) + "</text>\n");
 		} else {
 			drawLabelsSVG(node.m_left, buf);
 			drawLabelsSVG(node.m_right, buf);
@@ -298,9 +298,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_dt.m_treeDrawer.getBranchDrawer() instanceof ArcBranchDrawer) {
 				treeDrawer.m_branchStyle = 2;
 			}
-			DrawThread thread = new DrawThread("draw thread", 0, m_dt.treeData.m_trees.length, 1, treeDrawer, m_dt.treeData, m_image);
+			DrawThread thread = new DrawThread("draw thread", 0, m_dt.m_treeData.m_trees.length, 1, treeDrawer, m_dt.m_treeData, m_image);
 			thread.run();
-			drawLabelsSVG(m_dt.treeData.m_trees[0], buf);
+			drawLabelsSVG(m_dt.m_treeData.m_trees[0], buf);
 			m_dt.m_gridDrawer.drawHeightInfoSVG(buf);
 
 			PrintStream out = new PrintStream(sFileName);
@@ -326,7 +326,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		Thread.sleep(500);
 		int[] nAlpha = new int[256];
 		try {
-			for (int i = 0; i < m_image.getWidth() - m_dt.settings.m_nLabelWidth; i++) {
+			for (int i = 0; i < m_image.getWidth() - m_dt.m_settings.m_nLabelWidth; i++) {
 				for (int j = 0; j < m_image.getHeight(); j++) {
 					int x = m_image.getRGB(i, j);
 					int y = ((x & 0xFF) + ((x & 0xFF00) >> 8) + ((x & 0xFF0000) >> 16)) / 3;
@@ -345,7 +345,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				fQ -= nAlpha[i] * Math.log(nAlpha[i]);
 			}
 		}
-		return 100.0 * fQ / ((m_image.getWidth() - m_dt.settings.m_nLabelWidth) * m_image.getHeight());
+		return 100.0 * fQ / ((m_image.getWidth() - m_dt.m_settings.m_nLabelWidth) * m_image.getHeight());
 	} // calcImageEntropy
 
 	
@@ -361,19 +361,19 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 		Color oldBackground = g2.getBackground();
-		g2.setBackground(m_dt.settings.m_color[DensiTree.BGCOLOR]);
+		g2.setBackground(m_dt.m_settings.m_color[DensiTree.BGCOLOR]);
 		Rectangle r = g.getClipBounds();
 		g.clearRect(r.x, r.y, r.width, r.height);
 		g2.setBackground(oldBackground);
 		g.setClip(r.x, r.y, r.width, r.height);
 
-		paintComponent(g, m_dt.treeData, m_image1);
-		if (m_dt.treeData2 != null) {
-			paintComponent(g, m_dt.treeData2, m_image2);
+		paintComponent(g, m_dt.m_treeData, m_image1);
+		if (m_dt.m_treeData2 != null) {
+			paintComponent(g, m_dt.m_treeData2, m_image2);
 		}
 
 		((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
-		m_dt.drawLabels(m_dt.treeData.m_trees[0], g2, m_dt.treeData);
+		m_dt.drawLabels(m_dt.m_treeData.m_trees[0], g2, m_dt.m_treeData);
 	}
 	
 	public void paintComponent(Graphics g, TreeData treeData, BufferedImageF m_image) {
@@ -394,11 +394,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g.setFont(m_dt.m_font);
 		switch (m_dt.m_viewMode) {
 		case DRAW:
-			if (m_dt.settings.m_bDrawReverse && m_image != null) {
+			if (m_dt.m_settings.m_bDrawReverse && m_image != null) {
 				((Graphics2D)g).setTransform(new AffineTransform(-1,0,0,1,m_image.getWidth(), 0));
 			}
 			drawTreeSet((Graphics2D) g, treeData, m_image);
-			if (m_dt.settings.m_bDrawReverse && m_image != null) {
+			if (m_dt.m_settings.m_bDrawReverse && m_image != null) {
 				((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1,0, 0));
 			}
 			break;
@@ -420,26 +420,26 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			return;
 		}
-		if (m_dt.settings.m_sOutputFile != null && !isDrawing()) {
+		if (m_dt.m_settings.m_sOutputFile != null && !isDrawing()) {
 			// wait a second for the drawing to be finished
 			try {
 				Graphics2D g2 = m_image.createGraphics();
 				m_dt.drawLabels(treeData.m_trees[0], g2, treeData);
-				ImageIO.write(m_image.m_localImage, "png", new File(m_dt.settings.m_sOutputFile));
+				ImageIO.write(m_image.m_localImage, "png", new File(m_dt.m_settings.m_sOutputFile));
 				System.exit(0);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		if (m_dt.settings.m_bViewEditTree && m_dt.settings.m_Xmode == 0) {
+		if (m_dt.m_settings.m_bViewEditTree && m_dt.m_settings.m_Xmode == 0) {
 			viewEditTree(g, treeData);
 		}
-		if (m_dt.settings.m_bViewClades && treeData.m_bCladesReady && (m_dt.settings.m_Xmode == 1 || m_dt.settings.m_Xmode == 2)) {
+		if (m_dt.m_settings.m_bViewClades && treeData.m_bCladesReady && (m_dt.m_settings.m_Xmode == 1 || m_dt.m_settings.m_Xmode == 2)) {
 			m_dt.m_cladeDrawer.viewClades(g, treeData);
 		}
-		if (m_dt.settings.m_showLegend &&
-			(m_dt.settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN ||
-				m_dt.settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG)) {
+		if (m_dt.m_settings.m_showLegend &&
+			(m_dt.m_settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN ||
+				m_dt.m_settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG)) {
 			Font font = new Font(g.getFont().getName(), Font.BOLD, 14);
 			g.setFont(font);
 //			for (int k = 0; k < m_dt.m_colorMetaDataCategories.size(); k++) {
@@ -447,8 +447,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //				g.drawString(m_dt.m_colorMetaDataCategories.get(k), 10, k*15+15);
 //			}
 			int k = 0;
-			for (String s : m_dt.settings.m_colorMetaDataCategories.keySet()) {
-				g.setColor(m_dt.settings.m_color[9 + m_dt.settings.m_colorMetaDataCategories.get(s) % (m_dt.settings.m_color.length - 9)]);
+			for (String s : m_dt.m_settings.m_colorMetaDataCategories.keySet()) {
+				g.setColor(m_dt.m_settings.m_color[9 + m_dt.m_settings.m_colorMetaDataCategories.get(s) % (m_dt.m_settings.m_color.length - 9)]);
 				g.drawString(s, 10, k*15+15);
 				k++;
 			}
@@ -465,7 +465,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	void viewEditTree(Graphics g, TreeData treeData) {
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;
-		if (m_dt.settings.m_bUseLogScale) {
+		if (m_dt.m_settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {
@@ -529,7 +529,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			//this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			if (m_image == null) {
 				System.err.println("Setting up new image");
-				if (!m_dt.settings.m_bShowBounds) {
+				if (!m_dt.m_settings.m_bShowBounds) {
 					m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 				} else {
 					m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2),
@@ -542,8 +542,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				}
 				m_dt.m_treeDrawer.setImage(m_image);
 				Graphics2D g2 = m_image.createGraphics();
-				m_image.init(g2, m_dt.settings.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.settings.m_nLabelWidth, m_dt.settings.m_fMinLong, m_dt.settings.m_fMaxLong,
-						m_dt.settings.m_fMinLat, m_dt.settings.m_fMaxLat);
+				m_image.init(g2, m_dt.m_settings.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.m_settings.m_nLabelWidth, m_dt.m_settings.m_fMinLong, m_dt.m_settings.m_fMaxLong,
+						m_dt.m_settings.m_fMinLat, m_dt.m_settings.m_fMaxLat);
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
 				m_dt.m_gridDrawer.paintHeightInfo(g2, treeData.reverse());
 				//m_dt.drawLabels(m_dt.m_trees[0], g2);
@@ -560,7 +560,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 							m_dt.m_treeDrawer, treeData, m_image);
 					m_drawThread[k][i].start();
 				}
-				if (m_dt.settings.m_bShowRootCanalTopology) {
+				if (m_dt.m_settings.m_bShowRootCanalTopology) {
 					drawRootCanalTree(g, treeData);
 				}
 			}
@@ -572,7 +572,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 		m_image.drawImage(g, this);
 		if (m_dt.m_nSelectedRect != null) {
-			if (m_dt.settings.m_bViewEditTree && m_dt.settings.m_Xmode == 0) { // || m_dt.m_bViewClades) {
+			if (m_dt.m_settings.m_bViewEditTree && m_dt.m_settings.m_Xmode == 0) { // || m_dt.m_bViewClades) {
 				int h = m_dt.m_rotate.getHeight(null);
 				int w = m_dt.m_rotate.getWidth(null);
 				int x = m_dt.m_nSelectedRect.x + (m_dt.m_treeDrawer.m_bRootAtTop ? m_dt.m_nSelectedRect.width : 0);
@@ -589,9 +589,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 		// need this here so that the screen is updated when selection of
 		// taxa changes
-		if (m_dt.settings.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
-			g.setColor(m_dt.settings.m_color[DensiTree.GEOCOLOR]);
-			Stroke stroke = new BasicStroke(m_dt.settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+		if (m_dt.m_settings.m_bDrawGeo && m_dt.m_settings.m_fLatitude.size() > 0) {
+			g.setColor(m_dt.m_settings.m_color[DensiTree.GEOCOLOR]);
+			Stroke stroke = new BasicStroke(m_dt.m_settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 			g.setStroke(stroke);
 			m_dt.drawGeo(treeData.m_cTrees[0], g);
 		}
@@ -603,11 +603,11 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				// ignore
 			}
 			repaint();
-			if (m_dt.settings.m_bRecord) {
+			if (m_dt.m_settings.m_bRecord) {
 				try {
-					System.err.println(" writing /tmp/frame" + m_dt.settings.m_nFrameNr + ".jpg " + isDrawing());
-					ImageIO.write(m_image.m_localImage, "jpg", new File("/tmp/frame" + m_dt.settings.m_nFrameNr + ".jpg"));
-					m_dt.settings.m_nFrameNr++;
+					System.err.println(" writing /tmp/frame" + m_dt.m_settings.m_nFrameNr + ".jpg " + isDrawing());
+					ImageIO.write(m_image.m_localImage, "jpg", new File("/tmp/frame" + m_dt.m_settings.m_nFrameNr + ".jpg"));
+					m_dt.m_settings.m_nFrameNr++;
 				} catch (Exception ex) {
 					// ignore
 				}
@@ -615,16 +615,16 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		} else {
 			m_dt.setDefaultCursor();
 			//this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			if (m_dt.settings.m_bRecord) {
+			if (m_dt.m_settings.m_bRecord) {
 				try {
-					System.err.println(" writing /tmp/frame" + m_dt.settings.m_nFrameNr + ".jpg " + isDrawing());
-					ImageIO.write(m_image.m_localImage, "jpg", new File("/tmp/frame" + m_dt.settings.m_nFrameNr + ".jpg"));
-					m_dt.settings.m_nFrameNr++;
+					System.err.println(" writing /tmp/frame" + m_dt.m_settings.m_nFrameNr + ".jpg " + isDrawing());
+					ImageIO.write(m_image.m_localImage, "jpg", new File("/tmp/frame" + m_dt.m_settings.m_nFrameNr + ".jpg"));
+					m_dt.m_settings.m_nFrameNr++;
 				} catch (Exception ex) {
 					// ignore
 				}
 			}
-			m_dt.settings.m_bRecord = false;
+			m_dt.m_settings.m_bRecord = false;
 		}
 	} // drawTreeSet
 	
@@ -632,7 +632,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	void drawRootCanalTree(Graphics2D g, TreeData treeData) {
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;
-		if (m_dt.settings.m_bUseLogScale) {
+		if (m_dt.m_settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {
@@ -641,9 +641,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 	
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-		Stroke stroke = new BasicStroke(m_dt.settings.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+		Stroke stroke = new BasicStroke(m_dt.m_settings.m_nCTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 		g.setStroke(stroke);
-		g.setColor(m_dt.settings.m_color[DensiTree.ROOTCANALCOLOR]);
+		g.setColor(m_dt.m_settings.m_color[DensiTree.ROOTCANALCOLOR]);
 		m_dt.m_treeDrawer.draw(0, treeData.m_fRLinesX, treeData.m_fRLinesY, treeData.m_fRLineWidth,
 				treeData.m_fRTopLineWidth, treeData.m_nRLineColor, g, fScaleX, fScaleY);
 	}
@@ -651,7 +651,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	/** draw new frame in animation or browse action **/
 	void drawFrame(Graphics g, TreeData treeData, BufferedImageF m_image) {
 		Color oldBackground = ((Graphics2D) g).getBackground();
-		((Graphics2D) g).setBackground(m_dt.settings.m_color[DensiTree.BGCOLOR]);
+		((Graphics2D) g).setBackground(m_dt.m_settings.m_color[DensiTree.BGCOLOR]);
 		Rectangle r = g.getClipBounds();
 		g.clearRect(r.x, r.y, r.width, r.height);
 		((Graphics2D) g).setBackground(oldBackground);
@@ -668,7 +668,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 																				// ==
 																				// ViewMode.BROWSE)
 																				// {
-			if (!m_dt.settings.m_bShowBounds) {
+			if (!m_dt.m_settings.m_bShowBounds) {
 				m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			} else {
 				m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
@@ -683,13 +683,13 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			Graphics2D g2 = m_image.createGraphics();
 			// g2.setBackground(m_dt.m_color[DensiTree.BGCOLOR]);
 			// g2.clearRect(0, 0, m_image.getWidth(), m_image.getHeight());
-			m_image.init(g2, m_dt.settings.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.settings.m_nLabelWidth, m_dt.settings.m_fMinLong, m_dt.settings.m_fMaxLong,
-				m_dt.settings.m_fMinLat, m_dt.settings.m_fMaxLat);
+			m_image.init(g2, m_dt.m_settings.m_color[DensiTree.BGCOLOR], m_dt.m_bgImage, m_dt.m_fBGImageBox, m_dt.m_settings.m_nLabelWidth, m_dt.m_settings.m_fMinLong, m_dt.m_settings.m_fMaxLong,
+				m_dt.m_settings.m_fMinLat, m_dt.m_settings.m_fMaxLat);
 			// drawBGImage(g2);
 			// m_image.drawImage(g2 , this);
-			if (m_dt.settings.m_bDrawGeo && m_dt.settings.m_fLatitude.size() > 0) {
-				g2.setColor(m_dt.settings.m_color[DensiTree.GEOCOLOR]);
-				Stroke stroke = new BasicStroke(m_dt.settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+			if (m_dt.m_settings.m_bDrawGeo && m_dt.m_settings.m_fLatitude.size() > 0) {
+				g2.setColor(m_dt.m_settings.m_color[DensiTree.GEOCOLOR]);
+				Stroke stroke = new BasicStroke(m_dt.m_settings.m_nGeoWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 				g2.setStroke(stroke);
 				m_dt.drawGeo(treeData.m_cTrees[0], g2);
 			}
@@ -735,7 +735,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			float fWidth = (float) pageFormat.getImageableWidth();
 
 			float fScaleX = m_dt.m_fScaleX;
-			m_dt.m_fScaleX = fWidth / m_dt.settings.m_sLabels.size();
+			m_dt.m_fScaleX = fWidth / m_dt.m_settings.m_sLabels.size();
 			float fScaleY = m_dt.m_fScaleY;
 			m_dt.m_fScaleY = (fHeight - 10) / m_dt.m_fHeight;
 
@@ -780,15 +780,15 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	/** remove all labels from selection **/
 	void clearSelection() {
-		for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
-			if (m_dt.treeData.m_bSelection[i]) {
-				m_dt.treeData.m_bSelection[i] = false;
-				m_dt.treeData.m_bSelectionChanged = true;
+		for (int i = 0; i < m_dt.m_treeData.m_bSelection.length; i++) {
+			if (m_dt.m_treeData.m_bSelection[i]) {
+				m_dt.m_treeData.m_bSelection[i] = false;
+				m_dt.m_treeData.m_bSelectionChanged = true;
 			}
 		}
-		m_dt.treeData.getCladeSelection().clear();
-		if (m_dt.treeData2 != null) {
-			m_dt.treeData2.getCladeSelection().clear();
+		m_dt.m_treeData.getCladeSelection().clear();
+		if (m_dt.m_treeData2 != null) {
+			m_dt.m_treeData2.getCladeSelection().clear();
 		}
 		m_dt.resetCladeSelection();			
 	}
@@ -804,14 +804,14 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		r.y = (int) (r.y / m_dt.m_fScale);
 		r.width = 1 + (int) (r.width / m_dt.m_fScale);
 		r.height = 1 + (int) (r.height / m_dt.m_fScale);
-		for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
+		for (int i = 0; i < m_dt.m_treeData.m_bSelection.length; i++) {
 			if (m_dt.m_bLabelRectangle[i].intersects(r)) {
-				m_dt.treeData.m_bSelection[i] = !m_dt.treeData.m_bSelection[i];
-				m_dt.treeData.m_bSelectionChanged = true;
+				m_dt.m_treeData.m_bSelection[i] = !m_dt.m_treeData.m_bSelection[i];
+				m_dt.m_treeData.m_bSelectionChanged = true;
 			}
 		}
-		if (m_dt.treeData.m_rotationPoints != null) {
-			RotationPoint [] rotationPoints = m_dt.treeData.m_rotationPoints;
+		if (m_dt.m_treeData.m_rotationPoints != null) {
+			RotationPoint [] rotationPoints = m_dt.m_treeData.m_rotationPoints;
 			r.x += 5;
 			r.y += 5;
 			Rectangle rotationPoint = new Rectangle(10, 10);
@@ -819,7 +819,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 				rotationPoint.x = rotationPoints[i].m_nX;
 				rotationPoint.y = rotationPoints[i].m_nY;
 				if (r.intersects(rotationPoint)) { 
-					if (m_dt.treeData.getCladeSelection().contains(i)) {
+					if (m_dt.m_treeData.getCladeSelection().contains(i)) {
 						m_dt.addCladeToSelection(i, false);
 						// m_dt.treeData.m_cladeSelection.remove(i);						
 					} else {
@@ -828,8 +828,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					}
 				}
 			}
-			if (m_dt.treeData2 != null) {
-				rotationPoints = m_dt.treeData2.m_rotationPoints;
+			if (m_dt.m_treeData2 != null) {
+				rotationPoints = m_dt.m_treeData2.m_rotationPoints;
 				r.x += 5;
 				r.y += 5;
 				rotationPoint = new Rectangle(10, 10);
@@ -837,7 +837,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					rotationPoint.x = rotationPoints[i].m_nX;
 					rotationPoint.y = rotationPoints[i].m_nY;
 					if (r.intersects(rotationPoint)) { 
-						if (m_dt.treeData.getCladeSelection().contains(i)) {
+						if (m_dt.m_treeData.getCladeSelection().contains(i)) {
 							m_dt.addCladeToSelection(i, true);
 							// m_dt.treeData.m_cladeSelection.remove(i);						
 						} else {
@@ -861,56 +861,56 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		r.y = (int) (r.y / m_dt.m_fScale);
 		r.width = 1 + (int) (r.width / m_dt.m_fScale);
 		r.height = 1 + (int) (r.height / m_dt.m_fScale);
-		for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
+		for (int i = 0; i < m_dt.m_treeData.m_bSelection.length; i++) {
 			if (m_dt.m_bLabelRectangle[i].intersects(r)
 					|| (m_dt.m_bGeoRectangle[i] != null && m_dt.m_bGeoRectangle[i].intersects(r))) {
-				if (!m_dt.treeData.m_bSelection[i] && m_dt.treeData.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
-					m_dt.treeData.m_bSelection[i] = true;
-					m_dt.treeData.m_bSelectionChanged = true;
+				if (!m_dt.m_treeData.m_bSelection[i] && m_dt.m_treeData.m_cladeWeight.get(i) >= m_dt.m_settings.m_smallestCladeSupport) {
+					m_dt.m_treeData.m_bSelection[i] = true;
+					m_dt.m_treeData.m_bSelectionChanged = true;
 				}
 			}
 		}
-		if (m_dt.treeData.m_rotationPoints != null) {
-			RotationPoint [] rotationPoints =  m_dt.treeData.m_rotationPoints;
+		if (m_dt.m_treeData.m_rotationPoints != null) {
+			RotationPoint [] rotationPoints =  m_dt.m_treeData.m_rotationPoints;
 			r.x += 5;
 			r.y += 5;
 			Rectangle rotationPoint = new Rectangle(10, 10);
 			for (int i = 0; i < rotationPoints.length; i++) {
 				rotationPoint.x = rotationPoints[i].m_nX;
 				rotationPoint.y = rotationPoints[i].m_nY;
-				if (r.intersects(rotationPoint) && m_dt.treeData.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
+				if (r.intersects(rotationPoint) && m_dt.m_treeData.m_cladeWeight.get(i) >= m_dt.m_settings.m_smallestCladeSupport) {
 					m_dt.addCladeToSelection(i, false);
 					// m_dt.treeData.m_cladeSelection.add(i);
 				}
 			}
-			if (m_dt.treeData2 != null) {
-				rotationPoints =  m_dt.treeData2.m_rotationPoints;
+			if (m_dt.m_treeData2 != null) {
+				rotationPoints =  m_dt.m_treeData2.m_rotationPoints;
 				for (int i = 0; i < rotationPoints.length; i++) {
 					rotationPoint.x = rotationPoints[i].m_nX;
 					rotationPoint.y = rotationPoints[i].m_nY;
-					if (r.intersects(rotationPoint) && m_dt.treeData2.m_cladeWeight.get(i) >= m_dt.settings.m_smallestCladeSupport) {
+					if (r.intersects(rotationPoint) && m_dt.m_treeData2.m_cladeWeight.get(i) >= m_dt.m_settings.m_smallestCladeSupport) {
 						m_dt.addCladeToSelection(i, true);
 						// m_dt.treeData.m_cladeSelection.add(i);
 					}
 				}
 			}
 			
-			System.err.println(Arrays.toString(m_dt.treeData.getCladeSelection().toArray(new Integer[0])));
+			System.err.println(Arrays.toString(m_dt.m_treeData.getCladeSelection().toArray(new Integer[0])));
 			m_dt.resetCladeSelection();
 		}
 		m_dt.m_fScale = f;
 		
 		System.out.print("selected: ");
-		for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
-			if (m_dt.treeData.m_bSelection[i]) {
-				System.out.println(m_dt.settings.m_sLabels.get(i) + " ");
+		for (int i = 0; i < m_dt.m_treeData.m_bSelection.length; i++) {
+			if (m_dt.m_treeData.m_bSelection[i]) {
+				System.out.println(m_dt.m_settings.m_sLabels.get(i) + " ");
 			}
 		}
 		System.out.println();
 		System.out.print("selected2: ");
-		for (int i = 0; i < m_dt.treeData2.m_bSelection.length; i++) {
-			if (m_dt.treeData2.m_bSelection[i]) {
-				System.out.println(m_dt.settings.m_sLabels.get(i) + " ");
+		for (int i = 0; i < m_dt.m_treeData2.m_bSelection.length; i++) {
+			if (m_dt.m_treeData2.m_bSelection[i]) {
+				System.out.println(m_dt.m_settings.m_sLabels.get(i) + " ");
 			}
 		}
 	}
@@ -929,27 +929,27 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	public void mousePressed(MouseEvent e) {
 		m_bIsDragging = false;
 		m_dt.m_nSelectedRect = new Rectangle(e.getPoint(), new Dimension(1, 1));
-		if (m_dt.settings.m_bViewEditTree && m_dt.settings.m_Xmode == 0) { // && e.getButton() != MouseEvent.BUTTON1) {
-			if (m_dt.treeData.m_rotationPoints != null) {
-				if (checkRotationPoints(m_dt.treeData, e)) {
+		if (m_dt.m_settings.m_bViewEditTree && m_dt.m_settings.m_Xmode == 0) { // && e.getButton() != MouseEvent.BUTTON1) {
+			if (m_dt.m_treeData.m_rotationPoints != null) {
+				if (checkRotationPoints(m_dt.m_treeData, e)) {
 					return;
 				}
-				if (m_dt.treeData2 != null && m_dt.treeData2.m_rotationPoints != null) {
-					if (checkRotationPoints(m_dt.treeData2, e)) {
+				if (m_dt.m_treeData2 != null && m_dt.m_treeData2.m_rotationPoints != null) {
+					if (checkRotationPoints(m_dt.m_treeData2, e)) {
 						return;
 					}
 				}
 				m_dt.m_nSelectedRect = null;
 				repaint();
 			}
-		} else if (m_dt.settings.m_bViewClades && (m_dt.settings.m_Xmode == 1 || m_dt.settings.m_Xmode == 2)) { // && e.getButton() != MouseEvent.BUTTON1) {
+		} else if (m_dt.m_settings.m_bViewClades && (m_dt.m_settings.m_Xmode == 1 || m_dt.m_settings.m_Xmode == 2)) { // && e.getButton() != MouseEvent.BUTTON1) {
 //			m_dt.m_nSelectedRect = new Rectangle(e.getPoint(), new Dimension(1, 1));
-			if (m_dt.treeData.m_rotationPoints != null) {
-				if (checkRotationPoints2(m_dt.treeData, e)) {
+			if (m_dt.m_treeData.m_rotationPoints != null) {
+				if (checkRotationPoints2(m_dt.m_treeData, e)) {
 					return;
 				}
-				if (m_dt.treeData2 != null && m_dt.treeData2.m_rotationPoints != null) {
-					if (checkRotationPoints2(m_dt.treeData2, e)) {
+				if (m_dt.m_treeData2 != null && m_dt.m_treeData2.m_rotationPoints != null) {
+					if (checkRotationPoints2(m_dt.m_treeData2, e)) {
 						return;
 					}
 				}
@@ -981,7 +981,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		RotationPoint [] rotationPoints =  treeData.m_rotationPoints;
 		for (int i = 0/* m_dt.settings.m_sLabels.size() */; i < rotationPoints.length; i++) {
 			if (rotationPoints[i].intersects(e.getPoint().x, e.getPoint().y) && 
-					m_dt.treeData.getCladeSelection().contains(i)) {
+					m_dt.m_treeData.getCladeSelection().contains(i)) {
 				m_bIsMoving = true;
 				return true;
 			}
@@ -993,9 +993,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	/** update selection when mouse is released **/
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (m_dt.settings.m_bViewEditTree && m_dt.settings.m_Xmode == 0 && e.getButton() == MouseEvent.BUTTON1 && !m_bIsDragging) {
-			if (m_dt.treeData.m_rotationPoints != null) {
-				RotationPoint [] rotationPoints =  m_dt.treeData.m_rotationPoints;
+		if (m_dt.m_settings.m_bViewEditTree && m_dt.m_settings.m_Xmode == 0 && e.getButton() == MouseEvent.BUTTON1 && !m_bIsDragging) {
+			if (m_dt.m_treeData.m_rotationPoints != null) {
+				RotationPoint [] rotationPoints =  m_dt.m_treeData.m_rotationPoints;
 				for (int i = 0; i < rotationPoints.length; i++) {
 					if (rotationPoints[i].intersects(e.getX(), e.getY())) {
 						m_dt.rotateAround(i);
@@ -1030,12 +1030,12 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			} else { // right click
 				m_bIsMoving = false;
 				m_bIsDragging = false;
-				if (m_dt.treeData.m_rotationPoints != null) {
-					RotationPoint [] rotationPoints =  m_dt.treeData.m_rotationPoints;
-					if (m_dt.settings.m_bViewEditTree && m_dt.settings.m_Xmode == 0) {
+				if (m_dt.m_treeData.m_rotationPoints != null) {
+					RotationPoint [] rotationPoints =  m_dt.m_treeData.m_rotationPoints;
+					if (m_dt.m_settings.m_bViewEditTree && m_dt.m_settings.m_Xmode == 0) {
 						for (int i = 0; i < rotationPoints.length; i++) {
 							if (rotationPoints[i].intersects(m_dt.m_nSelectedRect.x, m_dt.m_nSelectedRect.y)) {
-								m_dt.moveRotationPoint(i, m_dt.settings.m_sLabels.size()
+								m_dt.moveRotationPoint(i, m_dt.m_settings.m_sLabels.size()
 										* (m_dt.m_treeDrawer.m_bRootAtTop ? (float) m_dt.m_nSelectedRect.width / getWidth()
 												: (float) m_dt.m_nSelectedRect.height / getHeight()));
 								m_dt.m_nSelectedRect = null;
@@ -1043,14 +1043,14 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 								return;
 							}
 						}
-					} else if (m_dt.settings.m_bViewClades && (m_dt.settings.m_Xmode == 1 || m_dt.settings.m_Xmode == 2)) {
-						double dF = m_dt.settings.m_sLabels.size() * (m_dt.m_treeDrawer.m_bRootAtTop ? (float) m_dt.m_nSelectedRect.width / getWidth()
+					} else if (m_dt.m_settings.m_bViewClades && (m_dt.m_settings.m_Xmode == 1 || m_dt.m_settings.m_Xmode == 2)) {
+						double dF = m_dt.m_settings.m_sLabels.size() * (m_dt.m_treeDrawer.m_bRootAtTop ? (float) m_dt.m_nSelectedRect.width / getWidth()
 								: (float) m_dt.m_nSelectedRect.height / getHeight());
 						//for (int i = 0/* m_dt.settings.m_sLabels.size() */; i < m_rotationPoints.length; i++) {
 //							if (m_rotationPoints[i].intersects(m_dt.m_nSelectedRect.x, m_dt.m_nSelectedRect.y)) {
 //							}
-						for (int i : m_dt.treeData.getCladeSelection()) {
-							m_dt.treeData.m_cladePosition[i] += dF;
+						for (int i : m_dt.m_treeData.getCladeSelection()) {
+							m_dt.m_treeData.m_cladePosition[i] += dF;
 						}
 						m_dt.calcLines();
 						m_dt.makeDirty();
@@ -1079,10 +1079,10 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (m_dt.settings.m_bDrawGeo) {
-			for (int i = 0; i < m_dt.treeData.m_bSelection.length; i++) {
+		if (m_dt.m_settings.m_bDrawGeo) {
+			for (int i = 0; i < m_dt.m_treeData.m_bSelection.length; i++) {
 				if (m_dt.m_bGeoRectangle[i].contains(e.getPoint())) {
-					m_dt.m_jStatusBar.setText(m_dt.settings.m_sLabels.elementAt(i));
+					m_dt.m_jStatusBar.setText(m_dt.m_settings.m_sLabels.elementAt(i));
 				}
 			}
 		}
@@ -1091,15 +1091,15 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		if (m_dt.m_bLabelRectangle != null) {
 			for (int i = 0; i < m_dt.m_bLabelRectangle.length; i++) {
 				if (m_dt.m_bLabelRectangle[i].contains(p)) {
-					m_dt.m_jStatusBar.setText(m_dt.settings.m_sLabels.elementAt(i) + " ");
-					if (m_dt.settings.m_LabelImages != null) {
+					m_dt.m_jStatusBar.setText(m_dt.m_settings.m_sLabels.elementAt(i) + " ");
+					if (m_dt.m_settings.m_LabelImages != null) {
 						int w = 0, h = 0;
 						BufferedImage old = m_selectedImage; 
 						if (m_selectedImage != null) {
 							w = old.getWidth();
 							h = old.getHeight();
 						}
-						m_selectedImage = m_dt.settings.m_LabelImages[i];
+						m_selectedImage = m_dt.m_settings.m_LabelImages[i];
 						if (m_selectedImage != null) {
 							w = Math.max(w, m_selectedImage.getWidth());
 							h = Math.max(h, m_selectedImage.getHeight());

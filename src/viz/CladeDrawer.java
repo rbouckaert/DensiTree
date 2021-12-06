@@ -42,7 +42,7 @@ public class CladeDrawer {
 		float fScaleY = m_dt.m_fScaleY;
 		g.setFont(m_font);
 		g.setColor(m_color);
-		if (m_dt.settings.m_bUseLogScale) {
+		if (m_dt.m_settings.m_bUseLogScale) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				fScaleY *= m_dt.m_fHeight / (float) Math.log(m_dt.m_fHeight + 1.0);
 			} else {
@@ -72,9 +72,9 @@ public class CladeDrawer {
 		DecimalFormat supportFormatter = new DecimalFormat(format);//"##.#");
 		Set<Integer> m_cladeSelection = treeData.getCladeSelection();
 		for (int i = 0/* m_dt.m_sLabels.size() */; i < treeData.m_cladeHeight.size(); i++) {
-			if (treeData.m_cladeWeight.get(i) > m_dt.settings.m_smallestCladeSupport && (
-					(m_dt.settings.m_Xmode == 1 && (treeData.m_clades.get(i).length > 1 || m_dt.m_bLeafCladeSelection)) 
-					|| (m_dt.settings.m_Xmode == 2 && treeData.m_clades.get(i).length == 1))) {
+			if (treeData.m_cladeWeight.get(i) > m_dt.m_settings.m_smallestCladeSupport && (
+					(m_dt.m_settings.m_Xmode == 1 && (treeData.m_clades.get(i).length > 1 || m_dt.m_bLeafCladeSelection)) 
+					|| (m_dt.m_settings.m_Xmode == 2 && treeData.m_clades.get(i).length == 1))) {
 				if (!m_dt.m_treeDrawer.m_bRootAtTop) {
 					x = (int) ((treeData.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
 					y = (int) (treeData.m_cladePosition[i] * fScaleY);
@@ -142,7 +142,7 @@ public class CladeDrawer {
 		}
 
 		
-		if (treeData == m_dt.treeData2) {
+		if (treeData == m_dt.m_treeData2) {
 			int xx = 4;
 			xx--;
 		}

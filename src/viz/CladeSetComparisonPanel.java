@@ -67,7 +67,7 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		g.setColor(Color.white);
 		g.clearRect(0, 0, getWidth(), getHeight());
 
-		if (m_dt.treeData2 == null || m_dt.m_mirrorCladeToIDMap == null) {
+		if (m_dt.m_treeData2 == null || m_dt.m_mirrorCladeToIDMap == null) {
 			g.setColor(Color.blue);
 			g.drawString(" Can only draw comparison", 0, getHeight()/2 - 15);
 			g.drawString(" when mirror set is loaded", 0, getHeight()/2);
@@ -80,25 +80,25 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		
 		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
 		int [] revmap = m_dt.m_cladeToIDMap;
-		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
+		for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
 			output(g2, i, revmap[i], false);
 		}
 		
-		for (int i : m_dt.treeData.getCladeSelection()) {
+		for (int i : m_dt.m_treeData.getCladeSelection()) {
 			output(g2, i, revmap[i], true);
 		}
 	}
 
 	private void output(Graphics2D g2, int i, int j, boolean highlight) {
-		double h1 = m_dt.treeData.m_cladeHeight.get(i);
-		double lo1 = m_dt.treeData.m_cladeHeight95HPDdown.get(i);
-		double hi1 = m_dt.treeData.m_cladeHeight95HPDup.get(i);
-		double support1 = m_dt.treeData.m_cladeWeight.get(i);
+		double h1 = m_dt.m_treeData.m_cladeHeight.get(i);
+		double lo1 = m_dt.m_treeData.m_cladeHeight95HPDdown.get(i);
+		double hi1 = m_dt.m_treeData.m_cladeHeight95HPDup.get(i);
+		double support1 = m_dt.m_treeData.m_cladeWeight.get(i);
 		if (j >= 0) {
-			double h2 = m_dt.treeData2.m_cladeHeight.get(j);
-			double lo2 = m_dt.treeData2.m_cladeHeight95HPDdown.get(j);
-			double hi2 = m_dt.treeData2.m_cladeHeight95HPDup.get(j);
-			double support2 = m_dt.treeData2.m_cladeWeight.get(j);
+			double h2 = m_dt.m_treeData2.m_cladeHeight.get(j);
+			double lo2 = m_dt.m_treeData2.m_cladeHeight95HPDdown.get(j);
+			double hi2 = m_dt.m_treeData2.m_cladeHeight95HPDup.get(j);
+			double support2 = m_dt.m_treeData2.m_cladeWeight.get(j);
 			output(g2, m_dt.m_fHeight, h1, lo1, hi1, h2, lo2, hi2, support1, support2, highlight);
 		} else {
 			output(g2, m_dt.m_fHeight, h1, lo1, hi1, 0.0, 0.0, 0.0, support1, 0.0, highlight);
@@ -220,7 +220,7 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (m_dt.treeData2 == null) {
+		if (m_dt.m_treeData2 == null) {
 			return;
 		}
 		
@@ -231,13 +231,13 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
 		int closestClade = -1;
 		double closestDistance = Integer.MAX_VALUE;
-		for (int i = 0; i < m_dt.treeData.m_cladeHeight.size(); i++) {
-			double support1 = m_dt.treeData.m_cladeWeight.get(i);
-			int [] clade = m_dt.treeData.m_clades.get(i);
+		for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
+			double support1 = m_dt.m_treeData.m_cladeWeight.get(i);
+			int [] clade = m_dt.m_treeData.m_clades.get(i);
 			//Integer j = map.get(Arrays.toString(clade));
 			int j = m_dt.m_cladeToIDMap[i];
 			if (j >= 0) {
-				double support2 = m_dt.treeData2.m_cladeWeight.get(j);
+				double support2 = m_dt.m_treeData2.m_cladeWeight.get(j);
 				double x2 = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
 				double y2 = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);
 				double d = (x-x2) * (x-x2) + (y-y2) * (y-y2);
@@ -249,12 +249,12 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		}
 		
 		if (closestClade >= 0 && closestDistance < 100) {
-			if (m_dt.treeData.getCladeSelection().contains(closestClade)) {
+			if (m_dt.m_treeData.getCladeSelection().contains(closestClade)) {
 				m_dt.removeCladeFromselection(closestClade, false);
 			} else {
 				if ((e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == 0) {
-					m_dt.treeData.getCladeSelection().clear();
-					m_dt.treeData2.getCladeSelection().clear();
+					m_dt.m_treeData.getCladeSelection().clear();
+					m_dt.m_treeData2.getCladeSelection().clear();
 				}
 				m_dt.resetCladeSelection();
 				m_dt.addCladeToSelection(closestClade, false);

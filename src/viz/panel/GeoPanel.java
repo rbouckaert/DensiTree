@@ -47,11 +47,11 @@ public class GeoPanel extends JPanel {
 		
 		JCheckBox chckbxShowGeoInfo = new JCheckBox("<html>Show geo info<br>(if any)</html>");
 		chckbxShowGeoInfo.setToolTipText(Util.formatToolTipAsHtml(HELP_SHOW_GEO_INFO));
-		chckbxShowGeoInfo.setSelected(m_dt.settings.m_bDrawGeo);
+		chckbxShowGeoInfo.setSelected(m_dt.m_settings.m_bDrawGeo);
 		chckbxShowGeoInfo.addActionListener(e-> {
-				boolean bPrev = m_dt.settings.m_bDrawGeo;
-				m_dt.settings.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.settings.m_bDrawGeo) {
+				boolean bPrev = m_dt.m_settings.m_bDrawGeo;
+				m_dt.m_settings.m_bDrawGeo = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_settings.m_bDrawGeo) {
 					m_dt.makeDirty();
 				}
 			});
@@ -72,7 +72,7 @@ public class GeoPanel extends JPanel {
 		add(lblLineWidth, gbc_lblLineWidth);
 		
 		
-		model =  new SpinnerNumberModel(m_dt.settings.m_nGeoWidth, //initial value
+		model =  new SpinnerNumberModel(m_dt.m_settings.m_nGeoWidth, //initial value
 		                               1, //min
 		                               100, //max
 		                               1); // stepsize 
@@ -89,7 +89,7 @@ public class GeoPanel extends JPanel {
 			public void stateChanged(ChangeEvent e) {
 				try {
 					String str = model.getValue().toString();
-					m_dt.settings.m_nGeoWidth = Integer.parseInt(str);
+					m_dt.m_settings.m_nGeoWidth = Integer.parseInt(str);
 					m_dt.m_Panel.clearImage();
 					m_dt.repaint();
 				} catch (Exception ex) {}
@@ -113,9 +113,9 @@ public class GeoPanel extends JPanel {
 		JButton btnLineColor = new RoundedButton("Color");
 		btnLineColor.setToolTipText(Util.formatToolTipAsHtml(HELP_COLOR));
 		btnLineColor.addActionListener(e-> {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.settings.m_color[DensiTree.GEOCOLOR]);
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_settings.m_color[DensiTree.GEOCOLOR]);
 				if (newColor != null) {
-					m_dt.settings.m_color[DensiTree.GEOCOLOR] = newColor;
+					m_dt.m_settings.m_color[DensiTree.GEOCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();

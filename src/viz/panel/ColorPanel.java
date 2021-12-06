@@ -76,7 +76,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		comboBox = new JComboBox<>(); 
 		stateChanged(null);
-		comboBox.setSelectedItem(m_dt.settings.m_lineColorMode);
+		comboBox.setSelectedItem(m_dt.m_settings.m_lineColorMode);
 		comboBox.setPreferredSize(new Dimension(130,20));
 		comboBox.setMaximumSize(new Dimension(130,200));
 		comboBox.addActionListener(e-> {
@@ -84,23 +84,23 @@ public class ColorPanel extends JPanel implements ChangeListener {
 					@Override
 					public void run() {
 						String selected = comboBox.getSelectedItem().toString();
-						LineColorMode oldMode = m_dt.settings.m_lineColorMode; 
-						String oldTag = m_dt.settings.m_lineColorTag;
+						LineColorMode oldMode = m_dt.m_settings.m_lineColorMode; 
+						String oldTag = m_dt.m_settings.m_lineColorTag;
 						if (selected.equals(LineColorMode.DEFAULT.toString())) {
-							m_dt.settings.m_lineColorMode = LineColorMode.DEFAULT;
+							m_dt.m_settings.m_lineColorMode = LineColorMode.DEFAULT;
 						} else if (selected.equals(LineColorMode.BY_METADATA_PATTERN.toString())) {
-							m_dt.settings.m_lineColorMode = LineColorMode.BY_METADATA_PATTERN;
+							m_dt.m_settings.m_lineColorMode = LineColorMode.BY_METADATA_PATTERN;
 						} else if (selected.equals(LineColorMode.COLOR_BY_CLADE.toString())) {
-							m_dt.settings.m_lineColorMode = LineColorMode.COLOR_BY_CLADE;
+							m_dt.m_settings.m_lineColorMode = LineColorMode.COLOR_BY_CLADE;
 						} else {
-							m_dt.settings.m_lineColorTag = selected; 
-							m_dt.settings.m_lineColorMode = LineColorMode.COLOR_BY_METADATA_TAG;
+							m_dt.m_settings.m_lineColorTag = selected; 
+							m_dt.m_settings.m_lineColorMode = LineColorMode.COLOR_BY_METADATA_TAG;
 						}
-						txtPattern.setEnabled(m_dt.settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
-						chckbxShowLegend.setEnabled(m_dt.settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
-								|| m_dt.settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
-						chckbxCategorical.setEnabled(m_dt.settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
-						if (m_dt.settings.m_lineColorMode != oldMode || (m_dt.settings.m_lineColorTag != null && !m_dt.settings.m_lineColorTag.equals(oldTag))) {
+						txtPattern.setEnabled(m_dt.m_settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
+						chckbxShowLegend.setEnabled(m_dt.m_settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
+								|| m_dt.m_settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
+						chckbxCategorical.setEnabled(m_dt.m_settings.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
+						if (m_dt.m_settings.m_lineColorMode != oldMode || (m_dt.m_settings.m_lineColorTag != null && !m_dt.m_settings.m_lineColorTag.equals(oldTag))) {
 							m_dt.calcColors(false);
 							m_dt.makeDirty();
 						}
@@ -117,7 +117,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		chckbxShowLegend = new JCheckBox("Show legend");
 		chckbxShowLegend.addActionListener(e-> {
-				m_dt.settings.m_showLegend = !m_dt.settings.m_showLegend;
+				m_dt.m_settings.m_showLegend = !m_dt.m_settings.m_showLegend;
 				m_dt.makeDirty();
 			});
 		chckbxShowLegend.setEnabled(false);
@@ -133,7 +133,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		JCheckBox chckbxMultiColorConsensus = new JCheckBox("<html>Multi color<br>cons-trees</html>");
 		chckbxMultiColorConsensus.addActionListener(e-> {
-				m_dt.settings.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.m_settings.m_bViewMultiColor = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.makeDirty();
 			});
 		GridBagConstraints gbc_chckbxMultiColorConsensus = new GridBagConstraints();
@@ -144,11 +144,11 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		gbc_chckbxMultiColorConsensus.gridy = 2;
 		add(chckbxMultiColorConsensus, gbc_chckbxMultiColorConsensus);
 		
-		txtPattern = new JTextField(m_dt.settings.m_sLineColorPattern);
+		txtPattern = new JTextField(m_dt.m_settings.m_sLineColorPattern);
 		txtPattern.addActionListener(e-> {
-				String oldPattern = m_dt.settings.m_sLineColorPattern;
-				m_dt.settings.m_sLineColorPattern = txtPattern.getText();
-				if (oldPattern.equals(m_dt.settings.m_sLineColorPattern)) {
+				String oldPattern = m_dt.m_settings.m_sLineColorPattern;
+				m_dt.m_settings.m_sLineColorPattern = txtPattern.getText();
+				if (oldPattern.equals(m_dt.m_settings.m_sLineColorPattern)) {
 					m_dt.calcColors(false);
 					m_dt.makeDirty();
 				}
@@ -156,7 +156,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		chckbxCategorical = new JCheckBox("categorical");
 		chckbxCategorical.addActionListener(e-> {
-				m_dt.settings.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
+				m_dt.m_settings.m_bColorByCategory = ((JCheckBox) e.getSource()).isSelected();
 				m_dt.calcColors(true);
 				m_dt.makeDirty();
 			});
@@ -225,7 +225,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			addColorAction("Background", "Background color ", DensiTree.BGCOLOR);
 			addColorAction("Root canal", "Root canal color ", DensiTree.ROOTCANALCOLOR);
 					
-			for (int k = 9; k < m_dt.settings.m_color.length; k++) {
+			for (int k = 9; k < m_dt.m_settings.m_color.length; k++) {
 				addColorAction("Color " + k, "Custom line color " + k, k);
 			}
 			
@@ -244,7 +244,7 @@ public class ColorPanel extends JPanel implements ChangeListener {
 		
 		
 		private void addColorAction(String label, String tiptext, int colorID) {
-			JButton button = new ColorButton(label, m_dt.settings.m_color[colorID]);
+			JButton button = new ColorButton(label, m_dt.m_settings.m_color[colorID]);
 			button.setToolTipText(tiptext);
 			button.addActionListener(new ColorActionListener(colorID, tiptext));
 			
@@ -283,12 +283,12 @@ public class ColorPanel extends JPanel implements ChangeListener {
 			}
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.settings.m_color[m_colorID]);
-				if (newColor != null && m_dt.settings.m_color[m_colorID] != newColor) {
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, m_sName, m_dt.m_settings.m_color[m_colorID]);
+				if (newColor != null && m_dt.m_settings.m_color[m_colorID] != newColor) {
 					ColorButton button = ((ColorButton)e.getSource());
 					button.m_color = newColor;
 					button.repaint();
-					m_dt.settings.m_color[m_colorID] = newColor;
+					m_dt.m_settings.m_color[m_colorID] = newColor;
 					m_dt.calcColors(true);
 					m_dt.makeDirty();
 				}
@@ -302,26 +302,26 @@ public class ColorPanel extends JPanel implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 		List<String> selection = new ArrayList<String>();
 		selection.add(LineColorMode.DEFAULT.toString());
-		if (m_dt.treeData.m_bMetaDataReady) {
+		if (m_dt.m_treeData.m_bMetaDataReady) {
 			selection.add(LineColorMode.COLOR_BY_CLADE.toString());
 			selection.add(LineColorMode.BY_METADATA_PATTERN.toString());
-			for (int i = 0; i < m_dt.settings.m_metaDataTags.size(); i++) {
-				if (!m_dt.settings.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
-					selection.add(m_dt.settings.m_metaDataTags.get(i));				
+			for (int i = 0; i < m_dt.m_settings.m_metaDataTags.size(); i++) {
+				if (!m_dt.m_settings.m_metaDataTypes.get(i).equals(MetaDataType.SET)) {
+					selection.add(m_dt.m_settings.m_metaDataTags.get(i));				
 				}
 			}
 		}
 		ComboBoxModel<String> model = new DefaultComboBoxModel<>(selection.toArray(new String[0]));
 		comboBox.setModel(model);
 		
-		if (m_dt.settings.m_lineColorMode == LineColorMode.DEFAULT) {
+		if (m_dt.m_settings.m_lineColorMode == LineColorMode.DEFAULT) {
 			comboBox.setSelectedItem(LineColorMode.DEFAULT.toString());
-		} else if (m_dt.settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN) {
+		} else if (m_dt.m_settings.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN) {
 			comboBox.setSelectedItem(LineColorMode.BY_METADATA_PATTERN.toString());
-		} else if (m_dt.settings.m_lineColorMode == LineColorMode.COLOR_BY_CLADE) {
+		} else if (m_dt.m_settings.m_lineColorMode == LineColorMode.COLOR_BY_CLADE) {
 			comboBox.setSelectedItem(LineColorMode.COLOR_BY_CLADE.toString());
 		} else {
-			comboBox.setSelectedItem(m_dt.settings.m_lineColorTag);
+			comboBox.setSelectedItem(m_dt.m_settings.m_lineColorTag);
 		}
 		
 	}

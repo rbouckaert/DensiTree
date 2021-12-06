@@ -198,9 +198,9 @@ public class GridPanel extends JPanel {
 		c6.fill = GridBagConstraints.HORIZONTAL;
 		add(btnGridColor, c6);
 		btnGridColor.addActionListener(ae-> {
-				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.settings.m_color[DensiTree.HEIGHTCOLOR]);
+				Color newColor = JColorChooser.showDialog(m_dt.m_Panel, getName(), m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR]);
 				if (newColor != null) {
-					m_dt.settings.m_color[DensiTree.HEIGHTCOLOR] = newColor;
+					m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR] = newColor;
 					m_dt.makeDirty();
 				}
 				m_dt.repaint();

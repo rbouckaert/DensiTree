@@ -86,11 +86,11 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(checkBox, gbc_checkBox);
 
 		checkBoxShowRotoCanal = new JCheckBox("Root Canal");
-		checkBoxShowRotoCanal.setSelected(m_dt.settings.m_bShowRootCanalTopology);
+		checkBoxShowRotoCanal.setSelected(m_dt.m_settings.m_bShowRootCanalTopology);
 		checkBoxShowRotoCanal.addActionListener(e-> {
-				boolean bPrev = m_dt.settings.m_bShowRootCanalTopology;
-				m_dt.settings.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.settings.m_bShowRootCanalTopology) {
+				boolean bPrev = m_dt.m_settings.m_bShowRootCanalTopology;
+				m_dt.m_settings.m_bShowRootCanalTopology = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_settings.m_bShowRootCanalTopology) {
 					m_dt.makeDirty();
 				}
 			});
@@ -137,15 +137,15 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		
 		
 		List<String> labels = new ArrayList<String>();
-		for (int i = 0; i < m_dt.treeData.m_summaryTree.size(); i++) {
+		for (int i = 0; i < m_dt.m_treeData.m_summaryTree.size(); i++) {
 			labels.add("" + (i+1));
 		}		
 		comboBox = new JComboBox<>(labels.toArray(new String[0]));
 		comboBox.addActionListener(e-> {
 				int i = comboBox.getSelectedIndex();
-				if (m_dt.treeData.m_summaryTree != null) {
-					if (i>= 0 && i < m_dt.treeData.m_summaryTree.size() - 1) {
-						m_dt.treeData.m_rootcanaltree = m_dt.treeData.m_summaryTree.get(i);					
+				if (m_dt.m_treeData.m_summaryTree != null) {
+					if (i>= 0 && i < m_dt.m_treeData.m_summaryTree.size() - 1) {
+						m_dt.m_treeData.m_rootcanaltree = m_dt.m_treeData.m_summaryTree.get(i);					
 						m_dt.calcLines();
 						m_dt.makeDirty();
 					}
@@ -180,9 +180,9 @@ public class ShowPanel extends JPanel implements ChangeListener {
 		add(checkBox_3, gbc_checkBox_3);
 		
 		chckbxShowEditTree.addActionListener(e-> {
-				boolean bPrev = m_dt.settings.m_bViewEditTree;
-				m_dt.settings.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();
-				if (bPrev != m_dt.settings.m_bViewEditTree) {
+				boolean bPrev = m_dt.m_settings.m_bViewEditTree;
+				m_dt.m_settings.m_bViewEditTree = ((JCheckBox) e.getSource()).isSelected();
+				if (bPrev != m_dt.m_settings.m_bViewEditTree) {
 					m_dt.makeDirty();
 				}
 			});
@@ -207,24 +207,24 @@ public class ShowPanel extends JPanel implements ChangeListener {
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		chckbxShowEditTree.setEnabled(m_dt.settings.m_Xmode == 0);
-		if (m_dt.treeData.m_summaryTree != null && m_dt.treeData.m_summaryTree.size() > 0) {
-	        for (int i = 0; i < m_dt.treeData.m_summaryTree.size() && i < comboBox.getItemCount(); i++) {
-	            if (m_dt.treeData.m_rootcanaltree == m_dt.treeData.m_summaryTree.get(i)) {
+		chckbxShowEditTree.setEnabled(m_dt.m_settings.m_Xmode == 0);
+		if (m_dt.m_treeData.m_summaryTree != null && m_dt.m_treeData.m_summaryTree.size() > 0) {
+	        for (int i = 0; i < m_dt.m_treeData.m_summaryTree.size() && i < comboBox.getItemCount(); i++) {
+	            if (m_dt.m_treeData.m_rootcanaltree == m_dt.m_treeData.m_summaryTree.get(i)) {
 	                    comboBox.setSelectedIndex(i);
 	            }
 	        }
-	        if (comboBox.getItemCount() != m_dt.treeData.m_summaryTree.size()) {
+	        if (comboBox.getItemCount() != m_dt.m_treeData.m_summaryTree.size()) {
 				DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) comboBox.getModel();
 				model.removeAllElements();
-				for (int i = 0; i < m_dt.treeData.m_summaryTree.size(); i++) {
+				for (int i = 0; i < m_dt.m_treeData.m_summaryTree.size(); i++) {
 					model.addElement("" + (i+1));
 				}
 	        }
 		}
-		comboBox.setEnabled(m_dt.treeData.m_rootcanaltree != null);
-		checkBoxShowRotoCanal.setEnabled(m_dt.treeData.m_rootcanaltree != null);
-		btnImport.setEnabled(m_dt.treeData.m_rootcanaltree != null);
-		System.err.println("rootcanaltree = " + (m_dt.treeData.m_rootcanaltree != null));
+		comboBox.setEnabled(m_dt.m_treeData.m_rootcanaltree != null);
+		checkBoxShowRotoCanal.setEnabled(m_dt.m_treeData.m_rootcanaltree != null);
+		btnImport.setEnabled(m_dt.m_treeData.m_rootcanaltree != null);
+		System.err.println("rootcanaltree = " + (m_dt.m_treeData.m_rootcanaltree != null));
 	}
 }

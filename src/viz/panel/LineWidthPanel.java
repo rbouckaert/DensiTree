@@ -89,7 +89,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		stateChanged(null);
 		comboBoxBottom.setPreferredSize(new Dimension(130,20));
 		comboBoxBottom.setMaximumSize(new Dimension(130,200));
-		comboBoxBottom.setSelectedItem(m_dt.settings.m_lineWidthMode);
+		comboBoxBottom.setSelectedItem(m_dt.m_settings.m_lineWidthMode);
 
 		comboBoxBottom.addActionListener(e-> {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -97,23 +97,23 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 					@Override
 					public void run() {
 						String selected = comboBoxBottom.getSelectedItem().toString();
-						LineWidthMode oldMode = m_dt.settings.m_lineWidthMode; 
-						String oldTag = m_dt.settings.m_lineWidthTag;
+						LineWidthMode oldMode = m_dt.m_settings.m_lineWidthMode; 
+						String oldTag = m_dt.m_settings.m_lineWidthTag;
 						if (selected.equals(LineWidthMode.DEFAULT.toString())) {
-							m_dt.settings.m_lineWidthMode = LineWidthMode.DEFAULT;
+							m_dt.m_settings.m_lineWidthMode = LineWidthMode.DEFAULT;
 						} else if (selected.equals(LineWidthMode.BY_METADATA_PATTERN.toString())) {
-							m_dt.settings.m_lineWidthMode = LineWidthMode.BY_METADATA_PATTERN;
+							m_dt.m_settings.m_lineWidthMode = LineWidthMode.BY_METADATA_PATTERN;
 						} else if (selected.equals(LineWidthMode.BY_METADATA_NUMBER.toString())) {
-							m_dt.settings.m_lineWidthMode = LineWidthMode.BY_METADATA_NUMBER;
+							m_dt.m_settings.m_lineWidthMode = LineWidthMode.BY_METADATA_NUMBER;
 						} else {
-							m_dt.settings.m_lineWidthTag = selected; 
-							m_dt.settings.m_lineWidthMode = LineWidthMode.BY_METADATA_TAG;
+							m_dt.m_settings.m_lineWidthTag = selected; 
+							m_dt.m_settings.m_lineWidthMode = LineWidthMode.BY_METADATA_TAG;
 						}
 						m_dt.resetStyle();
 //						txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
 //						chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 //								|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
-						if (m_dt.settings.m_lineWidthMode != oldMode || (m_dt.settings.m_lineWidthTag != null && !m_dt.settings.m_lineWidthTag.equals(oldTag))) {
+						if (m_dt.m_settings.m_lineWidthMode != oldMode || (m_dt.m_settings.m_lineWidthTag != null && !m_dt.m_settings.m_lineWidthTag.equals(oldTag))) {
 							m_dt.calcLineWidths(true);
 							m_dt.makeDirty();
 						}
@@ -132,7 +132,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		add(comboBoxBottom, gbc_comboBox);
 		
 		
-		textField_1 = new JTextField(m_dt.settings.m_sLineWidthPattern);
+		textField_1 = new JTextField(m_dt.m_settings.m_sLineWidthPattern);
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField_1.insets = new Insets(0, 0, 5, 0);
@@ -143,26 +143,26 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		textField_1.setColumns(10);
 		textField_1.addActionListener(e-> {
 				try {
-					m_dt.settings.m_sLineWidthPattern = textField_1.getText();
-					if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+					m_dt.m_settings.m_sLineWidthPattern = textField_1.getText();
+					if (m_dt.m_settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 						m_dt.calcLineWidths(true);
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
 			});
-		bottomOfBranchModel = new SpinnerNumberModel(m_dt.settings.m_iPatternForBottom, 1, 100, 1);
-		topOfBranchModel = new SpinnerNumberModel(m_dt.settings.m_iPatternForTop, 0, 100, 1);
+		bottomOfBranchModel = new SpinnerNumberModel(m_dt.m_settings.m_iPatternForBottom, 1, 100, 1);
+		topOfBranchModel = new SpinnerNumberModel(m_dt.m_settings.m_iPatternForTop, 0, 100, 1);
 		
 		bottomOfBranchModel.addChangeListener(new ChangeListener() {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				m_dt.settings.m_iPatternForBottom = (Integer) bottomOfBranchModel.getValue();
-				if (m_dt.settings.m_iPatternForBottom < 1) {
-					m_dt.settings.m_iPatternForBottom = 1;
+				m_dt.m_settings.m_iPatternForBottom = (Integer) bottomOfBranchModel.getValue();
+				if (m_dt.m_settings.m_iPatternForBottom < 1) {
+					m_dt.m_settings.m_iPatternForBottom = 1;
 				}
-				if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-					m_dt.settings.m_pattern = m_dt.createPattern();
+				if (m_dt.m_settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+					m_dt.m_settings.m_pattern = m_dt.createPattern();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -173,12 +173,12 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				m_dt.settings.m_iPatternForTop = (Integer) topOfBranchModel.getValue();
-				if (m_dt.settings.m_iPatternForTop < 0) {
-					m_dt.settings.m_iPatternForTop = 0;
+				m_dt.m_settings.m_iPatternForTop = (Integer) topOfBranchModel.getValue();
+				if (m_dt.m_settings.m_iPatternForTop < 0) {
+					m_dt.m_settings.m_iPatternForTop = 0;
 				}
-				if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
-					m_dt.settings.m_pattern = m_dt.createPattern();
+				if (m_dt.m_settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+					m_dt.m_settings.m_pattern = m_dt.createPattern();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -217,7 +217,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		
 				comboBoxTop.setPreferredSize(new Dimension(130,20));
 				comboBoxTop.setMaximumSize(new Dimension(130,200));
-				comboBoxTop.setSelectedItem(m_dt.settings.m_lineWidthMode);
+				comboBoxTop.setSelectedItem(m_dt.m_settings.m_lineWidthMode);
 				comboBoxTop.addActionListener(ea-> {
 							SwingUtilities.invokeLater(new Runnable() {
 								
@@ -225,29 +225,29 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 								public void run() {
 									String selected = comboBoxTop.getSelectedItem().toString();
 
-									LineWidthMode oldMode = m_dt.settings.m_lineWidthModeTop; 
-									String oldTag = m_dt.settings.m_lineWidthTagTop;
-									boolean oldCorrectTopOfBranch = m_dt.settings.m_bCorrectTopOfBranch;
+									LineWidthMode oldMode = m_dt.m_settings.m_lineWidthModeTop; 
+									String oldTag = m_dt.m_settings.m_lineWidthTagTop;
+									boolean oldCorrectTopOfBranch = m_dt.m_settings.m_bCorrectTopOfBranch;
 									if (selected.equals(SAME_AS_BOTTOM)) {
-										m_dt.settings.m_lineWidthModeTop = LineWidthMode.DEFAULT;
+										m_dt.m_settings.m_lineWidthModeTop = LineWidthMode.DEFAULT;
 									} else if (selected.equals(MAKE_FIT_BOTTOM)) {
-										m_dt.settings.m_lineWidthModeTop = LineWidthMode.DEFAULT;
-										m_dt.settings.m_bCorrectTopOfBranch = true;
+										m_dt.m_settings.m_lineWidthModeTop = LineWidthMode.DEFAULT;
+										m_dt.m_settings.m_bCorrectTopOfBranch = true;
 									} else if (selected.equals(LineWidthMode.BY_METADATA_PATTERN.toString())) {
-										m_dt.settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_PATTERN;
+										m_dt.m_settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_PATTERN;
 									} else if (selected.equals(LineWidthMode.BY_METADATA_NUMBER.toString())) {
-										m_dt.settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_NUMBER;
+										m_dt.m_settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_NUMBER;
 									} else {
-										m_dt.settings.m_lineWidthTagTop = selected; 
-										m_dt.settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_TAG;
+										m_dt.m_settings.m_lineWidthTagTop = selected; 
+										m_dt.m_settings.m_lineWidthModeTop = LineWidthMode.BY_METADATA_TAG;
 									}
-									m_dt.settings.m_bCorrectTopOfBranch = selected.equals(MAKE_FIT_BOTTOM);
+									m_dt.m_settings.m_bCorrectTopOfBranch = selected.equals(MAKE_FIT_BOTTOM);
 									m_dt.resetStyle();
 //							txtPattern.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN);
 //							chckbxShowLegend.setEnabled(m_dt.m_lineColorMode == LineColorMode.BY_METADATA_PATTERN 
 //									|| m_dt.m_lineColorMode == LineColorMode.COLOR_BY_METADATA_TAG);
-									if (m_dt.settings.m_lineWidthModeTop != oldMode || (m_dt.settings.m_lineWidthTag != null && !m_dt.settings.m_lineWidthTagTop.equals(oldTag))
-											|| oldCorrectTopOfBranch != m_dt.settings.m_bCorrectTopOfBranch) {
+									if (m_dt.m_settings.m_lineWidthModeTop != oldMode || (m_dt.m_settings.m_lineWidthTag != null && !m_dt.m_settings.m_lineWidthTagTop.equals(oldTag))
+											|| oldCorrectTopOfBranch != m_dt.m_settings.m_bCorrectTopOfBranch) {
 										m_dt.calcLineWidths(true);
 										m_dt.makeDirty();
 									}
@@ -258,7 +258,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 						});
 					});
 		
-		textField = new JTextField(m_dt.settings.m_sLineWidthPatternTop);
+		textField = new JTextField(m_dt.m_settings.m_sLineWidthPatternTop);
 		GridBagConstraints gbc_textField = new GridBagConstraints();
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField.gridwidth = 2;
@@ -268,7 +268,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		add(textField, gbc_textField);
 		textField.addActionListener(ea-> {
 				try {
-					m_dt.settings.m_sLineWidthPatternTop = textField.getText();
+					m_dt.m_settings.m_sLineWidthPatternTop = textField.getText();
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				} catch (Exception ex) {}
@@ -292,11 +292,11 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		spinner_1.setMaximumSize(new Dimension(1,20));
 		
 		chckbxZeroBased = new JCheckBox("Zero based");
-		chckbxZeroBased.setSelected(m_dt.settings.m_bWidthsAreZeroBased);
+		chckbxZeroBased.setSelected(m_dt.m_settings.m_bWidthsAreZeroBased);
 		chckbxZeroBased.addActionListener(ea-> {
-				boolean bPrev = m_dt.settings.m_bCorrectTopOfBranch;
-				m_dt.settings.m_bWidthsAreZeroBased = ((JCheckBox) ea.getSource()).isSelected();
-				if (bPrev != m_dt.settings.m_bWidthsAreZeroBased) {
+				boolean bPrev = m_dt.m_settings.m_bCorrectTopOfBranch;
+				m_dt.m_settings.m_bWidthsAreZeroBased = ((JCheckBox) ea.getSource()).isSelected();
+				if (bPrev != m_dt.m_settings.m_bWidthsAreZeroBased) {
 					m_dt.calcLineWidths(true);
 					m_dt.makeDirty();
 				}
@@ -334,7 +334,7 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		textField_3.addActionListener(ea-> {
 				try {
 					m_dt.m_treeDrawer.LINE_WIDTH_SCALE = Float.parseFloat(textField_3.getText());
-					if (m_dt.settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
+					if (m_dt.m_settings.m_lineWidthMode!= LineWidthMode.DEFAULT) {
 						m_dt.makeDirty();
 					}
 				} catch (Exception ex) {}
@@ -364,22 +364,22 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		if (textField_1 == null) {
 			return;
 		}
-		textField_3.setEnabled(m_dt.settings.m_lineWidthMode != LineWidthMode.DEFAULT);
-		chckbxZeroBased.setEnabled(m_dt.settings.m_lineWidthMode != LineWidthMode.DEFAULT);
+		textField_3.setEnabled(m_dt.m_settings.m_lineWidthMode != LineWidthMode.DEFAULT);
+		chckbxZeroBased.setEnabled(m_dt.m_settings.m_lineWidthMode != LineWidthMode.DEFAULT);
 		
-		textField_1.setEnabled(m_dt.settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
-		spinner.setEnabled(m_dt.settings.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER);
+		textField_1.setEnabled(m_dt.m_settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN);
+		spinner.setEnabled(m_dt.m_settings.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER);
 
 		textField.setEnabled(false);
 		spinner_1.setEnabled(false);
-		if (m_dt.settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
+		if (m_dt.m_settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
 			comboBoxTop.setEnabled(false);
 		} else {
 			comboBoxTop.setEnabled(true);
-			if (m_dt.settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+			if (m_dt.m_settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
 				textField.setEnabled(true);
 			}
-			if (m_dt.settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
+			if (m_dt.m_settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
 				spinner_1.setEnabled(true);
 			}
 		}
@@ -393,15 +393,15 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		selection.add(LineWidthMode.DEFAULT.toString());
 		selectionTop.add(SAME_AS_BOTTOM);
 		selectionTop.add(MAKE_FIT_BOTTOM);
-		if (m_dt.treeData.m_bMetaDataReady) {
+		if (m_dt.m_treeData.m_bMetaDataReady) {
 			selection.add(LineWidthMode.BY_METADATA_PATTERN.toString());
 			selectionTop.add(LineWidthMode.BY_METADATA_PATTERN.toString());
 			selection.add(LineWidthMode.BY_METADATA_NUMBER.toString());
 			selectionTop.add(LineWidthMode.BY_METADATA_NUMBER.toString());			
-			for (int i = 0; i < m_dt.settings.m_metaDataTags.size(); i++) {
-				if (m_dt.settings.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
-					selection.add(m_dt.settings.m_metaDataTags.get(i));				
-					selectionTop.add(m_dt.settings.m_metaDataTags.get(i));			
+			for (int i = 0; i < m_dt.m_settings.m_metaDataTags.size(); i++) {
+				if (m_dt.m_settings.m_metaDataTypes.get(i).equals(MetaDataType.NUMERIC)) {
+					selection.add(m_dt.m_settings.m_metaDataTags.get(i));				
+					selectionTop.add(m_dt.m_settings.m_metaDataTags.get(i));			
 				}
 			}
 		}
@@ -411,27 +411,27 @@ public class LineWidthPanel extends JPanel implements ChangeListener {
 		model = new DefaultComboBoxModel<>(selectionTop.toArray(new String[0]));
 		comboBoxTop.setModel(model);
 		
-		if (m_dt.settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
+		if (m_dt.m_settings.m_lineWidthMode == LineWidthMode.DEFAULT) {
 			comboBoxBottom.setSelectedItem(LineWidthMode.DEFAULT.toString());
-		} else if (m_dt.settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
+		} else if (m_dt.m_settings.m_lineWidthMode == LineWidthMode.BY_METADATA_PATTERN) {
 			comboBoxBottom.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
-		} else if (m_dt.settings.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
+		} else if (m_dt.m_settings.m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
 			comboBoxBottom.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
 		} else {
-			comboBoxBottom.setSelectedItem(m_dt.settings.m_lineWidthTag);
+			comboBoxBottom.setSelectedItem(m_dt.m_settings.m_lineWidthTag);
 		}
-		if (m_dt.settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
-			if (m_dt.settings.m_bCorrectTopOfBranch) {
+		if (m_dt.m_settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
+			if (m_dt.m_settings.m_bCorrectTopOfBranch) {
 				comboBoxTop.setSelectedItem(MAKE_FIT_BOTTOM);
 			} else {
 				comboBoxTop.setSelectedItem(SAME_AS_BOTTOM);				
 			}
-		} else if (m_dt.settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
+		} else if (m_dt.m_settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
 			comboBoxTop.setSelectedItem(LineWidthMode.BY_METADATA_PATTERN.toString());
-		} else if (m_dt.settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
+		} else if (m_dt.m_settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_NUMBER) {
 			comboBoxTop.setSelectedItem(LineWidthMode.BY_METADATA_NUMBER.toString());
 		} else {
-			comboBoxTop.setSelectedItem(m_dt.settings.m_lineWidthTagTop);
+			comboBoxTop.setSelectedItem(m_dt.m_settings.m_lineWidthTagTop);
 		}
 
 		updateEnabled();

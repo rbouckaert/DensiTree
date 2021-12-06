@@ -218,7 +218,7 @@ public class ImportRootCanalDialog extends JPanel {
 				      if (m_dt.m_bBurnInIsPercentage) {
 				    	  fBurnIn = m_dt.m_nBurnIn;
 				      } else {
-				    	  fBurnIn = 100.0 * m_dt.m_nBurnIn / (m_dt.m_nBurnIn  + m_dt.treeData.m_trees.length);
+				    	  fBurnIn = 100.0 * m_dt.m_nBurnIn / (m_dt.m_nBurnIn  + m_dt.m_treeData.m_trees.length);
 				      }
 				      STOption option = (STOption) comboBox.getSelectedItem();
 				      String sCmd = "summary_tree --burnin " + fBurnIn + " " +  option.m_sOptions;
@@ -248,13 +248,13 @@ public class ImportRootCanalDialog extends JPanel {
 				 	m_dt.setDefaultCursor();				
 			}
 			if (newick != null) {
-				TreeFileParser parser = new TreeFileParser(m_dt.settings.m_sLabels, null, null, 0);
+				TreeFileParser parser = new TreeFileParser(m_dt.m_settings.m_sLabels, null, null, 0);
 				try {
 					Node tree = parser.parseNewick(newick);
 					tree.sort();
 
 					System.err.println("labelInternalNodes");
-					tree.labelInternalNodes(m_dt.settings.m_sLabels.size());
+					tree.labelInternalNodes(m_dt.m_settings.m_sLabels.size());
 
 					System.err.println("positionHeight");
 					float fTreeHeight = m_dt.positionHeight(tree, 0);
@@ -263,12 +263,12 @@ public class ImportRootCanalDialog extends JPanel {
 					m_dt.offsetHeight(tree, m_dt.m_fHeight - fTreeHeight);
 					
 					System.err.println("calcCladeIDForNode");
-					m_dt.calcCladeIDForNode(tree, m_dt.treeData.mapCladeToIndex);
+					m_dt.calcCladeIDForNode(tree, m_dt.m_treeData.mapCladeToIndex);
 
 					System.err.println("resetCladeNr");
-					m_dt.resetCladeNr(tree, m_dt.treeData.reverseindex);
+					m_dt.resetCladeNr(tree, m_dt.m_treeData.reverseindex);
 
-					m_dt.treeData.m_summaryTree.add(tree);
+					m_dt.m_treeData.m_summaryTree.add(tree);
 					return true;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
