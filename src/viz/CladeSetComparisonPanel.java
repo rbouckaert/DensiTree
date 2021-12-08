@@ -79,13 +79,17 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		initGraph(g2);
 		
 		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
-		int [] revmap = m_dt.m_cladeToIDMap;
-		for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
-			output(g2, i, revmap[i], false);
-		}
-		
-		for (int i : m_dt.m_treeData.getCladeSelection()) {
-			output(g2, i, revmap[i], true);
+		try {
+			int [] revmap = m_dt.m_cladeToIDMap;
+			for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
+				output(g2, i, revmap[i], false);
+			}
+			
+			for (int i : m_dt.m_treeData.getCladeSelection()) {
+				output(g2, i, revmap[i], true);
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			// ignore -- clades are not ready just yet
 		}
 	}
 

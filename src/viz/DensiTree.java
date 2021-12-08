@@ -16,7 +16,7 @@
  */
 /*
  * DensiTree.java
- * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2013 
+ * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2022 
  */
 
 
@@ -89,7 +89,7 @@ import viz.panel.ShowPanel;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "2.2.7";
+	final static String VERSION = "3.0.0";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -580,7 +580,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2020\n\n\n"
+				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2022\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -847,6 +847,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_sKMLFile != null) {
 			loadKML();
 		}
+				
 		System.err.println("Done");
 	} // init
 

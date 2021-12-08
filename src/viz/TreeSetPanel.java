@@ -359,6 +359,12 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
+		m_dt.a_undo.setEnabled(m_dt.m_doActions.size() > 0 && m_dt.m_iUndo > 1);
+		m_dt.a_redo.setEnabled(m_dt.m_iUndo < m_dt.m_doActions.size());
+		m_dt.a_loadMirror.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0);
+		m_dt.a_exportCladeComparison.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0 
+				&& m_dt.m_treeData2 != null && m_dt.m_cladeSetComparisonPanel.isVisible());
+
 		Graphics2D g2 = (Graphics2D) g;
 		Color oldBackground = g2.getBackground();
 		g2.setBackground(m_dt.m_settings.m_color[DensiTree.BGCOLOR]);
@@ -373,7 +379,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 
 		((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
-		m_dt.drawLabels(m_dt.m_treeData.m_trees[0], g2, m_dt.m_treeData);
+		if (m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0) {
+			m_dt.drawLabels(m_dt.m_treeData.m_trees[0], g2, m_dt.m_treeData);
+		}
 	}
 	
 	public void paintComponent(Graphics g, TreeData treeData, BufferedImageF m_image) {
@@ -389,8 +397,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		}
 
 		
-		m_dt.a_undo.setEnabled(m_dt.m_doActions.size() > 0 && m_dt.m_iUndo > 1);
-		m_dt.a_redo.setEnabled(m_dt.m_iUndo < m_dt.m_doActions.size());
 		g.setFont(m_dt.m_font);
 		switch (m_dt.m_viewMode) {
 		case DRAW:
