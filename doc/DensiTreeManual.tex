@@ -4,7 +4,7 @@
 \def\DensiTree{DensiTree}
 \def\webdir{/Users/remco/research/DensiTree/web}
 
-\title{\DensiTree\ Manual: \\{Making sense of sets of trees}\\Version 2.2}
+\title{\DensiTree\ Manual: \\{Making sense of (pairs of) sets of trees}\\Version 3.0.0}
 \author{Remco Bouckaert\\
 \url{r.bouckaert@auckland.ac.nz}\\
 %\url{remco@cs.waikato.ac.nz}\\
@@ -99,7 +99,18 @@ of trees and/or consensus trees. Alternatively, one can {\em browse} through the
 tree topologies.
 
 \subsection{What is new \label{ssec.new}}
-From Version 2.1 to 2.2, the following changes were made:
+
+\noindent From Version 2.x to 3.0, the following changes were made:
+
+o support for loading mirror trees
+
+o support for clade set comparison
+
+o support for exporting mirror trees and exporting clade set comparison
+
+o new taxon ordering heuristics added
+
+\noindent From Version 2.1 to 2.2, the following changes were made:
 
 o support for images as labels
 
@@ -113,7 +124,7 @@ o support for .densitree configuration file with default settings
 
 o many small bugs
 
-From Version 2.01 to 2.1.10, the following changes were made:
+\noindent From Version 2.01 to 2.1.10, the following changes were made:
 
 o layout improved
 
@@ -125,7 +136,7 @@ o tip tools
 
 o user specified root canal tree
 
-From Version 2.0 to 2.01, the following changes were made:
+\noindent From Version 2.0 to 2.01, the following changes were made:
 
 o Star tree, centralised tree and angle correction added.
 
@@ -137,7 +148,7 @@ o Interactive clade movement.
 
 o Numerics: better scales, height tracking of cursor, cumulative tree intensity reported when browsing, view clade support percentage
 
-From Version 1.45 to 2.0, the following changes were made:
+\noindent From Version 1.45 to 2.0, the following changes were made:
 
 o Edit tree to manipulate rotation and height of internal nodes.
 
@@ -360,6 +371,49 @@ Different methods of drawing branches. Arcs at the top, steep arcs at the bottom
 }
 \end{center}
 
+
+\begin{center}
+\includegraphics[width=0.8\textwidth,height=0.45\textheight]{\webdir/mirrorset.png}
+\includegraphics[width=0.8\textwidth,height=0.45\textheight]{\webdir/cladecomparison.png}
+\captionof{figure}{\label{fig.mirror}
+Showing a pair of tree sets (top) and clade set comparison panel (bottom).
+}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.99\textwidth]{\webdir/mirrorsetselected.png}
+\captionof{figure}{
+\label{fig.mirror2}
+Select a clade in a pair of tree sets or clade comparison panel to navigate differences in 
+tree sets. The selected clade is highlighted by \\ 
+o a dark circle over the red clade support dot in the clade comparison panel\\ 
+o a black cross in the clade comparison panel representing the 95\% HPD of the clade height\\ 
+o two dark circles in the DensiTree panel: one in the first and one in the second tree set.
+}
+\end{center}
+
+\newpage
+\begin{center}
+\includegraphics[width=0.9\textwidth]{\webdir/mirrorape.png}
+\captionof{figure}{
+\label{fig.mirrorape}
+All functions of DensiTree, like grid lines, clade support info, select clade and highlight 
+taxon labels, etc., work with pairs of sets as well.
+}
+\end{center}
+
+\newpage
+\begin{center}
+\includegraphics[width=0.9\textwidth]{\webdir/comparison3.png}
+\captionof{figure}{
+\label{fig.comparison3}
+Comparison of two tree sets where one of the tree sets contains a number of clades not represented 
+in the second set. This is indicated by the blue dots on the x-axis, showing that there are clades 
+with over 1\% support in one set, but there is no corresponding clade in the other one.
+}
+\end{center}
+
+
 \newpage
 \section{GUI\label{sec.gui}}\
 
@@ -375,12 +429,14 @@ a menu, tool bar, status bar.
 \DensiTree\ has the following menu items and short description of its function.
 
 \begin{center}
-\includegraphics[width=4cm]{menufile.png}
+\includegraphics[width=4cm]{screenshots/menufile.png}
 \captionof{figure}{\label{fig.menufile}File menu}
 \end{center}
 
 \noindent
 {\tt File/Load}: open Nexus trees file containing set of trees\\
+{\tt File/Load mirror set}: Only available if a tree set has already been loaded.
+Open Nexus trees file containing set of trees with same set of taxa as set already loaded\\
 {\tt File/Save as}: Save current tree set as Nexus tree file. Only useful after editing taxa in the tree\\
 {\tt File/Background image}: open bitmap file to be shown in the background. If a KML file is
 loaded, this is considered to be a world map, and only part of the image relevant to the locations
@@ -389,10 +445,12 @@ for example "NewZealand(-60,140)x(-10,180).png"
 then the image is considered to cover only the rectangle with corners  ($<$lat1$>$,$<$long1$>$) and 
 ($<$lat2$>$,$<$long2$>$). Not lat1 $<$ lat2 and long1 $<$ long2.\\
 {\tt File/Print}: print currently shown view of the tree set (untested)\\
-{\tt File/Export}: export currently shown view of the tree set in bitmap in BMP, JPG, PNG and SVG
+{\tt File/Export}: export currently shown view of the tree set in bitmap in BMP, JPG, PNG or vector as PDF or SVG
 format.
 Note that the zoom factor (menu {\tt Window/Zoom in} and {\tt .. out}) has impact on the resolution 
 of the image. For hight resolution images, zoom in more, then redraw, then export.\\
+{\tt File/Export clade comparison}: export currently shown view of the clade comparison panel as bitmap in BMP, JPG, PNG or 
+vector as PDF format.
 {\tt File/Exit}: quit \DensiTree.
 
 \begin{center}
@@ -573,7 +631,7 @@ file is openened.\\
 
 
 \begin{center}
-\includegraphics[width=4cm]{menuwindow.png}
+\includegraphics[width=4cm]{screenshots/menuwindow.png}
 \captionof{figure}{\label{fig.menuwindow}Window menu}
 \end{center}
 
@@ -582,6 +640,7 @@ file is openened.\\
 {\tt Window/View Toolbar}: Toggle visibility of tool bar at the top\\
 {\tt Window/View Sidebar}: Toggle visibility of tool bar at the side\\
 {\tt Window/View Clade Toolbar}: Toggle visibility of tool bar at bottom containing clade information\\
+{\tt Window/View Clade Comparison}: Toggle visibility of clade comparison panel on the right hand side\\
 {\tt Window/Zoom in}: Enlarge drawing. Note that this has an impact on the resolution when
 exporting bitmap images.\\
 {\tt Window/Zoom out}: Draw smaller image.\\
@@ -600,7 +659,7 @@ Again, this has an impact on the resolution when exporting bitmap images.\\
 {\tt Help/About}: Show version and citation info.
 
 \begin{center}
-\includegraphics[width=\textwidth]{help.png}
+\includegraphics[width=\textwidth]{screenshots/help.png}
 \captionof{figure}{\label{fig.help}Show help and other useful information}
 \end{center}
 
@@ -874,6 +933,25 @@ description of File/Background image for details).
 Rotate labels, using the Settings/Rotate labels menu. This only has an effect when the root
 is drawn at the top.
 
+
+
+\subsection{How do I show a pair of trees in the same panel?}
+
+To show a pair of trees\\
+o Use menu File/Load to load first tree set -- DensiTree displays the tree set and behaves as usual.\\
+o Use menu File/Load mirror set -- DensiTree now displays the second set as mirror image to the first.\\
+o Use menu Window/View clade comparison to show the clade comparison panel.\\
+
+
+\subsection{How can I select a clade in a pair of trees?}
+
+First load two sets of trees, as outlined in the previous FAQ.
+
+To select a clade, click the "Central" icon on the side bar on the right and under the "Clades" tab in 
+the side bar select "Show clades". If you click a clade either in the DensiTree or the clade comparison 
+panel it should highlight the clade in the other panel and the other tree set.
+
+You can also drag the mouse over the DensiTree panel to select more than one clade at the same time.
 
 %\subsection{How do I cite DensiTree in a publication?}
 %
