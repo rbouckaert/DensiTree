@@ -48,7 +48,7 @@ public class TreeFileParser {
 	/** maps taxon number in mirror set to taxon number in original set **/
 	int [] m_iLabelMap;
 	/** burn in = nr of trees ignored at the start of tree file, can be set by command line option **/
-	int m_nBurnIn = 0;
+	int m_nBurnIn = 0, m_nThin = 1;
 	boolean m_bBurnInIsPercentage = true;
 	//DensiTree m_densiTree;
 	/** for memory saving, set to true **/
@@ -64,6 +64,7 @@ public class TreeFileParser {
 		m_fLongitude = densiTree.m_settings.m_fLongitude;
 		m_fLatitude = densiTree.m_settings.m_fLatitude;
 		m_nBurnIn = densiTree.m_nBurnIn;
+		m_nThin = densiTree.m_nThin;
 		m_bBurnInIsPercentage = densiTree.m_bBurnInIsPercentage;
 		m_fMinLat = 90; m_fMinLong = 180;
 		m_fMaxLat = -90; m_fMaxLong = -180;
@@ -153,14 +154,19 @@ public class TreeFileParser {
 //					sNewickTrees.add(sStr);
 				}
 			}
+			int iThin = 1;
 			while (fin.ready()) {
 				sStr = fin.readLine();
 				if (sStr.length() > 2 && sStr.indexOf("(") >= 0) {
-					Node tree = parseNewick(sStr);
-					tree.sort();
-					tree.labelInternalNodes(m_nNrOfLabels);
-					trees.add(tree);
-					if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
+					if (iThin >= m_nThin) {
+						iThin = 0;
+						Node tree = parseNewick(sStr);
+						tree.sort();
+						tree.labelInternalNodes(m_nNrOfLabels);
+						trees.add(tree);
+						if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
+					}
+					iThin++;
 //					sNewickTrees.add(sStr);
 				}
 			}
@@ -269,6 +275,7 @@ public class TreeFileParser {
 			}
 			
 			//int k = 0;
+			int iThin = 1;
 			while (fin.ready()) {
 				sStr = fin.readLine();
 				if (m_bBurnInIsPercentage) {
@@ -280,10 +287,12 @@ public class TreeFileParser {
 					if (sTree.toLowerCase().startsWith("tree ")) {
 						//k++;
 						if (nBurnIn <= 0) {
-							int i = sStr.indexOf('(');
-							if (i > 0) {
-								sStr = sStr.substring(i);
-							}
+							if (iThin > m_nThin) {
+								iThin = 0;
+								int i = sStr.indexOf('(');
+								if (i > 0) {
+									sStr = sStr.substring(i);
+								}
 //						if (m_bSurpressMetadata) {
 //							while (sStr.indexOf('[') >= 0) {
 //								int i0 = sStr.indexOf('[');
@@ -291,12 +300,14 @@ public class TreeFileParser {
 //								sStr = sStr.substring(0, i0) + sStr.substring(i1 + 1);
 //							}
 //						}
-							Node tree = parseNewick(sStr);
-							//System.err.println(k + " " + tree);
-							tree.sort();
-							tree.labelInternalNodes(m_nNrOfLabels);
-							trees.add(tree);
-							if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
+								Node tree = parseNewick(sStr);
+								//System.err.println(k + " " + tree);
+								tree.sort();
+								tree.labelInternalNodes(m_nNrOfLabels);
+								trees.add(tree);
+								if (trees.size() % 100 ==0) {if (m_nNrOfLabels>=100||trees.size() % 1000 ==0) {System.err.print(trees.size() + " ");}}
+							}
+							iThin++;
 							//sNewickTrees.add(sStr);
 						} else {
 							if (!m_bBurnInIsPercentage) {

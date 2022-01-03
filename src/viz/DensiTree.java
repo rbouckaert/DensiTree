@@ -180,6 +180,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	 * command line option
 	 **/
 	public int m_nBurnIn = 10;
+	public int m_nThin = 1;
 	public boolean m_bBurnInIsPercentage = true;
 
 	/** mean cumulative width, calculated from trees **/
@@ -417,6 +418,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-b")) {
 						m_nBurnIn = (int) Float.parseFloat(args[i + 1]);
+						i += 2;
+					} else if (args[i].equals("-thin")) {
+						m_nThin = (int) Float.parseFloat(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-geo")) {
 						String[] sStrs = args[i + 1].split("x");
