@@ -772,10 +772,10 @@ public class NodeOrderer {
 		double fScore = score(order, fDistance0, nNrOfLabels);
 		boolean bProgress = false;
 		//int [][] orderings = new int[fDistance0.length][];
-		List<Integer> label = new ArrayList<Integer>();
-		List<List<Integer>> orderings = calcOrderings(cluster, label);
 		do {
 			bProgress = false;
+			List<Integer> label = new ArrayList<Integer>();
+			List<List<Integer>> orderings = calcOrderings(cluster, label);
 			// find best node to flip, i.e. node that gives the best score
 			double fBestScore = fScore;
 			int iBestNode = -1;
