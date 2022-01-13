@@ -125,10 +125,15 @@ public class NodeOrderer {
 		}
 		
 		
-		double [][] fDist = new double[nNrOfLabels][nNrOfLabels];
-		for (int i = 0; i < cTrees.length; i++) {
-			calcDistance(cTrees[i]/*, nOrder*/, fDist, fTreeWeight[i], new Vector<Integer>(), new Vector<Float>());
-		}
+		//double [][] fDist = new double[nNrOfLabels][nNrOfLabels];
+		double [] fDist = new double[nNrOfLabels*nNrOfLabels];
+		Vector<Integer> iLabel = new Vector<>();
+        Vector<Float> fLength = new Vector<>();
+        for (int i = 0; i < cTrees.length; i++) {
+                iLabel.clear();
+                fLength.clear();
+                calcDistance(cTrees[i]/*, nOrder*/, fDist, nNrOfLabels, fTreeWeight[i], iLabel, fLength);
+        }
 		//print dist matrix (Denise):
 //		System.out.println("Distance matrix:");
 //		for (int i = 0; i < nNrOfLabels ; i++){
@@ -141,11 +146,11 @@ public class NodeOrderer {
 		int [] nOrder = null;
 		int [] nRevOrder = null;
 		if (m_nLinkType == CLOSEST_OUTSIDE_FIRST) {
-			nRevOrder = closestOutsideFirst(fDist);
+			nRevOrder = closestOutsideFirst(fDist, nNrOfLabels);
 		} else if (m_nLinkType == CLOSEST_FIRST) {
-			nRevOrder = closestFirst(fDist);
+			nRevOrder = closestFirst(fDist, nNrOfLabels);
 		} else {
-			nOrder = buildClusterer(fDist);
+			nOrder = buildClusterer(fDist, nNrOfLabels);
 		}
 		if (m_nLinkType == OPTIMISE) {
 			nRevOrder = new int[fDist.length];
@@ -175,7 +180,7 @@ public class NodeOrderer {
 	    for (int i = 0; i < nNrOfLabels ; i++) {
 	    	System.out.print(nOrder[i] + " | ");
 	    }
-		System.out.println("\nfinal score = " + score(nOrder, fDist));
+		System.out.println("\nfinal score = " + score(nOrder, fDist, nNrOfLabels));
 
 	    return nOrder;
 	}
@@ -419,7 +424,7 @@ public class NodeOrderer {
 	 * @param fDist
 	 * @return
 	 */
-	int [] closestOutsideFirst(double [][] fDist) {
+	int [] closestOutsideFirst(double [] fDist, int nNrOfLabels) {
 		int n = fDist.length;
 		int [] nOrder = new int[n];
 		boolean [] bDone = new boolean[n];
@@ -427,11 +432,11 @@ public class NodeOrderer {
 		// find the closest pair
 		int iMax = 0;
 		int jMax = 1;
-		double fMax = fDist[0][1];
+		double fMax = fDist[0*nNrOfLabels+1];
 		for (int i = 0; i < n; i++) {
 			for (int j = i+1; j < n; j++) {
-				if (fDist[i][j] < fMax) {
-					fMax = fDist[i][j];
+				if (fDist[i*nNrOfLabels+j] < fMax) {
+					fMax = fDist[i*nNrOfLabels+j];
 					iMax = i;
 					jMax = j;
 				}
@@ -448,13 +453,13 @@ public class NodeOrderer {
 			fMax = Double.MAX_VALUE;
 			for (int i = 0; i < n; i++) {
 				if (!bDone[i]) {
-					if (fDist[nOrder[k-1]][i] < fMax) {
-						fMax = fDist[nOrder[k-1]][i];
+					if (fDist[nOrder[k-1]*nNrOfLabels+i] < fMax) {
+						fMax = fDist[nOrder[k-1]*nNrOfLabels+i];
 						iMax = k-1;
 						jMax = i;
 					}
-					if (fDist[nOrder[0]][i] < fMax) {
-						fMax = fDist[nOrder[0]][i];
+					if (fDist[nOrder[0]*nNrOfLabels+i] < fMax) {
+						fMax = fDist[nOrder[0]*nNrOfLabels+i];
 						iMax = 0;
 						jMax = i;
 					}
@@ -482,7 +487,7 @@ public class NodeOrderer {
 	 * @param fDist
 	 * @return
 	 */
-	int [] closestFirst(double [][] fDist) {
+	int [] closestFirst(double [] fDist, int nNrOfLabels) {
 //		
 //        int n = fDist.length;
 //        int [] nOrder = new int[n];
@@ -544,11 +549,11 @@ public class NodeOrderer {
 		// find the closest pair
 		int iMax = 0;
 		int jMax = 1;
-		double fMax = fDist[0][1];
+		double fMax = fDist[0*nNrOfLabels+1];
 		for (int i = 0; i < n; i++) {
 			for (int j = i+1; j < n; j++) {
-				if (fDist[i][j] < fMax) {
-					fMax = fDist[i][j];
+				if (fDist[i*nNrOfLabels+j] < fMax) {
+					fMax = fDist[i*nNrOfLabels+j];
 					iMax = i;
 					jMax = j;
 				}
@@ -567,8 +572,8 @@ public class NodeOrderer {
 				for (int i = 0; i < n; i++) {
 					if (!bDone[i]) {
 						//if (fDist[nOrder[nOrder[j]]][i] < fMax) {
-						if (fDist[nOrder[j]][i] < fMax) {
-							fMax = fDist[nOrder[j]][i];
+						if (fDist[nOrder[j]*nNrOfLabels+i] < fMax) {
+							fMax = fDist[nOrder[j]*nNrOfLabels+i];
 							iMax = i;
 							jMax = j;
 						}
@@ -577,16 +582,16 @@ public class NodeOrderer {
 			}
 			if (jMax == 0) { 
 				//if (fDist[iMax][nOrder[0]]+fDist[nOrder[0]][nOrder[1]] > fDist[nOrder[0]][iMax]+fDist[iMax][nOrder[1]]) {				
-				if (fDist[nOrder[0]][nOrder[1]] > fDist[iMax][nOrder[1]]) {				
+				if (fDist[nOrder[0]*nNrOfLabels+nOrder[1]] > fDist[iMax*nNrOfLabels+nOrder[1]]) {				
 					jMax++;
 				}
 			} else if (jMax == k-1) {
 				//if (fDist[nOrder[k-2]][iMax]+fDist[iMax][nOrder[k-1]] > fDist[nOrder[k-2]][nOrder[k-1]] + fDist[nOrder[k-1]][iMax]) {
-				if (fDist[nOrder[k-2]][iMax] > fDist[nOrder[k-2]][nOrder[k-1]]) {
+				if (fDist[nOrder[k-2]*nNrOfLabels+iMax] > fDist[nOrder[k-2]*nNrOfLabels+nOrder[k-1]]) {
 					jMax++;
 				}
 			//} else if (fDist[nOrder[jMax-1]][iMax]+fDist[iMax][nOrder[jMax]]+fDist[nOrder[jMax]][nOrder[jMax+1]] >	fDist[nOrder[jMax-1]][nOrder[jMax]] + fDist[nOrder[jMax]][iMax]+fDist[iMax][nOrder[jMax+1]]) {					
-			} else if (fDist[nOrder[jMax-1]][iMax] + fDist[nOrder[jMax]][nOrder[jMax+1]] >	fDist[nOrder[jMax-1]][nOrder[jMax]] + fDist[iMax][nOrder[jMax+1]]) {					
+			} else if (fDist[nOrder[jMax-1]*nNrOfLabels+iMax] + fDist[nOrder[jMax]*nNrOfLabels+nOrder[jMax+1]] >	fDist[nOrder[jMax-1]*nNrOfLabels+nOrder[jMax]] + fDist[iMax*nNrOfLabels+nOrder[jMax+1]]) {					
 				jMax++;
 			}
 			for (int j = k; j > jMax; j--) {
@@ -610,7 +615,7 @@ public class NodeOrderer {
 	 * @param iLabel: used to report set of leafs in sub tree below node
 	 * @param fLength: used to report set of lengths from current node to leafs in iLabel
 	 */
-	void calcDistance(Node node, /*int [] nOrder, */double[][] fDistMatrix, double fWeight, Vector<Integer> iLabel, Vector<Float> fLength) {
+	void calcDistance(Node node, /*int [] nOrder, */double[] fDistMatrix, int nNrOfLabels, double fWeight, Vector<Integer> iLabel, Vector<Float> fLength) {
 		if (node == null) {
 			return;
 		}
@@ -624,16 +629,16 @@ public class NodeOrderer {
 			Vector<Integer> iRight = new Vector<Integer>();
 			Vector<Float> fLeft = new Vector<Float>();
 			Vector<Float> fRight = new Vector<Float>();
-			calcDistance(node.m_left, /*nOrder, */fDistMatrix, fWeight, iLeft, fLeft);
-			calcDistance(node.m_right, /*nOrder, */fDistMatrix, fWeight, iRight, fRight);
+			calcDistance(node.m_left, /*nOrder, */fDistMatrix, nNrOfLabels, fWeight, iLeft, fLeft);
+			calcDistance(node.m_right, /*nOrder, */fDistMatrix, nNrOfLabels, fWeight, iRight, fRight);
 			for (int i = 0; i < iLeft.size(); i++) {
 				int i1 = iLeft.elementAt(i);
 				double f = fWeight * fLeft.elementAt(i);
 				for (int j = 0; j < iRight.size(); j++) {
 					int i2 = iRight.elementAt(j);
 					double f2 = f + fWeight * fRight.elementAt(j);
-					fDistMatrix[i1][i2] += f2;
-					fDistMatrix[i2][i1] += f2;
+					fDistMatrix[i1 + nNrOfLabels * i2] += f2;
+					fDistMatrix[i2 + nNrOfLabels * i1] += f2;
 				}
 			}
 			for (int i = 0; i < fLeft.size(); i++) {
@@ -658,24 +663,24 @@ public class NodeOrderer {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public int [] buildClusterer(double [][] fDistance0) throws Exception {
+	public int [] buildClusterer(double [] fDistance0, int nNrOfLabels) throws Exception {
 		// use array of integer vectors to store cluster indices,
 		// starting with one cluster per instance
-		Vector<Integer> [] nClusterID = new Vector[fDistance0.length];
-		for (int i = 0; i < fDistance0.length; i++) {
+		Vector<Integer> [] nClusterID = new Vector[nNrOfLabels];
+		for (int i = 0; i < nNrOfLabels; i++) {
 			nClusterID[i] = new Vector<Integer>();
 			nClusterID[i].add(i);
 		}
 		// calculate distance matrix
-		int nClusters = fDistance0.length;
+		int nClusters = nNrOfLabels;
 		PriorityQueue<Tuple> queue = new PriorityQueue<Tuple>(nClusters*nClusters/2, new TupleComparator());
 		for (int i = 0; i < nClusters; i++) {
 			for (int j = i+1; j < nClusters; j++) {
-				queue.add(new Tuple(fDistance0[i][j], i, j, 1, 1));
+				queue.add(new Tuple(fDistance0[i*nNrOfLabels+j], i, j, 1, 1));
 			}
 		}
 
-		int nInstances = fDistance0.length;
+		int nInstances = nNrOfLabels;
 		
 		// used for keeping track of hierarchy
 		TreeNode [] clusterNodes = new TreeNode[nInstances];
@@ -716,7 +721,7 @@ public class NodeOrderer {
 				if (i != iMin1 && nClusterID[i].size() > 0) {
 					int i1 = Math.min(iMin1,i);
 					int i2 = Math.max(iMin1,i);
-					double fDistance = getDistance(fDistance0, nClusterID[i1], nClusterID[i2]);
+					double fDistance = getDistance(fDistance0, nNrOfLabels, nClusterID[i1], nClusterID[i2]);
 					queue.add(new Tuple(fDistance, i1, i2, nClusterID[i1].size(), nClusterID[i2].size()));
 				}
 			}
@@ -764,19 +769,19 @@ public class NodeOrderer {
 //			return order;
 		}
 		
-		double fScore = score(order, fDistance0);
+		double fScore = score(order, fDistance0, nNrOfLabels);
 		boolean bProgress = false;
 		//int [][] orderings = new int[fDistance0.length][];
+		List<Integer> label = new ArrayList<Integer>();
+		List<List<Integer>> orderings = calcOrderings(cluster, label);
 		do {
 			bProgress = false;
-			List<Integer> label = new ArrayList<Integer>();
-			List<List<Integer>> orderings = calcOrderings(cluster, label);
 			// find best node to flip, i.e. node that gives the best score
 			double fBestScore = fScore;
 			int iBestNode = -1;
 			// first ordering is original ordering
 			for (int i = 1; i < orderings.size(); i++) {
-				double fScore2 = score2(orderings.get(i), fDistance0);
+				double fScore2 = score2(orderings.get(i), fDistance0, nNrOfLabels);
 				//System.out.println("score = " + fScore2);
 				if (fScore2 < fBestScore) {
 					fBestScore = fScore2;
@@ -790,7 +795,7 @@ public class NodeOrderer {
 				bProgress = true;
 				
 				cluster.order(order, 0);
-				double fScore2 = score(order, fDistance0);
+				double fScore2 = score(order, fDistance0, nNrOfLabels);
 				System.out.println(Arrays.toString(order) + " " + fScore + " " + fScore2);
 				
 			}
@@ -871,12 +876,12 @@ public class NodeOrderer {
 		return list;
 	}
 
-	private double score2(List<Integer> list, double[][] fDistance0) {
+	private double score2(List<Integer> list, double[] fDistance0, int nNrOfLabels) {
 		int [] order = new int[list.size()];
 		for (int i = 0; i < list.size(); i++) {
 			order[list.get(i)] = i;
 		}
-		return score(order, fDistance0);
+		return score(order, fDistance0, nNrOfLabels);
 //		double fSum = 0;
 //		for (int i = 0; i < list.size()-1; i++) {
 //			fSum += fDistance0[list.get(i)][list.get(i+1)];
@@ -884,7 +889,7 @@ public class NodeOrderer {
 //		return fSum;
 	}
 
-	private double score(int[] order, double [][] fDistance0) {
+	private double score(int[] order, double [] fDistance0, int nNrOfLabels) {
 //		System.out.println(Arrays.toString(order));
 
 		final int K = order.length;
@@ -892,11 +897,11 @@ public class NodeOrderer {
 		for (int i = 0; i < order.length-1; i++) {
 			for (int j = -K; j < 0; j++) {
 				if (i+j>= 0)
-					fSum -= fDistance0[order[i]][order[i+j]]/(j*j*j);
+					fSum -= fDistance0[order[i]*nNrOfLabels+order[i+j]]/(j*j*j);
 			}
 			for (int j = 1; j <= K; j++) {
 				if (i+j< order.length)
-					fSum += fDistance0[order[i]][order[i+j]]/(j*j*j);
+					fSum += fDistance0[order[i]*nNrOfLabels+order[i+j]]/(j*j*j);
 			}
 		}
 		return fSum;
@@ -939,7 +944,7 @@ public class NodeOrderer {
 	 * @param cluster2 dito for second cluster
 	 * @return distance between clusters based on link type
 	 */
-	double getDistance(double [][] fDistance, Vector<Integer> cluster1, Vector<Integer> cluster2) {
+	double getDistance(double [] fDistance, int nNrOfLabels, Vector<Integer> cluster1, Vector<Integer> cluster2) {
 		double fBestDist = Double.MAX_VALUE;
 		switch (m_nLinkType) {
 		case SINGLE:
@@ -950,7 +955,7 @@ public class NodeOrderer {
 				int i1 = cluster1.elementAt(i);
 				for (int j = 0; j < cluster2.size(); j++) {
 					int i2  = cluster2.elementAt(j);
-					double fDist = fDistance[i1][i2];
+					double fDist = fDistance[i1*nNrOfLabels+i2];
 					if (fBestDist > fDist) {
 						fBestDist = fDist;
 					}
@@ -966,7 +971,7 @@ public class NodeOrderer {
 				int i1 = cluster1.elementAt(i);
 				for (int j = 0; j < cluster2.size(); j++) {
 					int i2 = cluster2.elementAt(j);
-					double fDist = fDistance[i1][i2];
+					double fDist = fDistance[i1*nNrOfLabels+i2];
 					if (fBestDist < fDist) {
 						fBestDist = fDist;
 					}
@@ -981,7 +986,7 @@ public class NodeOrderer {
 				int i1 = cluster1.elementAt(i);
 				for (int j = i+1; j < cluster1.size(); j++) {
 					int i2 = cluster1.elementAt(j);
-					double fDist = fDistance[i1][i2];
+					double fDist = fDistance[i1*nNrOfLabels+i2];
 					if (fMaxDist < fDist) {
 						fMaxDist = fDist;
 					}
@@ -991,7 +996,7 @@ public class NodeOrderer {
 				int i1 = cluster2.elementAt(i);
 				for (int j = i+1; j < cluster2.size(); j++) {
 					int i2 = cluster2.elementAt(j);
-					double fDist = fDistance[i1][i2];
+					double fDist = fDistance[i1*nNrOfLabels+i2];
 					if (fMaxDist < fDist) {
 						fMaxDist = fDist;
 					}
@@ -1006,7 +1011,7 @@ public class NodeOrderer {
 				int i1 = cluster1.elementAt(i);
 				for (int j = 0; j < cluster2.size(); j++) {
 					int i2 = cluster2.elementAt(j);
-					fBestDist += fDistance[i1][i2];
+					fBestDist += fDistance[i1*nNrOfLabels+i2];
 				}
 			}
 			fBestDist /= (cluster1.size() * cluster2.size());
@@ -1022,7 +1027,7 @@ public class NodeOrderer {
 					int i1 = merged.elementAt(i);
 					for (int j = i+1; j < merged.size(); j++) {
 						int i2 = merged.elementAt(j);
-						fBestDist += fDistance[i1][i2];
+						fBestDist += fDistance[i1*nNrOfLabels+i2];
 					}
 				}
 				int n = merged.size();
