@@ -153,15 +153,15 @@ public class NodeOrderer {
 			nOrder = buildClusterer(fDist, nNrOfLabels);
 		}
 		if (m_nLinkType == OPTIMISE) {
-			nRevOrder = new int[fDist.length];
+			nRevOrder = new int[nNrOfLabels];
 			//traverse(rootCanalTree, nRevOrder, 0);
 			
-			int [] cladeCount = new int[fDist.length * 2];
+			int [] cladeCount = new int[nNrOfLabels * 2];
 			countCladeSize(rootCanalTree, cladeCount);
 			traverse(rootCanalTree, nRevOrder, 0, cladeCount, 0);
 		}
 		if (m_nLinkType == SORT_BY_ROOT_CANAL_LENGTH) {
-			nRevOrder = new int[fDist.length];
+			nRevOrder = new int[nNrOfLabels];
 			traverse2(rootCanalTree, nRevOrder, 0);  
 		}
 		
@@ -425,7 +425,7 @@ public class NodeOrderer {
 	 * @return
 	 */
 	int [] closestOutsideFirst(double [] fDist, int nNrOfLabels) {
-		int n = fDist.length;
+		int n = nNrOfLabels;
 		int [] nOrder = new int[n];
 		boolean [] bDone = new boolean[n];
 		
@@ -542,7 +542,7 @@ public class NodeOrderer {
 //}
 //	return nOrder;
 	
-		int n = fDist.length;
+		int n = nNrOfLabels;
 		int [] nOrder = new int[n];
 		boolean [] bDone = new boolean[n];
 		
@@ -773,31 +773,32 @@ public class NodeOrderer {
 		boolean bProgress = false;
 		//int [][] orderings = new int[fDistance0.length][];
 		do {
-			bProgress = false;
 			List<Integer> label = new ArrayList<Integer>();
 			List<List<Integer>> orderings = calcOrderings(cluster, label);
+			bProgress = false;
 			// find best node to flip, i.e. node that gives the best score
 			double fBestScore = fScore;
 			int iBestNode = -1;
 			// first ordering is original ordering
 			for (int i = 1; i < orderings.size(); i++) {
-				double fScore2 = score2(orderings.get(i), fDistance0, nNrOfLabels);
-				//System.out.println("score = " + fScore2);
-				if (fScore2 < fBestScore) {
-					fBestScore = fScore2;
-					iBestNode = label.get(i-1);
+				if (label.get(i-1) >= 0) {
+					double fScore2 = score2(orderings.get(i), fDistance0, nNrOfLabels);
+					//System.out.println("score = " + fScore2);
+					if (fScore2 < fBestScore) {
+						fBestScore = fScore2;
+						iBestNode = label.get(i-1);
+					}
 				}
 			}
 			// flip  left and right on iBestNode
 			if (iBestNode >= 0) {
-				flip(iBestNode, cluster);
+				flip(iBestNode, cluster, orderings);
 				fScore = fBestScore;
 				bProgress = true;
 				
 				cluster.order(order, 0);
 				double fScore2 = score(order, fDistance0, nNrOfLabels);
 				System.out.println(Arrays.toString(order) + " " + fScore + " " + fScore2);
-				
 			}
 		} while (bProgress);
 
@@ -805,12 +806,12 @@ public class NodeOrderer {
 		return order;
 	} // buildClusterer
 
-	private void flip(int iBestNode, TreeNode node) {
+	private void flip(int iBestNode, TreeNode node, List<List<Integer>> orderings) {
 		if (node.m_left != null) {
-			flip(iBestNode, node.m_left);
+			flip(iBestNode, node.m_left, orderings);
 		}
 		if (node.m_right != null) {
-			flip(iBestNode, node.m_right);
+			flip(iBestNode, node.m_right, orderings);
 		}
 		if (iBestNode == node.m_iLabel) {
 			int tmp = node.m_iLeftInstance;
@@ -819,6 +820,10 @@ public class NodeOrderer {
 			TreeNode tmp2 = node.m_left;
 			node.m_left = node.m_right;
 			node.m_right = tmp2;
+			
+			for (List<Integer> ordering : orderings) {
+				// TODO: update orderings
+			}
 		}
 	}
 
@@ -872,7 +877,11 @@ public class NodeOrderer {
 		}
 		label.addAll(leftLabel);
 		label.addAll(rightLabel);
-		label.add(node.m_iLabel);
+		if (node.m_iLabel > 0) {
+			label.add(node.m_iLabel);
+		} else {
+			list.remove(list.size() - 1);
+		}
 		return list;
 	}
 
