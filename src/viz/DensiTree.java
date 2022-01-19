@@ -1247,13 +1247,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 				break;
 			case NodeOrderer.MANUAL: {
 				// use order given by user
+				StringBuilder buf = new StringBuilder();
 				for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
-					System.out.print(m_settings.m_sLabels.elementAt(i) + " ");
+					buf.append(m_settings.m_sLabels.elementAt(m_settings.m_nRevOrder[i]) + " ");
 				}
+				// remove trailing space
+				buf.deleteCharAt(buf.length()-1);				
 				
 				String[] sIndex;
 				if (m_settings.m_sOrderFile == null) {
-					String sOrder = JOptionPane.showInputDialog("New node order:", "");
+					String sOrder = JOptionPane.showInputDialog("New node order:", buf.toString());
 					if (sOrder == null) {
 						return;
 					}
@@ -2153,7 +2156,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
 		        super(sName);
-			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 			    if ((acceleratorKey & InputEvent.ALT_DOWN_MASK) > 0) {
 				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - InputEvent.ALT_DOWN_MASK, InputEvent.ALT_DOWN_MASK);
 			    }

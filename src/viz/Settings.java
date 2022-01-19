@@ -172,7 +172,9 @@ public class Settings {
 
 	public boolean m_bShowRootCanalTopology = false;
 
-	double m_cladeThreshold = 1e-4;
+	// for comparing clade weights -- should be smaller than 1/number of trees
+	// so 1e-6 allows for a million trees.
+	double m_cladeThreshold = 1e-6;
 
 	/** regular expression pattern for finding width information in metadata **/
 	public Pattern m_pattern;
