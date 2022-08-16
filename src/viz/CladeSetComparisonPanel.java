@@ -231,8 +231,7 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 		int x = e.getX();
 		int y = e.getY();
 		
-		// find closest clade
-		// Map<String,Integer> map = m_dt.m_mirrorCladeToIDMap;
+		// find closest clade by clade support (red dots)
 		int closestClade = -1;
 		double closestDistance = Integer.MAX_VALUE;
 		for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
@@ -242,8 +241,8 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 			int j = m_dt.m_cladeToIDMap[i];
 			if (j >= 0) {
 				double support2 = m_dt.m_treeData2.m_cladeWeight.get(j);
-				double x2 = (off + (w-2*off) * support1);// + Randomizer.nextInt(10) - 5);
-				double y2 = (     h-off - (h-2*off) * support2);// + Randomizer.nextInt(10) - 5);
+				double x2 = (off   + (w-2*off) * support1);
+				double y2 = (h-off - (h-2*off) * support2);
 				double d = (x-x2) * (x-x2) + (y-y2) * (y-y2);
 				if (d < closestDistance) {
 					closestDistance = d;
@@ -251,6 +250,48 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 				}
 			}
 		}
+
+		if (closestDistance >= 100) {			
+			// find closest clade by clade height (blue dots)
+			double maxHeight = m_dt.m_fHeight;
+//			int [] bestClade = null;
+			for (int i = 0; i < m_dt.m_treeData.m_cladeHeight.size(); i++) {
+				double height1 = 1.0-m_dt.m_treeData.m_cladeHeight.get(i)/maxHeight;
+//				int [] clade = m_dt.m_treeData.m_clades.get(i);
+				//Integer j = map.get(Arrays.toString(clade));
+				int j = m_dt.m_cladeToIDMap[i];
+				if (j >= 0) {
+					double height2 = 1.0-m_dt.m_treeData2.m_cladeHeight.get(j)/maxHeight;
+//					int [] clade2 = m_dt.m_treeData2.m_clades.get(j);
+//					compare(clade, clade2);
+					double x2 = (off   + (w-2*off) * height1);
+					double y2 = (h-off - (h-2*off) * height2);
+					double d = Math.abs(x-x2)  + Math.abs(y-y2);
+					if (d < closestDistance) {
+						closestDistance = d;
+						closestClade = i;
+//						bestClade = clade;
+					}
+				}
+			}
+			if (closestClade >= 0 && closestDistance < 100) {
+//				System.err.println("Selected " + Arrays.toString(bestClade));
+				if (m_dt.m_treeData.getCladeSelection().contains(closestClade)) {
+					m_dt.removeCladeFromselection(closestClade, false);
+				} else {
+					if ((e.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == 0) {
+						m_dt.m_treeData.getCladeSelection().clear();
+						m_dt.m_treeData2.getCladeSelection().clear();
+					}
+					m_dt.resetCladeSelection();
+					m_dt.addCladeToSelection(closestClade, false);
+					m_dt.m_treeData.resetCladeSelection();
+				}
+				m_dt.makeDirty();
+				return;
+			}
+		}		
+		
 		
 		if (closestClade >= 0 && closestDistance < 100) {
 			if (m_dt.m_treeData.getCladeSelection().contains(closestClade)) {
@@ -262,11 +303,26 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 				}
 				m_dt.resetCladeSelection();
 				m_dt.addCladeToSelection(closestClade, false);
+				m_dt.m_treeData.resetCladeSelection();
 			}
 			m_dt.makeDirty();
 		}
 
 	}
+
+//	private void compare(int[] clade, int[] clade2) {
+//		if (clade.length != clade2.length) {
+//			int h = 4;
+//			h--;
+//		}
+//		for (int i = 0; i < clade.length; i++) {
+//			if (clade[i] != clade2[i]) {
+//				int h = 4;
+//				h--;
+//			}
+//		}
+//		
+//	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {

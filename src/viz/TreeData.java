@@ -1267,7 +1267,7 @@ public class TreeData {
 //				}
 //				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
 				int i = settings.m_colorMetaDataCategories.get(o.toString());
-				System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
+				// System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
 				color = settings.m_color[9 + i % (settings.m_color.length - 9)].getRGB();
 			}
 		} else {

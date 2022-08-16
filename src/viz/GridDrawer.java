@@ -215,7 +215,7 @@ public class GridDrawer {
 								//)
 								;
 						int y = m_dt.getPosY((m_dt.m_fHeight - fHeight / fUserScale * i / m_nTicks - m_dt.m_fTreeOffset) * m_dt.m_fTreeScale);
-						g.drawString(sStr, 0, y - 2);
+//						g.drawString(sStr, 0, y - 2);
 						g.drawLine(0, y, nW, y);
 					}
 				} else {

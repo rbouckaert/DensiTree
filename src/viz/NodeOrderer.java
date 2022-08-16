@@ -797,8 +797,8 @@ public class NodeOrderer {
 				bProgress = true;
 				
 				cluster.order(order, 0);
-				double fScore2 = score(order, fDistance0, nNrOfLabels);
-				System.out.println(Arrays.toString(order) + " " + fScore + " " + fScore2);
+				//double fScore2 = score(order, fDistance0, nNrOfLabels);
+				//System.out.println(Arrays.toString(order) + " " + fScore + " " + fScore2);
 			}
 		} while (bProgress);
 

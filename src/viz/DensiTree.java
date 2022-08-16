@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
- * @version $Revision: 2.2.7 $
+ * @version $Revision: 3.0.0 $
  */
 
 // the magic sentence to look for when releasing:
@@ -1123,18 +1123,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 					sStr = fin.readLine();
 					String [] sStrs = sStr.split("\\s+");
 					if (sStrs.length >= 3) {
-						String sPlacemarkName = sStrs[0];
-						Vector<Double> nX = new Vector<Double>();
-						Vector<Double> nY = new Vector<Double>();
-						nX.add(Double.parseDouble(sStrs[2]));
-						nY.add(Double.parseDouble(sStrs[1]));
-						mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
-						mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
-						sPlacemarkName = sPlacemarkName.replaceAll("-", "");
-						sPlacemarkName = sPlacemarkName.replaceAll("_", "");
-						if (!mapLabel2X.containsKey(sPlacemarkName)) {
+						try {
+							String sPlacemarkName = sStrs[0];
+							Vector<Double> nX = new Vector<Double>();
+							Vector<Double> nY = new Vector<Double>();
+							nX.add(Double.parseDouble(sStrs[2]));
+							nY.add(Double.parseDouble(sStrs[1]));
 							mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 							mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+							sPlacemarkName = sPlacemarkName.replaceAll("-", "");
+							sPlacemarkName = sPlacemarkName.replaceAll("_", "");
+							if (!mapLabel2X.containsKey(sPlacemarkName)) {
+								mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
+								mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
+							}
+						} catch (Exception e2) {
+							// ignore parsing errors, etc.
 						}
 					}
 				}
@@ -1278,12 +1282,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 						JOptionPane.showMessageDialog(this, "Something went wrong with file " + m_settings.m_sOrderFile + ": " + e.getMessage());
 						
 					}
-					sIndex = labels.toArray(new String[]{});
+					if (labels.size() == 1) {
+						// all taxa on one line
+						sIndex = labels.get(0).split("\\s");
+					} else {
+						// one line per taxon
+						sIndex = labels.toArray(new String[]{});
+					}
 					//m_sOrderFile = null;
 				}
 				
 				if (sIndex.length != m_settings.m_nNrOfLabels) {
-					System.err.println("Number of labels/taxa differs from given labels");
+					System.err.println("Number of labels/taxa " + sIndex.length + " differs from given labels " + m_settings.m_nNrOfLabels);
 					return;
 				}
 				int[] nOrder = new int[m_settings.m_nOrder.length];
@@ -3187,7 +3197,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		public void actionPerformed(ActionEvent ae) {
 			m_jTbCladeTools.setVisible(!m_jTbCladeTools.isVisible());
 			if (m_jTbCladeTools.isVisible()) {
-				JSplitPane pane = (JSplitPane) m_Panel.getParent().getParent().getParent().getParent();
+				JSplitPane pane = (JSplitPane) m_Panel.getParent().getParent().getParent().getParent().getParent();
 				// int loc = pane.getDividerLocation();
 				// Set a proportional location
 				pane.setDividerLocation(0.8);
@@ -3849,13 +3859,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 					for (int i : m_treeData.m_cladelist.getSelectedIndices()) {
 						if (m_treeData.m_cladeWeight.get(i) > 0.01 && ((m_settings.m_Xmode == 1 && m_treeData.m_clades.get(i).length > 1) || (m_settings.m_Xmode == 2 && m_treeData.m_clades.get(i).length == 1))) {
 							addCladeToSelection(i, false);
-							removeCladeFromselection(i, false);
+							//removeCladeFromselection(i, false);
 						}
 					}
 					resetCladeSelection();
 					System.err.println(m_treeData.m_cladelist.getSelectedValuesList());
 					System.err.println(m_treeData.m_cladelist.getSelectedValuesList().size() + " items selected");
-					repaint();
+					makeDirty();
 				}
 			}
 

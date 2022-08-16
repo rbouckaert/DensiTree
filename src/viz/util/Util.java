@@ -269,9 +269,9 @@ public class Util {
             NewOSXAdapter newOSXAdapter = new Util().new NewOSXAdapter(application);
             try {
                 newOSXAdapter.registerMacOSXApplication(application);
-            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
-                System.err.println("Exception while loading the OSXAdapter:");
-                e.printStackTrace();
+            } catch (Throwable e) {
+                System.err.println("Exception while loading the OSXAdapter: " + e.getMessage());
+                // e.printStackTrace();
             }
         }
 
