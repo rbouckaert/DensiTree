@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
- * @version $Revision: 3.0.0 $
+ * @version $Revision: 3.0.1 $
  */
 
 // the magic sentence to look for when releasing:
@@ -48,6 +48,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
 import java.io.*;
@@ -89,7 +90,7 @@ import viz.panel.ShowPanel;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "3.0.0";
+	final static String VERSION = "3.0.1";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -1747,6 +1748,40 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 
+	private int javaVersion = -1;
+	
+    /**
+     * parse a Java version string to an integer of major version like 7, 8, 9, 10, ...
+     */
+    public int getMajorJavaVersion() {
+		if (javaVersion > 0) {
+			return javaVersion;
+		}			
+
+        String javaVersionString = System.getProperty("java.version");
+        // javaVersion should be something like "1.7.0_25"
+        String[] version = javaVersionString.split("\\.");
+        if (version.length > 2) {
+        	javaVersion = Integer.parseInt(version[0]);
+            if (javaVersion == 1) {
+            	javaVersion = Integer.parseInt(version[1]);
+            }
+            return javaVersion;
+        } else if (javaVersionString.contains("-")) {
+        	version = javaVersionString.split("-");
+        	javaVersion = Integer.parseInt(version[0]);
+            
+            return javaVersion;
+        }
+        try {
+        	javaVersion = Integer.parseInt(javaVersionString);
+            return javaVersion;
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        return -1;
+    }
+	
 	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g, TreeData treeData) {
 		if (m_settings.m_bHideLabels || treeData.reverse()) {
@@ -1756,7 +1791,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_bShowBounds) {
 			return;
 		}
-
+		if (getMajorJavaVersion() > 8) {
+			g.setTransform(new AffineTransform(2,0,0,2,0,0));
+		}
 		if (node.isLeaf()) {
 			if (treeData.m_bSelection[node.m_iLabel]) {
 				if (m_settings.m_iColor == null) {
@@ -3865,7 +3902,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 					resetCladeSelection();
 					System.err.println(m_treeData.m_cladelist.getSelectedValuesList());
 					System.err.println(m_treeData.m_cladelist.getSelectedValuesList().size() + " items selected");
-					makeDirty();
+					repaint();
+					if (m_cladeSetComparisonPanel != null) {
+						m_cladeSetComparisonPanel.repaint();
+					}
 				}
 			}
 

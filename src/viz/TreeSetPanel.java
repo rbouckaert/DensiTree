@@ -372,7 +372,6 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g.clearRect(r.x, r.y, r.width, r.height);
 		g2.setBackground(oldBackground);
 		g.setClip(r.x, r.y, r.width, r.height);
-
 		paintComponent(g, m_dt.m_treeData, m_image1);
 		if (m_dt.m_treeData2 != null) {
 			paintComponent(g, m_dt.m_treeData2, m_image2);
@@ -391,6 +390,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			break;
 		case TreeData.MODE_RIGHT :
 			((Graphics2D)g).setTransform(new AffineTransform(-1.0,0,0,1,2*m_image1.getWidth(), 0));
+			if (m_dt.getMajorJavaVersion() > 8) {
+				((Graphics2D)g).setTransform(new AffineTransform(-2.0,0,0,2,4*m_image1.getWidth(), 0));
+			}
 			break;
 		case TreeData.MODE_CENTRE :
 			break;
