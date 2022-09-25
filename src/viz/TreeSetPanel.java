@@ -35,6 +35,7 @@ import viz.graphics.BufferedImageF;
 import viz.graphics.SVGTreeDrawer;
 import viz.graphics.SteepArcBranchDrawer;
 import viz.graphics.TreeDrawer;
+import viz.util.Util;
 
 /**
  * Class for drawing the tree set It uses buffer to do the actual tree
@@ -390,7 +391,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			break;
 		case TreeData.MODE_RIGHT :
 			((Graphics2D)g).setTransform(new AffineTransform(-1.0,0,0,1,2*m_image1.getWidth(), 0));
-			if (m_dt.getMajorJavaVersion() > 8) {
+			if (Util.isAppleSiliconWithJava17() >= 1) {
 				((Graphics2D)g).setTransform(new AffineTransform(-2.0,0,0,2,4*m_image1.getWidth(), 0));
 			}
 			break;

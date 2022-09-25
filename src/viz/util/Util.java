@@ -2,8 +2,10 @@ package viz.util;
 
 
 import java.awt.Font;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -364,6 +366,88 @@ public class Util {
         }
 
 
+    }
+
+
+	// -1 = not initialised
+	// 0 = not M1 on Mac
+	// 1 = M1 on Mac
+	private static int isM1onMac = -1;
+	
+    /**
+     * parse a Java version string to an integer of major version like 7, 8, 9, 10, ...
+     */
+    public static int isAppleSiliconWithJava17() {
+    	if (!Util.isMac()) {
+    		isM1onMac = 0;
+    	}
+    	if (isM1onMac >= 0) {
+    		return isM1onMac;
+    	}
+    	
+
+        String javaVersionString = System.getProperty("java.version");
+        // javaVersion should be something like "1.7.0_25"
+        String[] version = javaVersionString.split("\\.");
+        if (version.length > 2) {
+        	isM1onMac = Integer.parseInt(version[0]);
+            if (isM1onMac == 1) {
+            	isM1onMac = Integer.parseInt(version[1]);
+            }
+            if (isM1onMac < 17) {
+            	isM1onMac = 0;
+            } else {
+            	isM1onMac = isAppleSillicon();
+            }
+            return isM1onMac;
+        } else if (javaVersionString.contains("-")) {
+        	version = javaVersionString.split("-");
+        	isM1onMac = Integer.parseInt(version[0]);
+            if (isM1onMac < 17) {
+            	isM1onMac = 0;
+            } else {
+            	isM1onMac = isAppleSillicon();
+            }
+            return isM1onMac;
+        }
+        try {
+        	isM1onMac = Integer.parseInt(javaVersionString);
+            if (isM1onMac < 17) {
+            	isM1onMac = 0;
+            } else {
+            	isM1onMac = isAppleSillicon();
+            }
+            return isM1onMac;
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        return -1;
+    }
+    
+    private static int isAppleSillicon() {
+    	// run `uname -m`
+    	// returns arm64 on M1 chips, x86_64 otherwise
+    	try {
+   	 		// String [] args = new String[]{"uname" , "-m"};
+   	 		String [] args = new String[]{"sysctl", "-n", "machdep.cpu.brand_string"};
+		    Process p = Runtime.getRuntime().exec(args);
+		    BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        int c;
+	        String result = "";
+	        while ((c = input.read()) != -1) {
+	       	  System.err.print((char)c);
+	       	  result += (char)c;
+	        }
+	        input.close();			
+	        p.waitFor();
+	        if (result.contains("Apple")) {
+	        	return 1;
+	        }
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		
+    	}
+    	return 0;
     }
 
 }

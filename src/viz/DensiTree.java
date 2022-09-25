@@ -1748,39 +1748,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 
-	private int javaVersion = -1;
-	
-    /**
-     * parse a Java version string to an integer of major version like 7, 8, 9, 10, ...
-     */
-    public int getMajorJavaVersion() {
-		if (javaVersion > 0) {
-			return javaVersion;
-		}			
-
-        String javaVersionString = System.getProperty("java.version");
-        // javaVersion should be something like "1.7.0_25"
-        String[] version = javaVersionString.split("\\.");
-        if (version.length > 2) {
-        	javaVersion = Integer.parseInt(version[0]);
-            if (javaVersion == 1) {
-            	javaVersion = Integer.parseInt(version[1]);
-            }
-            return javaVersion;
-        } else if (javaVersionString.contains("-")) {
-        	version = javaVersionString.split("-");
-        	javaVersion = Integer.parseInt(version[0]);
-            
-            return javaVersion;
-        }
-        try {
-        	javaVersion = Integer.parseInt(javaVersionString);
-            return javaVersion;
-        } catch (NumberFormatException e) {
-            // ignore
-        }
-        return -1;
-    }
 	
 	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g, TreeData treeData) {
@@ -1791,7 +1758,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_bShowBounds) {
 			return;
 		}
-		if (getMajorJavaVersion() > 8) {
+		if (Util.isAppleSiliconWithJava17() >= 1) {
 			g.setTransform(new AffineTransform(2,0,0,2,0,0));
 		}
 		if (node.isLeaf()) {
