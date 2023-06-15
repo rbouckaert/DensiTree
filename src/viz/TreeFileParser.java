@@ -287,7 +287,7 @@ public class TreeFileParser {
 					if (sTree.toLowerCase().startsWith("tree ")) {
 						//k++;
 						if (nBurnIn <= 0) {
-							if (iThin > m_nThin) {
+							if (iThin >= m_nThin) {
 								iThin = 0;
 								int i = sStr.indexOf('(');
 								if (i > 0) {
