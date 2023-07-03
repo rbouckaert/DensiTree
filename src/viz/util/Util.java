@@ -370,19 +370,19 @@ public class Util {
 
 
 	// -1 = not initialised
-	// 0 = not M1 on Mac
-	// 1 = M1 on Mac
-	private static int isM1onMac = -1;
+	// 0 = not Java 17 on Mac
+	// 1 = Java 17 on Mac
+	private static int isJava17onMac = -1;
 	
     /**
      * parse a Java version string to an integer of major version like 7, 8, 9, 10, ...
      */
-    public static int isAppleSiliconWithJava17() {
+    public static int isAppleWithJava17() {
     	if (!Util.isMac()) {
-    		isM1onMac = 0;
+    		isJava17onMac = 0;
     	}
-    	if (isM1onMac >= 0) {
-    		return isM1onMac;
+    	if (isJava17onMac >= 0) {
+    		return isJava17onMac;
     	}
     	
 
@@ -390,64 +390,64 @@ public class Util {
         // javaVersion should be something like "1.7.0_25"
         String[] version = javaVersionString.split("\\.");
         if (version.length > 2) {
-        	isM1onMac = Integer.parseInt(version[0]);
-            if (isM1onMac == 1) {
-            	isM1onMac = Integer.parseInt(version[1]);
+        	isJava17onMac = Integer.parseInt(version[0]);
+            if (isJava17onMac == 1) {
+            	isJava17onMac = Integer.parseInt(version[1]);
             }
-            if (isM1onMac < 17) {
-            	isM1onMac = 0;
+            if (isJava17onMac < 17) {
+            	isJava17onMac = 0;
             } else {
-            	isM1onMac = isAppleSillicon();
+            	isJava17onMac = 1;
             }
-            return isM1onMac;
+            return isJava17onMac;
         } else if (javaVersionString.contains("-")) {
         	version = javaVersionString.split("-");
-        	isM1onMac = Integer.parseInt(version[0]);
-            if (isM1onMac < 17) {
-            	isM1onMac = 0;
+        	isJava17onMac = Integer.parseInt(version[0]);
+            if (isJava17onMac < 17) {
+            	isJava17onMac = 0;
             } else {
-            	isM1onMac = isAppleSillicon();
+            	isJava17onMac = 1;
             }
-            return isM1onMac;
+            return isJava17onMac;
         }
         try {
-        	isM1onMac = Integer.parseInt(javaVersionString);
-            if (isM1onMac < 17) {
-            	isM1onMac = 0;
+        	isJava17onMac = Integer.parseInt(javaVersionString);
+            if (isJava17onMac < 17) {
+            	isJava17onMac = 0;
             } else {
-            	isM1onMac = isAppleSillicon();
+            	isJava17onMac = 1;
             }
-            return isM1onMac;
+            return isJava17onMac;
         } catch (NumberFormatException e) {
             // ignore
         }
         return -1;
     }
     
-    private static int isAppleSillicon() {
-    	// run `uname -m`
-    	// returns arm64 on M1 chips, x86_64 otherwise
-    	try {
-   	 		// String [] args = new String[]{"uname" , "-m"};
-   	 		String [] args = new String[]{"sysctl", "-n", "machdep.cpu.brand_string"};
-		    Process p = Runtime.getRuntime().exec(args);
-		    BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-	        int c;
-	        String result = "";
-	        while ((c = input.read()) != -1) {
-	       	  System.err.print((char)c);
-	       	  result += (char)c;
-	        }
-	        input.close();			
-	        p.waitFor();
-	        if (result.contains("Apple")) {
-	        	return 1;
-	        }
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		
-    	}
-    	return 0;
-    }
+//    private static int isAppleSillicon() {
+//    	// run `uname -m`
+//    	// returns arm64 on M1 chips, x86_64 otherwise
+//    	try {
+//   	 		// String [] args = new String[]{"uname" , "-m"};
+//   	 		String [] args = new String[]{"sysctl", "-n", "machdep.cpu.brand_string"};
+//		    Process p = Runtime.getRuntime().exec(args);
+//		    BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//	        int c;
+//	        String result = "";
+//	        while ((c = input.read()) != -1) {
+//	       	  System.err.print((char)c);
+//	       	  result += (char)c;
+//	        }
+//	        input.close();			
+//	        p.waitFor();
+//	        if (result.contains("Apple")) {
+//	        	return 1;
+//	        }
+//    	} catch (Exception e) {
+//    		e.printStackTrace();
+//    		
+//    	}
+//    	return 0;
+//    }
 
 }

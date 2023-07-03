@@ -16,7 +16,7 @@
  */
 /*
  * DensiTree.java
- * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2022 
+ * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2023 
  */
 
 
@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
- * @version $Revision: 3.0.1 $
+ * @version $Revision: 3.0.3 $
  */
 
 // the magic sentence to look for when releasing:
@@ -90,7 +90,7 @@ import viz.panel.ShowPanel;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "3.0.1";
+	final static String VERSION = "3.0.3";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
@@ -585,7 +585,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2022\n\n\n"
+				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2023\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -1758,7 +1758,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_bShowBounds) {
 			return;
 		}
-		if (Util.isAppleSiliconWithJava17() >= 1) {
+		if (Util.isAppleWithJava17() >= 1) {
 			g.setTransform(new AffineTransform(2,0,0,2,0,0));
 		}
 		if (node.isLeaf()) {
