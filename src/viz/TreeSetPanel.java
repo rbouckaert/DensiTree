@@ -391,7 +391,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			break;
 		case TreeData.MODE_RIGHT :
 			((Graphics2D)g).setTransform(new AffineTransform(-1.0,0,0,1,2*m_image1.getWidth(), 0));
-			if (Util.isAppleWithJava17() >= 1) {
+			if (Util.isAppleWithJava17() >= 1 && !m_dt.isExporting()) {
 				((Graphics2D)g).setTransform(new AffineTransform(-2.0,0,0,2,4*m_image1.getWidth(), 0));
 			}
 			break;

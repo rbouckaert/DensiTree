@@ -231,11 +231,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	
 	/** for storing the PDF file name from CLI **/
-	String m_asPDF = null;
+	String m_asPDF = null, m_cladeComparisonAsPDF = null;
 	
 	/** thread for processing meta data **/
 	Thread thread = null;
 	
+
+	private boolean isExporting = false;
+	boolean isExporting() {
+		return isExporting;
+	}
 
 	public void setWaitCursor() {
 		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
@@ -446,9 +451,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 						} else 
 							throw new Exception("expected scalemode to be NONE, SHORT or FULL");
 						i += 2;
-					} else if (args[i].equals("-li")) {
+					} else if (args[i].equals("-li") || args[i].equals("-label.indent") ) {
 						m_settings.m_fLabelIndent = Float.parseFloat(args[i + 1]);
 						i += 2;
+					} else if (args[i].equals("-label.width") ) {
+						m_settings.m_nLabelWidth = Integer.parseInt(args[i + 1]);
+						i += 2;
+					} else if (args[i].equals("-label.hide")) {
+						m_settings.m_bHideLabels = true;
+						i += 1;
 					} else if (args[i].equals("-o")) {
 						m_settings.m_sOutputFile = args[i + 1];
 						i += 2;
@@ -518,6 +529,15 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-asPDF")) {
 						m_asPDF = args[i+1];
 						i += 2;
+					} else if (args[i].equals("-cladeComparisonAsPDF")) {
+						m_cladeComparisonAsPDF = args[i+1];
+						i += 2;
+					} else if (args[i].equals("-mirror")) {
+						m_sFileName2 = args[i+1];
+						i += 2;
+					} else if (args[i].equals("-viewCladeComparison")) {
+						m_cladeSetComparisonPanel.setVisible(true);
+						i += 1;
 					} else if (args[i].equals("-cladeThreshold")) {
 						m_settings.m_cladeThreshold = Double.parseDouble(args[i+1]);
 						i += 2;
@@ -547,14 +567,32 @@ public class DensiTree extends JPanel implements ComponentListener {
 							}
 							return;
 						}
-						throw new Exception("Wrong argument");
+						throw new Exception("Wrong argument: " + (i< args.length ? args[i] : i+""));
 					}
 				} else {
 					init(args[i++]);
 					calcLines();
 				}
 			}
-			if (m_asPDF != null) {
+			if (m_cladeSetComparisonPanel != null && m_cladeSetComparisonPanel.isVisible()) {
+				new Thread() {
+					public void run() {
+						Container c = m_cladeSetComparisonPanel.getParent();
+						while (c == null) {
+							try {
+								Thread.sleep(500);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							c = m_cladeSetComparisonPanel.getParent();
+						}
+						if (c instanceof JSplitPane) {
+							((JSplitPane)c).setDividerLocation(0.5);
+						}
+					};
+				}.start();
+			}
+			if (m_asPDF != null || m_cladeComparisonAsPDF != null) {
 				new Thread() {
 					@Override
 					public void run() {
@@ -570,7 +608,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 								e.printStackTrace();
 							}
 						}
-						exportPDF(m_asPDF, m_Panel);
+						if (m_cladeComparisonAsPDF != null) {
+							while (!m_treeData2.m_bMetaDataReady) {
+								try {
+									Thread.sleep(100);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+	                    	exportPDF(m_cladeComparisonAsPDF, m_cladeSetComparisonPanel);
+						}
+						if (m_asPDF != null) {
+							exportPDF(m_asPDF, m_Panel);
+						}
 						System.exit(0);
 					};
 				}.start();
@@ -852,7 +902,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_sKMLFile != null) {
 			loadKML();
 		}
-				
+		
+		if (m_sFileName2 != null && new File(m_sFileName2).exists()) {
+			doOpenMirror(m_sFileName2);
+		}
+		
 		System.err.println("Done");
 	} // init
 
@@ -1747,7 +1801,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		node.m_fPosY += f;
 	}
 
-
 	
 	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g, TreeData treeData) {
@@ -1758,7 +1811,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (m_settings.m_bShowBounds) {
 			return;
 		}
-		if (Util.isAppleWithJava17() >= 1) {
+		if (Util.isAppleWithJava17() >= 1 && !isExporting()) {
 			g.setTransform(new AffineTransform(2,0,0,2,0,0));
 		}
 		if (node.isLeaf()) {
@@ -2540,6 +2593,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}; // class ActionExport
 	
 	void exportPDF(String sFileName, JComponent panel) {
+		isExporting = true;
 		try {
 			com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
 			PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
@@ -2562,6 +2616,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(panel, "Export may have failed: " + e.getMessage());
 		}
+		isExporting = false;
 	}
 
 	
@@ -2756,6 +2811,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 		}
 		try {
+			while (thread != null) {
+				try {
+					new Thread().sleep(100);
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+
 			m_treeData2 = new TreeData(this, this.m_settings);
 			if (!m_treeData2.loadFromFile(sFileName, false)) {
 				m_treeData2 = null;
@@ -2765,13 +2828,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_treeData.drawMode = TreeData.MODE_LEFT;
 			m_treeData2.drawMode = TreeData.MODE_RIGHT;
 
-			if (thread != null) {
-				try {
-					thread.stop();
-				} catch (Exception e) {
-					// ignore
-				}
-			}
 			thread = new MetaDataThread(m_treeData2, this);
 			thread.start();
 			
