@@ -148,11 +148,19 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 
 		g.setColor(Color.black);
 		g.setFont(new Font("Arial",Font.PLAIN, 16));
-		g.drawString(m_dt.m_sFileName, off, h-2);// - g.getFontMetrics().getHeight());
+		String sFileName = m_dt.m_sFileName;
+		if (sFileName.indexOf('/') >= 0) {
+			sFileName = sFileName.substring(sFileName.lastIndexOf('/')+1);
+		}
+		g.drawString(sFileName, off, h-2);// - g.getFontMetrics().getHeight());
 
 		AffineTransform orig = g.getTransform();
 		g.rotate(-Math.PI/2);
-		g.drawString(m_dt.m_sFileName2, off-h, g.getFontMetrics().getHeight());
+		sFileName = m_dt.m_sFileName2;
+		if (sFileName.indexOf('/') >= 0) {
+			sFileName = sFileName.substring(sFileName.lastIndexOf('/')+1);
+		}
+		g.drawString(sFileName, off-h, g.getFontMetrics().getHeight());
 		g.setTransform(orig);
 
 		g.setColor(Color.red);
