@@ -247,15 +247,13 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 			int [] clade = m_dt.m_treeData.m_clades.get(i);
 			//Integer j = map.get(Arrays.toString(clade));
 			int j = m_dt.m_cladeToIDMap[i];
-			if (j >= 0) {
-				double support2 = m_dt.m_treeData2.m_cladeWeight.get(j);
-				double x2 = (off   + (w-2*off) * support1);
-				double y2 = (h-off - (h-2*off) * support2);
-				double d = (x-x2) * (x-x2) + (y-y2) * (y-y2);
-				if (d < closestDistance) {
-					closestDistance = d;
-					closestClade = i;
-				}
+			double support2 = j >= 0 ? m_dt.m_treeData2.m_cladeWeight.get(j) : 0;
+			double x2 = (off   + (w-2*off) * support1);
+			double y2 = (h-off - (h-2*off) * support2);
+			double d = (x-x2) * (x-x2) + (y-y2) * (y-y2);
+			if (d < closestDistance) {
+				closestDistance = d;
+				closestClade = i;
 			}
 		}
 
@@ -268,18 +266,16 @@ public class CladeSetComparisonPanel extends JPanel implements MouseListener {
 //				int [] clade = m_dt.m_treeData.m_clades.get(i);
 				//Integer j = map.get(Arrays.toString(clade));
 				int j = m_dt.m_cladeToIDMap[i];
-				if (j >= 0) {
-					double height2 = 1.0-m_dt.m_treeData2.m_cladeHeight.get(j)/maxHeight;
+				double height2 = j >= 0 ? 1.0-m_dt.m_treeData2.m_cladeHeight.get(j)/maxHeight : 1.0;
 //					int [] clade2 = m_dt.m_treeData2.m_clades.get(j);
 //					compare(clade, clade2);
-					double x2 = (off   + (w-2*off) * height1);
-					double y2 = (h-off - (h-2*off) * height2);
-					double d = Math.abs(x-x2)  + Math.abs(y-y2);
-					if (d < closestDistance) {
-						closestDistance = d;
-						closestClade = i;
+				double x2 = (off   + (w-2*off) * height1);
+				double y2 = (h-off - (h-2*off) * height2);
+				double d = Math.abs(x-x2)  + Math.abs(y-y2);
+				if (d < closestDistance) {
+					closestDistance = d;
+					closestClade = i;
 //						bestClade = clade;
-					}
 				}
 			}
 			if (closestClade >= 0 && closestDistance < 100) {
