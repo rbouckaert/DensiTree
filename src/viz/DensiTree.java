@@ -1827,7 +1827,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (m_treeDrawer.m_bRootAtTop) {
 				if (m_settings.m_bRotateTextWhenRootAtTop) {
 					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().getHeight() / 3;
-					int y = getPosY(((m_bAlignLabels ? m_fHeight:node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;// ;
+					int y = getPosY(((m_bAlignLabels ? m_fHeight:node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;
 					g.rotate(Math.PI / 2.0);
 					g.translate(y, -x);
 					g.drawString(m_settings.m_sLabels.elementAt(node.m_iLabel), 0, 0);
@@ -1880,6 +1880,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 				r.height = 10;
 				r.width = m_settings.m_nLabelWidth;
 				drawImage(g, x, y, node.m_iLabel);
+				if (m_settings.m_fLabelIndent > 0 && x > m_bgImage.getWidth()) {
+					System.err.println("label outside image: try reducing the indent");
+				}
 			}
 		} else {
 			drawLabels(node.m_left, g, treeData);
@@ -2767,7 +2770,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Tree Set", true, new File(m_settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
+			File [] files = Util.getFile("Load Tree Set", true, new File(m_settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree","nwk","txt");
 			if (files != null && files.length > 0) {
 				doOpen(files[0].getPath());
 			}

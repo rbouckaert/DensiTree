@@ -769,5 +769,25 @@ public class Node {
 	public List<Double> getMetaDataList() {
 		return metaDataList;
 	}
+	
+	
+	
+	// to support CCDs
+	
+	public Node getChild(int i) {
+		return i == 0 ? m_left : m_right;
+	}
+	
+	public Node [] getChildren() {
+		return m_left == null ? new Node[] {} : new Node[] {m_left, m_right}; 
+	}
+	
+	public double getHeight() {
+		return m_fPosX;
+	}
+
+	public void setHeight(double h) {
+		m_fPosX = (float) h;
+	}
 
 } // class Node

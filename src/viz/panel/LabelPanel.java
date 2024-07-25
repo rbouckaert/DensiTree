@@ -99,8 +99,9 @@ public class LabelPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try{
-					m_dt.m_settings.m_fLabelIndent = Float.parseFloat(textField.getText());
+					m_dt.m_settings.m_fLabelIndent = Float.parseFloat(textField_2.getText());
 				} catch (Exception ex) {
+					m_dt.m_settings.m_fLabelIndent = 0.0f;
 				}
 				m_dt.fitToScreen();
 				

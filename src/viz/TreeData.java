@@ -25,7 +25,7 @@ import viz.process.BranchLengthOptimiser;
 
 public class TreeData {
 	Settings settings;
-	DensiTree m_dt;
+	public DensiTree m_dt;
 	
 	TreeData(DensiTree dt, Settings settings) {
 		m_dt = dt;
