@@ -86,6 +86,7 @@ import viz.panel.GeoPanel;
 import viz.panel.GridPanel;
 import viz.panel.LabelPanel;
 import viz.panel.LineWidthPanel;
+import viz.panel.RoguePanel;
 import viz.panel.ShowPanel;
 import viz.util.Util;
 
@@ -3902,6 +3903,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 		gbc.gridy++;
 		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
 		gbc.gridy++;
+		toolPanel.add(new ExpandablePanel("Rogues", new RoguePanel(this)), gbc);
+		gbc.gridy++;				
 		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
 		//JScrollPane toolPaneScroller = new JScrollPane(toolPanel);
 		m_jTbTools2.add(toolPanel);
