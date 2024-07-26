@@ -355,7 +355,11 @@ public class RogueDetection {
         // then trace back sequence of CCPs
         do {
             fccds.add(bestCCD);
-            bestCCD = ((FilteredCCD) bestCCD).getBaseCCD();
+            if (bestCCD instanceof FilteredCCD) {
+            	bestCCD = ((FilteredCCD) bestCCD).getBaseCCD();
+            } else {
+            	bestCCD = ccd;
+            }
         } while (bestCCD != ccd);
         fccds.add(ccd);
         Collections.reverse(fccds);
