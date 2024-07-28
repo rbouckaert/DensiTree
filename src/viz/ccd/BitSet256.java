@@ -412,11 +412,11 @@ public class BitSet256 extends BitSet {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BitSet256 set))
+        if (!(obj instanceof BitSet256))
             return false;
-        if (this == set)
+        if (this == obj)
             return true;
-        return set.word1 == word1 && set.word2 == word2 && set.word3 == word3 && set.word4 == word4;
+        return ((BitSet256)obj).word1 == word1 && ((BitSet256)obj).word2 == word2 && ((BitSet256)obj).word3 == word3 && ((BitSet256)obj).word4 == word4;
     }
 
     @Override

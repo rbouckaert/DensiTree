@@ -41,17 +41,17 @@ public class BitSet implements Cloneable {
     }
 
     public static BitSet newBitSet(BitSet other) {
-        if (other instanceof BitSet128 set) {
-            return new BitSet128(set);
+        if (other instanceof BitSet128) {
+            return new BitSet128((BitSet128) other);
         }
-        if (other instanceof BitSet192 set) {
-            return new BitSet192(set);
+        if (other instanceof BitSet192) {
+            return new BitSet192((BitSet192) other);
         }
-        if (other instanceof BitSet64 set) {
-            return new BitSet64(set);
+        if (other instanceof BitSet64) {
+            return new BitSet64((BitSet64) other);
         }
-        if (other instanceof BitSet256 set) {
-            return new BitSet256(set);
+        if (other instanceof BitSet256) {
+            return new BitSet256((BitSet256) other);
         }
         BitSet b = new BitSet(other.length());
         b.or(other);
@@ -469,17 +469,17 @@ public class BitSet implements Cloneable {
      * @return true if the objects are the same; false otherwise
      */
     public boolean equals(Object obj) {
-        if (!(obj instanceof BitSet set))
+        if (!(obj instanceof BitSet))
             return false;
         if (this == obj)
             return true;
 
-        if (words.length != set.words.length)
+        if (words.length != ((BitSet)obj).words.length)
             return false;
 
         // Check words in use by both BitSets
         for (int i = 0; i < words.length; i++)
-            if (words[i] != set.words[i])
+            if (words[i] != ((BitSet)obj).words[i])
                 return false;
 
         return true;
