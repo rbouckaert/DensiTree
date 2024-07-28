@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 import viz.Node;
+import viz.TreeData;
 
 /**
  * This class represents a tree distribution using the CCD graph (via the parent
@@ -576,8 +577,8 @@ public class CCD0 extends AbstractCCD {
      *
      * @return the tree with maximum sum of clade probabilities
      */
-    public Node getMSCCTree() {
-        return this.getMSCCTree(HeightSettingStrategy.None);
+    public Node getMSCCTree(TreeData td) {
+        return this.getMSCCTree(HeightSettingStrategy.None, td);
     }
 
     /**
@@ -593,8 +594,8 @@ public class CCD0 extends AbstractCCD {
      * @param heightStrategy the strategy used to set the heights of the tree vertices
      * @return the tree with maximum sum of clade probabilities
      */
-    public Node getMSCCTree(HeightSettingStrategy heightStrategy) {
-        return getTreeBasedOnStrategy(SamplingStrategy.MaxSumCladeCredibility, heightStrategy);
+    public Node getMSCCTree(HeightSettingStrategy heightStrategy, TreeData td) {
+        return getTreeBasedOnStrategy(SamplingStrategy.MaxSumCladeCredibility, heightStrategy, td);
     }
 
     /* -- OTHER METHODS -- */

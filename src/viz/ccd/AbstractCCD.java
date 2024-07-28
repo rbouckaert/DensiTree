@@ -1,6 +1,8 @@
 package viz.ccd;
 
+import viz.DensiTree;
 import viz.Node;
+import viz.TreeData;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -102,6 +104,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         List<Tree> treesToUse;
         if (burnin == 0) {
             treesToUse = trees;
+            this.numBaseTrees = trees.size();
         } else {
             int numDiscardedTrees = (int) (trees.size() * burnin);
             int numUsedTrees = trees.size() - numDiscardedTrees;
@@ -689,13 +692,13 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 //    }
 
     // @Override
-    public Node getMAPTree() {
-        return this.getMAPTree(HeightSettingStrategy.One);
+    public Node getMAPTree(TreeData td) {
+        return this.getMAPTree(HeightSettingStrategy.One, td);
     }
 
     // @Override
-    public Node getMAPTree(HeightSettingStrategy heightStrategy) {
-        return getTreeBasedOnStrategy(SamplingStrategy.MAP, heightStrategy);
+    public Node getMAPTree(HeightSettingStrategy heightStrategy, TreeData td) {
+        return getTreeBasedOnStrategy(SamplingStrategy.MAP, heightStrategy, td);
     }
 
     /* Helper for methods to assign indices to vertices */
@@ -703,7 +706,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
     /* Strategy based tree sampling method */
     protected Node getTreeBasedOnStrategy(SamplingStrategy samplingStrategy,
-                                          HeightSettingStrategy heightStrategy) {
+                                          HeightSettingStrategy heightStrategy, TreeData td) {
         tidyUpCacheIfDirty();
 
         runningIndex = this.getNumberOfLeaves();
@@ -713,7 +716,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         if (heightStrategy == HeightSettingStrategy.MeanLCAHeight) {
             setMeanLCAHeights(root);
         } else if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
-            setMeanOccurredHeights(root);
+            setMeanOccurredHeights(root, td);
         }
 
         adjustLengths(root);
@@ -764,7 +767,9 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
             vertex = new Node();
             vertex.m_iLabel = runningIndex++;
             vertex.m_left = firstChild;
+            firstChild.setParent(vertex);
             vertex.m_right = secondChild;
+            secondChild.setParent(vertex);
 
             if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
                 vertex.setHeight(clade.getMeanOccurredHeight());
@@ -873,8 +878,8 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     }
 
     /* Helper method */
-    private void setMeanOccurredHeights(Node root) {
-    	Tree tree = new Tree(root);
+    private void setMeanOccurredHeights(Node root, TreeData td) {
+    	Tree tree = new Tree(root, td);
         WrappedBeastTree wrappedTree = new WrappedBeastTree(tree);
 
         for (Node vertex : tree.getNodesAsArray()) {

@@ -34,13 +34,12 @@ public class RoguePanel extends JPanel implements ChangeListener {
 			+ "Select an item to remove all parts of the tree that include the selected rogue + all of the\n"
 			+ "rogues above.";
 	final static String HELP_CALC_ROGUES = "Calculate rogue taxa and populate combobox above.\n"
-			+ "This may take a while.";
-	final static String HELP_REMOVE_ROGUES = "Remove unselected taxa from the tree set.";
+			+ "This may take a while.\n" 
+			+ "After that, remove unselected taxa from the tree set.";
 	
 	private static final long serialVersionUID = 1L;
 	JComboBox<String> comboBoxBottom;
 	JButton calcRoguesButton;
-	JButton removeRoguesButton;
 	
 	DensiTree m_dt;
 	
@@ -86,34 +85,37 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		gbc_calcRoguesButton.gridwidth= 2;
 		add(calcRoguesButton, gbc_calcRoguesButton);
 		calcRoguesButton.addActionListener(e-> {
+					if (calcRoguesButton.getText().equals("Calc rogues")) {
+						calcRoguesButton.setText("Processing");
+					}
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							calcRogues();
+							processRogues();
 						}
 					});
 				});
 		calcRoguesButton.setEnabled(false);
 		calcRoguesButton.setToolTipText(Util.formatToolTipAsHtml(HELP_CALC_ROGUES));
 
-		removeRoguesButton = new JButton("Remove rogues");
-		GridBagConstraints gbc_removeRoguesButton = new GridBagConstraints();
-		gbc_removeRoguesButton.fill = GridBagConstraints.HORIZONTAL;
-		gbc_removeRoguesButton.insets = new Insets(0, 0, 5, 0);
-		gbc_removeRoguesButton.gridx = 0;
-		gbc_removeRoguesButton.gridy = 2;
-		gbc_removeRoguesButton.gridwidth= 2;
-		add(removeRoguesButton, gbc_removeRoguesButton);
-		removeRoguesButton.addActionListener(e-> {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					removeRogues();
-				}
-			});
-		});
-		removeRoguesButton.setEnabled(false);
-		removeRoguesButton.setToolTipText(Util.formatToolTipAsHtml(HELP_REMOVE_ROGUES));
+//		removeRoguesButton = new JButton("Remove rogues");
+//		GridBagConstraints gbc_removeRoguesButton = new GridBagConstraints();
+//		gbc_removeRoguesButton.fill = GridBagConstraints.HORIZONTAL;
+//		gbc_removeRoguesButton.insets = new Insets(0, 0, 5, 0);
+//		gbc_removeRoguesButton.gridx = 0;
+//		gbc_removeRoguesButton.gridy = 2;
+//		gbc_removeRoguesButton.gridwidth= 2;
+//		add(removeRoguesButton, gbc_removeRoguesButton);
+//		removeRoguesButton.addActionListener(e-> {
+//			SwingUtilities.invokeLater(new Runnable() {
+//				@Override
+//				public void run() {
+//					removeRogues();
+//				}
+//			});
+//		});
+//		removeRoguesButton.setEnabled(false);
+//		removeRoguesButton.setToolTipText(Util.formatToolTipAsHtml(HELP_REMOVE_ROGUES));
 	}
 
 	
@@ -135,6 +137,13 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		m_dt.makeDirty();
 	}
 	
+	private void processRogues() {
+		if (calcRoguesButton.getText().equals("Calc rogues") || calcRoguesButton.getText().equals("Processing")) {
+			calcRogues();
+		} else if (calcRoguesButton.getText().equals("Remove rogues")) {
+			removeRogues();
+		}
+	}
 	
 	private Object removeRogues() {
 		try {
@@ -224,18 +233,20 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		ComboBoxModel<String> model = new DefaultComboBoxModel<>(rogues.toArray(new String[]{}));
 		comboBoxBottom.setModel(model);
 
-		removeRoguesButton.setEnabled(true);
+		calcRoguesButton.setText("Remove rogues");			
 		return null;
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		// deal with m_dt state changes
-		calcRoguesButton.setEnabled(m_dt.m_treeData.m_bMetaDataReady);
 		if (!m_dt.m_treeData.m_bMetaDataReady) {
-			removeRoguesButton.setEnabled(false);
+			calcRoguesButton.setText("Calc rogues");
+			calcRoguesButton.setEnabled(false);
 			ComboBoxModel<String> model = new DefaultComboBoxModel<>(new String[]{"<not initialised>"});
 			comboBoxBottom.setModel(model);
+		} else {
+			calcRoguesButton.setEnabled(true);
 		}
 	}
 	

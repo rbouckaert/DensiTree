@@ -21,6 +21,10 @@ import javax.swing.JOptionPane;
 
 import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
+import viz.ccd.AbstractCCD;
+import viz.ccd.CCD0;
+import viz.ccd.HeightSettingStrategy;
+import viz.ccd.Tree;
 import viz.process.BranchLengthOptimiser;
 
 public class TreeData {
@@ -205,6 +209,11 @@ public class TreeData {
 				positionLeafs(tree);
 				positionRest(tree);
 			}
+		}
+		
+		if (m_rootcanaltree != null) {
+			positionLeafs(m_rootcanaltree);
+			positionRest(m_rootcanaltree);
 		}
 	}
 
@@ -518,8 +527,22 @@ public class TreeData {
 		if (m_dt.m_optTree != null) {
 			m_summaryTree.add(m_dt.m_optTree.copy());
 		}
+		
+		// m_rootcanaltree = m_summaryTree.get(0);
 
-		m_rootcanaltree = m_summaryTree.get(0);
+		List<Tree> trees = new ArrayList<>();
+		for (Node t : m_trees) {
+			trees.add(new Tree(t, this));
+		}
+		AbstractCCD ccd = new CCD0(trees, 0);
+		m_rootcanaltree = ccd.getMAPTree(HeightSettingStrategy.One, this);
+		m_rootcanaltree.m_fLength = 0;
+		calcCladeForNode(m_rootcanaltree, mapCladeToIndex);
+		resetCladeNr(m_rootcanaltree, reverseindex);
+		positionLeafs(m_rootcanaltree);
+		positionRest(m_rootcanaltree);
+		cleanUpSummaryTree(m_rootcanaltree);
+		//setHeightByClade(m_rootcanaltree);
 		
 		// save memory
 		m_cladeHeightSetBottom = null;
@@ -722,6 +745,25 @@ public class TreeData {
 		}
 
 	}
+	
+	private int[] calcCladeForNode(Node node, Map<String, Integer> mapCladeToIndex) {
+		if (node.isLeaf()) {
+			int[] clade = new int[1];
+			clade[0] = node.getNr();
+			node.m_iClade = node.getNr();
+			return clade;
+		} else {
+			int[] cladeLeft = calcCladeForNode(node.m_left, mapCladeToIndex);
+			int[] cladeRight = calcCladeForNode(node.m_right, mapCladeToIndex);
+			int[] clade = mergeClades(cladeLeft, cladeRight);
+			String sClade = Arrays.toString(clade);
+			int iClade = mapCladeToIndex.get(sClade);
+			node.m_iClade = iClade;
+			return clade;
+		}
+
+	}
+
 
 	private int[] calcCladeForNode(Node node, Map<String, Integer> mapCladeToIndex, double fWeight, double fHeight) {
 		if (node.isLeaf()) {
