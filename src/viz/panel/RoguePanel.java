@@ -13,7 +13,9 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -36,10 +38,13 @@ public class RoguePanel extends JPanel implements ChangeListener {
 	final static String HELP_CALC_ROGUES = "Calculate rogue taxa and populate combobox above.\n"
 			+ "This may take a while.\n" 
 			+ "After that, remove unselected taxa from the tree set.";
+	final static String HELP_DROP_SET_SIZE = "Drop set size determines the maximum clade size to consider to be dropped.\n"
+			+ "Smaller is faster. Usually, small drop sets are sufficient.";
 	
 	private static final long serialVersionUID = 1L;
 	JComboBox<String> comboBoxBottom;
 	JButton calcRoguesButton;
+	JTextField textField;
 	
 	DensiTree m_dt;
 	
@@ -97,7 +102,26 @@ public class RoguePanel extends JPanel implements ChangeListener {
 				});
 		calcRoguesButton.setEnabled(false);
 		calcRoguesButton.setToolTipText(Util.formatToolTipAsHtml(HELP_CALC_ROGUES));
-
+		
+		JLabel lblBurnIn = new JLabel("Drop set size");
+		lblBurnIn.setToolTipText(Util.formatToolTipAsHtml(HELP_DROP_SET_SIZE));
+		GridBagConstraints gbc_lblBurnIn = new GridBagConstraints();
+		gbc_lblBurnIn.insets = new Insets(0, 0, 5, 5);
+		gbc_lblBurnIn.anchor = GridBagConstraints.EAST;
+		gbc_lblBurnIn.gridx = 0;
+		gbc_lblBurnIn.gridy = 2;
+		add(lblBurnIn, gbc_lblBurnIn);
+		
+		textField = new JTextField("1");
+		textField.setToolTipText(Util.formatToolTipAsHtml(HELP_DROP_SET_SIZE));
+		GridBagConstraints gbc_textField = new GridBagConstraints();
+		gbc_textField.insets = new Insets(0, 0, 5, 0);
+		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField.gridx = 1;
+		gbc_textField.gridy = 2;
+		add(textField, gbc_textField);
+		textField.setColumns(4);
+		
 //		removeRoguesButton = new JButton("Remove rogues");
 //		GridBagConstraints gbc_removeRoguesButton = new GridBagConstraints();
 //		gbc_removeRoguesButton.fill = GridBagConstraints.HORIZONTAL;
@@ -212,21 +236,35 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		}
 		CCD1 ccd = new CCD1(trees, 0);
 		
+		int dropSetSize = 1;
+		try {
+			dropSetSize = Integer.parseInt(textField.getText());
+			if (dropSetSize < 1) {
+				dropSetSize = 1;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
         List<viz.ccd.AbstractCCD> ccds = RogueDetection.detectRoguesWhileImproving(
                 ccd,
-                1,
+                dropSetSize,
                 RogueDetection.RogueDetectionStrategy.Entropy,
                 RogueDetection.TerminationStrategy.NumRogues
                 );
         
 		List<String> rogues = new ArrayList<>();
 		rogues.add("<none>");
+		boolean [] done = new boolean[ccd.getSomeBaseTree().getNodeCount()];
     	for (AbstractCCD ccdi : ccds) {
     		if (ccdi instanceof FilteredCCD) {
         		BitSet mask = ((FilteredCCD) ccdi).getRemovedTaxaMask();
                 for (int j = mask.nextSetBit(0); j >= 0; j = mask.nextSetBit(j + 1)) {
-                	String taxon = ccdi.getSomeBaseTree().getID(j);
-                	rogues.add(taxon);
+                	if (!done[j]) {
+                		String taxon = ccdi.getSomeBaseTree().getID(j);
+                		rogues.add(taxon);
+                		done[j] = true;
+                	}
                 }
     		}
     	}

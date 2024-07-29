@@ -358,7 +358,7 @@ public class RogueDetection {
             if (bestCCD instanceof FilteredCCD) {
             	bestCCD = ((FilteredCCD) bestCCD).getBaseCCD();
             } else {
-            	bestCCD = ccd;
+            	break;
             }
         } while (bestCCD != ccd);
         fccds.add(ccd);
