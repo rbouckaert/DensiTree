@@ -188,8 +188,8 @@ public class RogueDetection {
             TerminationStrategy terminationStrategy) {
 
         System.out.println("# rogue detection with max clade size tested " + maxCladeSize
-                + ", rogue detection with the " + rogueDetectionStrategy.toString()
-                + ", and terminating based on " + terminationStrategy.toString());
+                + "\n# rogue detection with the " + rogueDetectionStrategy.toString()
+                + "\n# and terminating based on " + terminationStrategy.toString());
 
         // # dynamic program
         AbstractCCD[] bestCCDs = new AbstractCCD[ccd.getSizeOfLeavesArray()];
@@ -285,7 +285,7 @@ public class RogueDetection {
             // if we haven't found a solution in the last maxCladeSize many
             // steps, then from now on when cannot improve anymore
             if (!stillImprovingCheck(bestCCDs, i, maxCladeSize)) {
-                System.out.println("end of rogue detection - no improvement "
+                 System.out.println("end of rogue detection - no improvement "
                         + "anymore for clades of size up to " + maxCladeSize);
                 break detection;
             } else {
@@ -373,6 +373,9 @@ public class RogueDetection {
      */
     private static boolean stillImprovingCheck(AbstractCCD[] bestCCDs,
                                                int lastIndex, int maxCladeSize) {
+    	if (lastIndex < maxCladeSize) {
+    		return true;
+    	}
         // check whether any of the past best CCDs has been set
         for (int j = lastIndex; j > (lastIndex - maxCladeSize); j++) {
             if (bestCCDs[lastIndex] != null) {

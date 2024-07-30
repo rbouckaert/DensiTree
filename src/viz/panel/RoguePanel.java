@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -149,7 +150,8 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		boolean[] selection = m_dt.m_treeData.m_bSelection;
 		Arrays.fill(selection, true);
 		for (int i = 1; i <= index; i++) {
-			String taxon = model.getElementAt(i);
+			String label = model.getElementAt(i);
+			String taxon = label.split(" : ")[0];
 			int j = 0;
 			while (j < m_dt.m_settings.m_sLabels.size() && !m_dt.m_settings.m_sLabels.get(j).equals(taxon)) {
 				j++;
@@ -246,27 +248,34 @@ public class RoguePanel extends JPanel implements ChangeListener {
 			e.printStackTrace();
 		}
 		
+		RogueDetection.TerminationStrategy tStratgey = RogueDetection.TerminationStrategy.NumRogues;
+		tStratgey.setThreshold(dropSetSize);
         List<viz.ccd.AbstractCCD> ccds = RogueDetection.detectRoguesWhileImproving(
                 ccd,
                 dropSetSize,
                 RogueDetection.RogueDetectionStrategy.Entropy,
-                RogueDetection.TerminationStrategy.NumRogues
+                tStratgey
                 );
         
 		List<String> rogues = new ArrayList<>();
 		rogues.add("<none>");
 		boolean [] done = new boolean[ccd.getSomeBaseTree().getNodeCount()];
-    	for (AbstractCCD ccdi : ccds) {
+		int i = ccds.size() - 1;
+		DecimalFormat f = new DecimalFormat("#.##");
+		while (i > 0 ) {
+			AbstractCCD ccdi = ccds.get(i);
     		if (ccdi instanceof FilteredCCD) {
         		BitSet mask = ((FilteredCCD) ccdi).getRemovedTaxaMask();
                 for (int j = mask.nextSetBit(0); j >= 0; j = mask.nextSetBit(j + 1)) {
                 	if (!done[j]) {
-                		String taxon = ccdi.getSomeBaseTree().getID(j);
-                		rogues.add(taxon);
+                		String label = ccdi.getSomeBaseTree().getID(j);
+                		label += " : " + f.format(ccdi.getEntropy());
+                		rogues.add(1, label);
                 		done[j] = true;
                 	}
                 }
     		}
+    		i--;
     	}
 		ComboBoxModel<String> model = new DefaultComboBoxModel<>(rogues.toArray(new String[]{}));
 		comboBoxBottom.setModel(model);
