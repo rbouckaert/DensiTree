@@ -4,7 +4,7 @@
 \def\DensiTree{DensiTree}
 \def\webdir{/Users/remco/research/DensiTree/web}
 
-\title{\DensiTree\ Manual: \\{Making sense of (pairs of) sets of trees}\\Version 3.0.0}
+\title{\DensiTree\ Manual: \\{Making sense of (pairs of) sets of trees}\\Version 3.1.0}
 \author{Remco Bouckaert\\
 \url{r.bouckaert@auckland.ac.nz}\\
 %\url{remco@cs.waikato.ac.nz}\\
@@ -99,6 +99,13 @@ of trees and/or consensus trees. Alternatively, one can {\em browse} through the
 tree topologies.
 
 \subsection{What is new \label{ssec.new}}
+
+
+\noindent From Version 3.0 to 3.1, the following changes were made:
+
+o root canal tree now by default based on CCD0 summary tree \cite{CCD}
+
+o rogue detection panel added \cite{rogues}
 
 \noindent From Version 2.x to 3.0, the following changes were made:
 
@@ -213,7 +220,7 @@ progressive and conservative politicians).
 \includegraphics[width=\textwidth]{\webdir/mayan3.png}
 \captionof{figure}{\label{fig.mayanheight}Show tree height by height grid and height bar.
 This tree set nicely demonstrates the increase in uncertainty of the node heights going from
-the leafs to the root.}
+the leaves to the root.}
 \end{center}
 
 \newpage
@@ -221,7 +228,7 @@ the leafs to the root.}
 \includegraphics[width=\textwidth]{\webdir/mayanblock.png}
 \captionof{figure}{\label{fig.mayanblock}As Figure \ref{fig.mayanheight} but in block trees.
 This tree set was generated with calibration points, which show up as dense node heights,
-for example, the parent of Rrr and Bbb.}
+for example, the parent of Rrr and Bbc.}
 \end{center}
 
 %\newpage
@@ -253,7 +260,7 @@ white image would be shown.}
 \begin{center}
 \includegraphics[width=\textwidth]{\webdir/ourisia2.png}
 \captionof{figure}{\label{fig.ourisia2}Triangle tree with root at top.
-This can be an attractive option when there are not a lot of leafs so that
+This can be an attractive option when there are not a lot of leaves so that
 the labels do not overlap.}
 \end{center}
 
@@ -273,7 +280,7 @@ global intensity, these faint trees can be made more visible.
 \includegraphics[width=\textwidth,height=8cm]{\webdir/ourisia4.png}
 \captionof{figure}{\label{fig.ourisia4}Jitter x-axis.
 Especially the block-layout of a tree results in many overlapping lines in the
-direction from the leafs to the root. These show up as dense stripes in the
+direction from the leaves to the root. These show up as dense stripes in the
 image (see top image). By adding jitter to the begin and end points, the lines 
 get randomly perturbed with a small amount and the image gives a better sense 
 of the densities (bottom image).}
@@ -287,7 +294,7 @@ of the densities (bottom image).}
 In this case, the leaf at 
 the top is moved to the bottom, resulting in the long branch to that leaf being shortened 
 considerably. In situations where there is a lot of uncertainty in the topology near the
-leafs it is often possible to move a few leafs a bit to minimize the number of crossing
+leaves it is often possible to move a few leaves a bit to minimize the number of crossing
 lines and get a clearer view.}
 \end{center}
 
@@ -299,7 +306,7 @@ lines and get a clearer view.}
 
 \begin{center}
 \includegraphics[width=\textwidth]{\webdir/poly2.png}
-\captionof{figure}{\label{fig.poly2}Draw trees up from selected leafs.
+\captionof{figure}{\label{fig.poly2}Draw trees up from selected leaves.
 Only tree branches with a direct path from the root to a selected
 leaf will be drawn.  Data from  \cite{poly}.}
 \end{center}
@@ -332,7 +339,7 @@ and background color to yellowish green.
 \includegraphics[width=5cm]{\webdir/bulgaria.png}
 \includegraphics[width=5cm]{\webdir/bulgaria2.png}
 \captionof{figure}{\label{fig.bulgaria}When there are many topologies, each occurring
-with low frequency, the result may be a mess (left image) because the order of leafs is chosen based on the
+with low frequency, the result may be a mess (left image) because the order of leaves is chosen based on the
 most frequently occurring consensus tree. To untangle the mess, various shuffle methods are
 available under the Edit/Shuffle submenu (result in right image).
 }
@@ -462,9 +469,9 @@ vector as PDF format.
 {\tt Edit/Undo}: undo latest reordering of taxa. Note that the undo action only applies
 to reorderings, not to font changes, intensity settings, layout options, etc.\\
 {\tt Edit/Redo}: redo latest reordering of taxa.\\
-{\tt Edit/Select All}: select all leafs in the tree. This is useful when after manipulating
-the order of the leafs a redraw is required with branches to all leafs shown.\\
-{\tt Edit/Unselect All}: remove all leafs from selection. This is useful before moving a single
+{\tt Edit/Select All}: select all leaves in the tree. This is useful when after manipulating
+the order of the leaves a redraw is required with branches to all leaves shown.\\
+{\tt Edit/Unselect All}: remove all leaves from selection. This is useful before moving a single
 node.\\
 {\tt Edit/Delete taxa}: remove selected taxa from tree. Branches between a taxon and its parent
 will be removed one by one and the internal parent node removed.\\
@@ -480,7 +487,7 @@ support. This allows clades to be moved when drawing a centralised tree.\\
 {\tt Edit/Shuffle}: Submenu with various methods for ordering the nodes.\\
 {\tt Edit/Shuffle/Most Frequent}: Use order that displays most frequently occurring tree nicely. 
 This is the default used when opening a file.\\
-{\tt Edit/Shuffle/Closest First}: Orders leafs by starting with the closest two leafs, then
+{\tt Edit/Shuffle/Closest First}: Orders leaves by starting with the closest two leaves, then
 adding the closest node to the left most or right most node. The distance measure used is
 based on the length of the edges averaged over all trees.\\
 {\tt Edit/Shuffle/Single link}: Use single link hierarchical clustering with the distance method
@@ -548,8 +555,8 @@ should be drawn.\\
 {\tt Settings/Show all trees}: Toggle to indicate set of all trees should be drawn.\\
 {\tt Settings/Show Root Canal}: Draw consensus tree with the highest clade support, which shows
 up as a root canal.\\
-{\tt Settings/Show root at top}: Toggle to have root at top and leafs at bottom, or
-root on left and leafs on right.\\
+{\tt Settings/Show root at top}: Toggle to have root at top and leaves at bottom, or
+root on left and leaves on right.\\
 %
 
 \noindent
@@ -605,7 +612,7 @@ instead of the single default color.\\
 %
 %{\tt Settings/Use log scale for Height}: Toggle between using heights from the 
 %Nexus trees file or using $\log(height+1)$ instead. This can be useful when the
-%majority of branches split close to the leafs.\\
+%majority of branches split close to the leaves.\\
 %{\tt Settings/Show height grid}: show height lines across image splitting the
 %largest height in 10 equally sized intervals.\\
 %{\tt Settings/Show height bar}: show bar indicating 1/10th of height with
@@ -788,13 +795,13 @@ Alt-H & show Help\\
 \newpage
 \section{FAQ\label{sec.faq}}
 
-\subsection{How do I move leafs?}
+\subsection{How do I move leaves?}
 
-This depends on the tree type. For default and centralised trees, first you select the leafs that you want to move.
-You can select leafs by clicking on them individually, or by dragging a rectangle
-over the set of leafs you want to select. By keeping the shift key pressed, the
+This depends on the tree type. For default and centralised trees, first you select the leaves that you want to move.
+You can select leaves by clicking on them individually, or by dragging a rectangle
+over the set of leaves you want to select. By keeping the shift key pressed, the
 selection can be added to. By keeping the control key pressed, any leaf that is
-selected will be toggled from the selection. Once the appropriate set of leafs
+selected will be toggled from the selection. Once the appropriate set of leaves
 is selected, press M to move down and control-M to move in the other direction.
 
 Furthermore, for star trees you can enable show clades. Circles appear on the taxa,
@@ -1054,6 +1061,8 @@ for the gallery.
 
 \bibliographystyle{plain}
 \begin{thebibliography}{1}
+\bibitem{CCD}
+Berling L, Klawitter J, Bouckaert R, Xie D, Gavryushkin A, Drummond AJ. Accurate Bayesian phylogenetic point estimation using a tree distribution parameterized by clade probabilities. bioRxiv. 2024 Feb 22:2024-02.
 \bibitem{BEAST}
 Bouckaert RR, Heled J, Kuehnert D, Vaughan TG, Wu C-H, Xie D, Suchard MA,
 Rambaut A, Drummond AJ (2014) BEAST 2: A software platform for Bayesian
@@ -1073,6 +1082,11 @@ University of Texas at Austin.
 Hillis, D.M., T.A. Heath, and K. St. John.
 Analysis and Visualization of Tree Space. 
 Systematic Biology 54(3):471-82, Jun 2005.
+\bibitem{rogues}
+Klawitter, J., Bouckaert, R., Drummond, A.
+Skeletons in the Forest: Using Entropy-Based Rogue Detection on Bayesian Phylogenetic Tree Distributions.
+In preparation,
+2024
 \bibitem{maddison}
 Maddison, D. R. 
 The discovery and importance of multiple islands of most-parsimonious trees. 
