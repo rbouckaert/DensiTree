@@ -377,7 +377,11 @@ public class CCD0 extends AbstractCCD {
         }
 
         // 2. sort clades
-        List<Clade> clades = cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toList();
+        Clade[] cladesArray = (Clade []) cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toArray();
+        List<Clade> clades = new ArrayList<>(cladesArray.length);
+        for (Clade c : cladesArray) {
+        	clades.add(c);
+        }
 //        if ((progressStream != null) && verbose) {
 //            progressStream.println("Expanding CCD0: processing " + clades.size() + " clades");
 //            if (clades.size() > 100000 && maxExpansionFactor == -1) {
@@ -519,8 +523,10 @@ public class CCD0 extends AbstractCCD {
 
         // 0. take out clades that have no occurrences left
         // and do nothing if no new clades remain
-        List<Clade> emptyClades = newClades.stream().filter(x -> (x.getNumberOfOccurrences() != 0)).toList();
-        newClades.removeAll(emptyClades);
+        Clade [] emptyClades = (Clade []) newClades.stream().filter(x -> (x.getNumberOfOccurrences() != 0)).toArray();
+        for (Clade c : emptyClades) {
+        	newClades.remove(c);
+        }
         if (newClades.isEmpty()) {
             return;
         }
