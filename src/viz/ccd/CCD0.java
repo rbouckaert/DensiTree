@@ -1,5 +1,6 @@
 package viz.ccd;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,9 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-
-import viz.Node;
-import viz.TreeData;
+import java.util.stream.Stream;
 
 /**
  * This class represents a tree distribution using the CCD graph (via the parent
@@ -42,26 +41,50 @@ import viz.TreeData;
  */
 public class CCD0 extends AbstractCCD {
 
+    public static final boolean USE_CLADE_PARAMETERS = true;
+
     /** Whether expand should use the monophyletic clade speedup. */
     private boolean useMonophyleticCladeSpeedup = false;
 
     /** Whether expand should run update online (instead of from scratch). */
     private boolean updateOnline = false;
 
+    /**
+     * Whether CCD should be treated as CCD0 and tidying up should reinitialize
+     * (expand + set CCPs) as during construction.
+     */
+    private boolean allowReinitializing = true;
+
     /** Clades added since last expand (for online expand). */
     private List<Clade> newClades = null;
 
     /** Clades organized by size for more efficient expand method. */
-    private List<Set<Clade>> cladeBuckets = null;
+    private List<List<Clade>> cladeBuckets = null;
+    
+    /** 
+     * from[i][j] is the first clade in cladeBuckets[i] that has bit j set.
+     * to[i][j] is the last clade in cladeBuckets[i] that has bit j set.
+     * To test if cladeBuckets[i] contains sub-clades of some clade C
+     * only clades cladeBuckets[i][from[i][first set bit in C]] up to and including
+     * cladeBuckets[i][to[i][last set bit in C]] need to be checked. 
+     * All others have at least one taxon outside C: the clades below from[i][] 
+     * have a taxon below any taxon in C and the clades above to[i][] have one above.
+     */
+    private int [][] from, to;
 
     /** Clades already processed */
     private Set<Clade> done;
 
     /** Stream to report on progress of CCD0 construction. */
-    private PrintStream progressStream;
+    private PrintStream progressStream = null;
 
     /** Progress counted of clades handled in the expand step. */
     private int progressed = 0;
+
+    /** If given, only (number of taxa) times this factor of clades are considered
+     * when expanding the CCD1 graph. This speeds-up the costly expansion for large
+     * datasets but leads to an approximation. */
+    private int maxExpansionFactor = -1;
 
     // variables for parallelization
     /** Threshold of number of clades on whether to use parallelization for expand. */
@@ -70,6 +93,7 @@ public class CCD0 extends AbstractCCD {
     /** Number of worker threads used for the expand step. */
     private int threadCount = 1;
     private CountDownLatch countDown = null;
+
 
     /* -- CONSTRUCTORS & CONSTRUCTION METHODS -- */
 
@@ -91,14 +115,25 @@ public class CCD0 extends AbstractCCD {
      * Constructor for a {@link CCD0} based on the given collection of trees
      * (not containing any burnin trees).
      *
+     * @param treeSet an iterable set of trees, which contains no burnin trees,
+     *                whose distribution is approximated by the resulting
+     *                {@link CCD0}
+     */
+//    public CCD0(List<Tree> treeSet) {
+//        this(treeSet, false);
+//    }
+
+    /**
+     * Constructor for a {@link CCD0} based on the given collection of trees
+     * (not containing any burnin trees).
+     *
      * @param treeSet        an iterable set of trees, which contains no burnin trees,
      *                       whose distribution is approximated by the resulting
      *                       {@link CCD0}
      * @param storeBaseTrees whether to store the trees used to create this CCD
      */
-//    public CCD0(TreeSet treeSet, boolean storeBaseTrees) {
+//    public CCD0(List<Tree> treeSet, boolean storeBaseTrees) {
 //        super(treeSet, storeBaseTrees);
-////        System.out.println("xx");
 //        initialize();
 //    }
 
@@ -117,7 +152,7 @@ public class CCD0 extends AbstractCCD {
      *                                    and CCD gets reinitialized repeatedly
      *                                    (mutually exclusive with monophyletic clades speedup)
      */
-//    public CCD0(TreeSet treeSet, boolean storeBaseTrees, boolean useMonophyleticCladeSpeedup, boolean updateOnline) {
+//    public CCD0(List<Tree> treeSet, boolean storeBaseTrees, boolean useMonophyleticCladeSpeedup, boolean updateOnline) {
 //        super(treeSet, storeBaseTrees);
 //        if (useMonophyleticCladeSpeedup) {
 //            this.setToUseMonophyleticCladeSpeedup();
@@ -125,6 +160,22 @@ public class CCD0 extends AbstractCCD {
 //        if (updateOnline) {
 //            this.setToUpdateOnline();
 //        }
+//        initialize();
+//    }
+
+    /**
+     * Constructor for a {@link CCD0} based on the given collection of trees
+     * (not containing any burnin trees) with the given flags.
+     *
+     * @param treeSet                     an iterable set of trees, which contains no burnin trees,
+     *                                    whose distribution is approximated by the resulting
+     * @param storeBaseTrees              whether to store the trees used to create this CCD
+     *                                    {@link CCD0}
+     * @param maxExpansionFactor
+     */
+//    public CCD0(List<Tree> treeSet, boolean storeBaseTrees, int maxExpansionFactor) {
+//        super(treeSet, storeBaseTrees);
+//        this.maxExpansionFactor = maxExpansionFactor;
 //        initialize();
 //    }
 
@@ -137,6 +188,19 @@ public class CCD0 extends AbstractCCD {
      */
     public CCD0(int numLeaves, boolean storeBaseTrees) {
         super(numLeaves, storeBaseTrees);
+    }
+
+    /**
+     * Constructor for an empty CDD. Trees can then be processed one by one that sets .
+     *
+     * @param numLeaves      number of leaves of the trees that this CCD will be based on
+     * @param storeBaseTrees whether to store the trees used to create this CCD;
+     *                       recommended not to when huge set of trees is used
+     * @param maxExpansionFactor
+     */
+    public CCD0(int numLeaves,  boolean storeBaseTrees, int maxExpansionFactor) {
+        super(numLeaves, storeBaseTrees);
+        this.maxExpansionFactor = maxExpansionFactor;
     }
 
     /**
@@ -166,6 +230,11 @@ public class CCD0 extends AbstractCCD {
         }
         this.updateOnline = true;
         this.newClades = new ArrayList<>();
+    }
+
+    /** Forbids reinitializing of CCD0 (no expand and resetting CCPs). */
+    public void forbidReinitializing() {
+        this.allowReinitializing = false;
     }
 
     /**
@@ -216,11 +285,12 @@ public class CCD0 extends AbstractCCD {
         }
     }
 
-    @Override
-    protected void checkCladePartitionRemoval(Clade clade, CladePartition partition) {
-        // nothing to do here for CCD0s
-        // since we keep partitions even if they have no occurrence counts
-    }
+//    @Override
+//    protected boolean removeCladePartitionIfNecessary(Clade clade, CladePartition partition) {
+//        // nothing to do here for CCD0s
+//        // since we keep partitions even if they have no occurrence counts
+//        return false;
+//    }
 
     /**
      * Set up this CCD0 after adding/removing trees. Assumes reset/not-set
@@ -228,27 +298,62 @@ public class CCD0 extends AbstractCCD {
      */
     @Override
     public void initialize() {
+        if (!allowReinitializing) {
+            // this.dirtyStructure = false;
+            return;
+        }
+
         // need to find all clade partitions that could exist but were not
         // observed in base trees
         if (!updateOnline || (cladeBuckets == null)) {
-            // System.out.print("Initializing CCD0 parameters ... ");
-            expand();
+            // out.print("Initializing CCD0 parameters ... ");
+        	try {
+            	maxExpansionFactor = 0;
+	        	PrintStream out = new PrintStream(new File("/tmp/expand.dat"));
+	        	do {
+	        		maxExpansionFactor++;
+	        		long start = System.currentTimeMillis();
+	        		expand();        		
+		    		long end = System.currentTimeMillis();
+		        	out.print(maxExpansionFactor + ",");
+		        	for (int i = 0; i < cladeBuckets.size(); i++) {
+		        		out.print(cladeBuckets.get(i).size()+",");
+		        	}
+		        	out.println(end-start);
+	        	} while (maxExpansionFactor * getNumberOfLeaves() < cladeMapping.values().size());
+        	} catch (Exception e ) {
+        		e.printStackTrace();
+        	}
+//            expand();
         } else {
-            // System.out.print("\nExpanding CCD graph (online) ... ");
+            // out.print("\nExpanding CCD graph (online) ... ");
             expandOnline();
         }
 
         // then need to set clade partition probabilities
         // which normalizes the product of clade probabilities
-        // System.out.print("setting probabilities ... ");
-        setPartitionProbabilities(this.rootClade);
+        // out.print("setting probabilities ... ");
+//        if (this.useLogProbabilities) {
+//            setPartitionLogProbabilities(this.rootClade);
+//        } else {
+//
+//            try {
+//                setPartitionProbabilities(this.rootClade);
+//            } catch (UnderflowException exception) {
+//                System.err.println("An underflow was detected. We switch to log space.");
+//                this.resetSumCladeCredibilities();
+//                setPartitionLogProbabilities(this.rootClade);
+//            }
+//
+//        }
 
-        // System.out.println(" ...done.");
+        // out.println(" ...done.");
         if (updateOnline) {
             newClades.clear();
         }
         this.dirtyStructure = false;
         super.setCacheAsDirty();
+        this.probabilitiesDirty = false;
     }
 
     /**
@@ -256,31 +361,36 @@ public class CCD0 extends AbstractCCD {
      * observed, but not that clade partition.
      */
     private void expand() {
-        long start = System.currentTimeMillis();
+    	// long start = System.currentTimeMillis();
+    	if (this.maxExpansionFactor == 0) {
+    		return;
+    	}
+    	
+        Stream<Clade> cladesToExpand = cladeMapping.values().stream();
 
-        // 1. sort clades
-        Object [] clades2 = cladeMapping.values().stream().sorted(Comparator.comparingInt(x -> x.size())).toArray();
-        List<Clade> clades = new ArrayList<>();
-        for (Object o : clades2) {
-        	clades.add((Clade) o);
-        }
-        if (hasProgressStream()) {
-            progressStream.println("Expanding CCD0: processing " + clades.size() + " clades");
+        // 1. we only expand the most frequent clades if necessary
+        if (this.maxExpansionFactor != -1) {
+            int numCladesToConsider = this.maxExpansionFactor * this.getNumberOfLeaves();
+            cladesToExpand = cladesToExpand.sorted(
+                    Comparator.comparingInt(x -> -x.getNumberOfOccurrences())
+            ).limit(numCladesToConsider);
         }
 
-        // 2. clade buckets
+        // 2. sort clades
+        List<Clade> clades = cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toList();
+//        if ((progressStream != null) && verbose) {
+//            progressStream.println("Expanding CCD0: processing " + clades.size() + " clades");
+//            if (clades.size() > 100000 && maxExpansionFactor == -1) {
+//            	progressStream.println("If this takes too long, consider using Approximated CCD0 instead.");
+//            	progressStream.println("This generally runs faster and gives reasonably good point estimates.");
+//            }
+//        }
+
+        // 3. clade buckets
         // for easier matching of child clades, we want to group them by size
-        // 2.i init clade buckets
-        cladeBuckets = new ArrayList<Set<Clade>>(leafArraySize);
-        for (int i = 0; i < leafArraySize; i++) {
-            cladeBuckets.add(new HashSet<Clade>());
-        }
-        // 2.ii fill clade buckets
-        for (Clade clade : clades) {
-            cladeBuckets.get(clade.size() - 1).add(clade);
-        }
-
-        // 3. find missing clade partitions
+        cladeBuckets = processCladeBuckets(clades, leafArraySize);
+ 
+        // 4. find missing clade partitions
         done = new HashSet<>();
         threadCount = Runtime.getRuntime().availableProcessors();
         if (threadCount <= 1 || clades.size() < NUM_CLADES_PARALLELIZATION_THRESHOLD
@@ -289,7 +399,9 @@ public class CCD0 extends AbstractCCD {
             findChildPartitions(clades);
         } else {
             try {
-                System.out.println("Running expand step with " + threadCount + " threads.");
+//                if ((progressStream != null) && verbose) {
+//                    progressStream.println("Running expand step with " + threadCount + " threads.");
+//                }
                 countDown = new CountDownLatch(threadCount);
                 ExecutorService exec = Executors.newFixedThreadPool(threadCount);
                 int end = clades.size();
@@ -305,26 +417,109 @@ public class CCD0 extends AbstractCCD {
             done.clear();
         }
 
-        // System.out.println("done.");
-        long end = System.currentTimeMillis();
+//        if ((progressStream != null) && verbose) {
+//            progressStream.println("... done.");
+//        }
         // Log.warning("Expanded CCD0 in " + (end - start) / 1000 + " seconds.");
         progressStream = null;
+
+        // release memory
+        from = null;
+        to = null;
+        // long end = System.currentTimeMillis();
+        // System.err.println("Expanded in " + (end-start) + " ms");
     }
 
-    /**
+    
+    /** set up clade buckets so that
+     * 1. each bucket contains clades of the same size
+     * 2. clades are sorted by first set bit, then last set bit
+     * 3. as a side effect, the from[][] and to[][] arrays are initialised
+     * 
+     * @param clades set of clades to distribute into clade buckets
+     * @param leafArraySize = maximum clade size
+     * @return clade buckets
+     */
+    private List<List<Clade>> processCladeBuckets(List<Clade> clades, int leafArraySize) {
+        List<List<Clade>> cladeBuckets = new ArrayList<>(leafArraySize);
+
+        // 3.i init clade buckets
+        for (int i = 0; i < leafArraySize; i++) {
+            cladeBuckets.add(new ArrayList<Clade>());
+        }
+        
+        // 3.ii fill clade buckets
+        for (Clade clade : clades) {
+            cladeBuckets.get(clade.size() - 1).add(clade);
+        }
+        
+        // 3.iii sort buckets by first set bit, then last set bit -- ignore intermediate bits
+        for (int i = 0; i < leafArraySize; i++) {
+            cladeBuckets.get(i).sort((o1,o2) -> {
+            	final BitSet b1 = o1.getCladeInBits();
+            	final BitSet b2 = o2.getCladeInBits();
+        		final int firstBit1 = b1.nextSetBit(0);
+        		final int firstBit2 = b2.nextSetBit(0);
+        		if (firstBit1 < firstBit2) return -1;
+        		if (firstBit1 > firstBit2) return 1;
+        		final int lastBit1 = b1.lastSetBit();
+        		final int lastBit2 = b2.lastSetBit();
+        		if (lastBit1 < lastBit2) return -1;
+        		if (lastBit1 > lastBit2) return 1;
+        		return 0;
+            });
+        }
+
+        // 3.iv calculate from and to ranges
+        from = new int[leafArraySize][leafArraySize];
+        to = new int[leafArraySize][leafArraySize];
+        for (int i = 0; i < leafArraySize; i++) {
+        	List<Clade> bucket = cladeBuckets.get(i);
+        	if (bucket.size() > 0) {
+	        	int j = 0;
+	        	int [] fromi = from[i];
+	        	int [] toi = to[i];
+	        	for (int c = 0; c < bucket.size(); c++) {
+	        		Clade clade = bucket.get(c);
+	        		int min = clade.getCladeInBits().nextSetBit(0);
+	        		while (j <= min) {
+	        			fromi[j++] = c;
+	        		}
+	        		int max = clade.getCladeInBits().lastSetBit();
+//	        		if (max < 0 || max >= toi.length) {
+//	        			max = clade.getCladeInBits().lastSetBit();
+//	        		}
+	        		toi[max] = c;
+	        	}
+	        	while (j < leafArraySize) {
+	        		fromi[j] = fromi[j-1];
+	        		j++;
+	        	}
+	        	
+	        	toi[leafArraySize - 1] = bucket.size() - 1;
+	        	for (int k = leafArraySize - 2; k >= 0; k--) {
+	        		if (toi[k] == 0) {
+	        			toi[k] = toi[k+1];
+	        		}
+	        	}
+	        	for (int k = 1; k < leafArraySize; k++) {
+	        		toi[k] = Math.max(toi[k-1], toi[k]);
+	        	}
+        	}
+        }
+        return cladeBuckets;
+   	}
+
+	/**
      * Like {@link CCD0#expand()}, expand CCD graph with clade partitions where parent (considering only new clades) and children were
      * observed, but not that clade partition.
      */
     private void expandOnline() {
-        // System.out.println("expand online (num trees total = " + this.getNumberOfBaseTrees() + ")");
+        // out.println("expand online (num trees total = " + this.getNumberOfBaseTrees() + ")");
 
         // 0. take out clades that have no occurrences left
         // and do nothing if no new clades remain
-        Object [] emptyClades2 = cladeMapping.values().stream().sorted(Comparator.comparingInt(x -> x.size())).toArray();
-        List<Clade> emptyClades = new ArrayList<>();
-        for (Object o : emptyClades2) {
-        	emptyClades.add((Clade) o);
-        }
+        List<Clade> emptyClades = newClades.stream().filter(x -> (x.getNumberOfOccurrences() != 0)).toList();
         newClades.removeAll(emptyClades);
         if (newClades.isEmpty()) {
             return;
@@ -360,18 +555,18 @@ public class CCD0 extends AbstractCCD {
         int i = 0;
         for (Clade parent : parentClades) {
             findChildPartitionsOf(parent, helperBits);
-            if (progressStream != null) {
-                while (progressed < i * 61 / parentClades.size()) {
-                    progressStream.print("*");
-                    progressed++;
-                }
-            }
+//            if ((progressStream != null) && verbose) {
+//                while (progressed < (i * 61 / parentClades.size())) {
+//                    progressStream.print(".");
+//                    progressed++;
+//                }
+//            }
             i++;
         }
 
-        if (progressStream != null) {
-            progressStream.println();
-        }
+//        if ((progressStream != null) && verbose) {
+//            progressStream.println();
+//        }
     }
 
     /* Helper method - do the work for one particular clade */
@@ -382,18 +577,30 @@ public class CCD0 extends AbstractCCD {
         }
 
         BitSet parentBits = parent.getCladeInBits();
-
-        // otherwise we check if we find a larger partner clade for any
-        // smaller clade that together partition the parent clade;
-        for (int j = 1; j <= parent.size() / 2; j++) {
-            for (Clade smallChild : cladeBuckets.get(j - 1)) {
-                if (done.contains(smallChild)) {
-                    continue;
-                }
-
-                BitSet smallChildBits = smallChild.getCladeInBits();
-                findPartitionHelper(smallChild, parent, helperBits, parentBits, smallChildBits);
-            }
+        int parentSize = parent.size();
+		int min = parent.getCladeInBits().nextSetBit(0);
+		int max = parent.getCladeInBits().lastSetBit();
+        
+        for (int j = 1; j <= parentSize / 2; j++) {
+            // every clade split has a smaller child with size k_small and a larger child with
+            // size k_large such that k_small <= parent.size() / 2 < k_large
+        	// process the smallest bucket with one of these
+        	//int bucketIndex = cladeBuckets.get(j - 1).size() - from[j-1][min] < cladeBuckets.get(parentSize - j - 1).size() - from[parentSize -j-1][min]? j-1 : parentSize -j-1; 
+        	int bucketIndex = to[j - 1][max] - from[j-1][min] < to[parentSize - j - 1][max] - from[parentSize -j-1][min]? j-1 : parentSize -j-1; 
+        	List<Clade> bucket = cladeBuckets.get(bucketIndex);
+        	if (bucket.size() > 0) {
+	        	final int start = from[bucketIndex][min];
+	        	final int end = to[bucketIndex][max];
+	            for (int i = start; i <= end; i++) {
+	            	Clade child = bucket.get(i);
+	                if (done.contains(child)) {
+	                    continue;
+	                }
+	
+	                BitSet childBits = child.getCladeInBits();
+	                findPartitionHelper(child, parent, helperBits, parentBits, childBits);
+	            }
+        	}
         }
 
         // remove clades below monophyletic clades
@@ -473,8 +680,8 @@ public class CCD0 extends AbstractCCD {
         }
     }
 
-    /* Thread worker for embarssingly parallezing parts of the expand step */
-    class ExpandWorker implements Runnable {
+    /* Thread worker for embarassingly parallezing parts of the expand step */
+    class ExpandWorker implements java.lang.Runnable {
         private List<Clade> clades;
         private int start;
         private int end;
@@ -495,7 +702,7 @@ public class CCD0 extends AbstractCCD {
                     i += threadCount;
 
                     if (progressStream != null) {
-                        while (progressed < i * 61 / clades.size()) {
+                        while (progressed < (i * 61 / clades.size())) {
                             progressStream.print("*");
                             progressed++;
                         }
@@ -511,6 +718,82 @@ public class CCD0 extends AbstractCCD {
     }
 
     /**
+     * Recursively computes, sets, and returns the log probabilities of all clade partitions based on the clade credibilities.
+     * Method only needs to be called when a CCD0 was constructed manually,
+     * e.g. by the {@link  ccp.algorithms.CCDCombiner}.
+     *
+     * @param clade for which the clade partition probabilities are computed
+     * @return the sum of this clade's partitions probabilities times its own credibility
+     */
+//    private static double setPartitionLogProbabilities(Clade clade) {
+//        if (clade.getLogSumCladeCredibilities() < 0) {
+//            return clade.getLogSumCladeCredibilities();
+//        }
+//
+//        double logCladeValue = Math.log(clade.getCladeCredibility());
+//
+//        if (clade.isLeaf()) {
+//            // a leaf has no partition, sum of probabilities is 1
+//            clade.setLogSumCladeCredibilities(0);
+//            return 0.0;
+//
+//        } else if (clade.isCherry()) {
+//            // a cherry has only one partition
+//            if (clade.partitions.isEmpty()) {
+//                throw new AssertionError("Cherry should contain a clade split.");
+//            }
+//            clade.partitions.get(0).setCCP(1);
+//            clade.setLogSumCladeCredibilities(logCladeValue);
+//            return logCladeValue;
+//
+//        } else {
+//            // other might have more partitions
+//            double sumSubtreeProbabilities = 0.0;
+//            double[] sumPartitionSubtreeLogProbabilities = new double[clade.getPartitions().size()];
+//
+//            // compute log of sum of probabilities over all partitions ...
+//            // with log-sum-exp trick
+//            double max = Double.NEGATIVE_INFINITY;
+//            int i = 0;
+//            for (CladePartition partition : clade.getPartitions()) {
+//                sumPartitionSubtreeLogProbabilities[i] =
+//                        setPartitionLogProbabilities(partition.getChildClades()[0])
+//                                + setPartitionLogProbabilities(partition.getChildClades()[1]);
+//                max = Math.max(max, sumPartitionSubtreeLogProbabilities[i]);
+//                i++;
+//            }
+//            i = 0;
+//            for (CladePartition partition : clade.getPartitions()) {
+//                sumSubtreeProbabilities += Math.exp(sumPartitionSubtreeLogProbabilities[i] - max);
+//                i++;
+//            }
+//            double sumSubtreeLogProbabilities = max + Math.log(sumSubtreeProbabilities);
+//
+//            // ... and then normalize
+//            i = 0;
+//            for (CladePartition partition : clade.getPartitions()) {
+//                double logProbability = sumPartitionSubtreeLogProbabilities[i] - sumSubtreeLogProbabilities;
+//                partition.setCCP(Math.exp(logProbability));
+//                i++;
+//            }
+//
+//            // sumSubtreeLogProbabilities can be a very tiny positive number due to numerical issues
+//            // (when it should be log(1) = 0)
+//            // because we want non-positive log probabilities, round it down to 0 in this case
+//            if (1e-12 < sumSubtreeLogProbabilities) {
+//                throw new AssertionError("Negative probability detected.");
+//            } else {
+//                sumSubtreeLogProbabilities = Math.min(sumSubtreeLogProbabilities, 0.0);
+//            }
+//
+//            // combined with probability of clade, we get sum of all subtree probabilities
+//            double sumLogCladeCredibilities = sumSubtreeLogProbabilities + logCladeValue;
+//            clade.setLogSumCladeCredibilities(sumLogCladeCredibilities);
+//            return sumLogCladeCredibilities;
+//        }
+//    }
+
+    /**
      * Recursively computes, sets, and returns the probabilities of all clade partitions based on the clade credibilities.
      * Method only needs to be called when a CCD0 was constructed manually,
      * e.g. by the {@link  ccp.algorithms.CCDCombiner}.
@@ -519,12 +802,27 @@ public class CCD0 extends AbstractCCD {
      * @return the sum of this clade's partitions probabilities times its own credibility
      */
     public static double setPartitionProbabilities(Clade clade) {
+        return setPartitionProbabilities(clade, !USE_CLADE_PARAMETERS);
+    }
+
+    /**
+     * Recursively computes, sets, and returns the probabilities of all clade partitions based on the clade credibilities.
+     * Method only needs to be called when a CCD0 was constructed manually,
+     * e.g. by the {@link  ccp.algorithms.CCDCombiner}.
+     *
+     * @param clade              for which the clade partition probabilities are computed
+     * @param useCladeParameters whether to use the clade parameters or the clade credibilities
+     * @return the sum of this clade's partitions probabilities times its own credibility
+     */
+    public static double setPartitionProbabilities(Clade clade, boolean useCladeParameters) {
         if (clade.getSumCladeCredibilities() > 0) {
             return clade.getSumCladeCredibilities();
         }
+        double cladeValue = /*useCladeParameters ? clade.getCladeParameter() :*/ clade.getCladeCredibility();
 
         if (clade.isLeaf()) {
             // a leaf has no partition, sum of probabilities is 1
+            clade.setSumCladeCredibilities(1);
             return 1.0;
         } else if (clade.isCherry()) {
             // a cherry has only one partition
@@ -532,9 +830,8 @@ public class CCD0 extends AbstractCCD {
                 throw new AssertionError("Cherry should contain a clade split.");
             }
             clade.partitions.get(0).setCCP(1);
-            clade.setSumCladeCredibilities(clade.getCladeCredibility());
-            return clade.getCladeCredibility();
-
+            clade.setSumCladeCredibilities(cladeValue);
+            return cladeValue;
         } else {
             // other might have more partitions
             double sumSubtreeProbabilities = 0.0;
@@ -544,31 +841,90 @@ public class CCD0 extends AbstractCCD {
             int i = 0;
             for (CladePartition partition : clade.getPartitions()) {
                 sumPartitionSubtreeProbabilities[i] =
-                        setPartitionProbabilities(partition.getChildClades()[0])
-                                * setPartitionProbabilities(partition.getChildClades()[1]);
+                        setPartitionProbabilities(partition.getChildClades()[0], useCladeParameters)
+                                * setPartitionProbabilities(partition.getChildClades()[1], useCladeParameters);
                 sumSubtreeProbabilities += sumPartitionSubtreeProbabilities[i];
                 i++;
             }
+
             // ... and then normalize
-            i = 0;
-            for (CladePartition partition : clade.getPartitions()) {
-                double probability;
-                if (sumSubtreeProbabilities == 0) {
-                    System.err.println("Sum of subtree probabilities for  partition is 0, which could result from an underflow;" +
-                            "maybe not enough burnin used?");
-                    System.err.println("- parent clade: " + clade);
-                    System.err.println("- partition: " + partition);
-                    probability = 0;
-                } else {
-                    probability = sumPartitionSubtreeProbabilities[i] / sumSubtreeProbabilities;
+            if (sumSubtreeProbabilities == 0) {
+                // probability of this subtree is so small, that we have an underflow problem;
+                // we can try to use log transformed probabilities to set CCPs
+                // but the probability of the clade will still become zero
+
+                // try log-sum-exp trick
+                double logMax = Double.NEGATIVE_INFINITY;
+                double[] logProbs = new double[clade.getPartitions().size()];
+                i = 0;
+                for (CladePartition partition : clade.getPartitions()) {
+                    double left = partition.getChildClades()[0].getSumCladeCredibilities();
+                    double right = partition.getChildClades()[1].getSumCladeCredibilities();
+                    logProbs[i] = Math.log(left) + Math.log(right);
+                    logMax = Math.max(logProbs[i], logMax);
+
+                    // if (Double.isNaN(logProbs[i]) || Double.isInfinite(logProbs[i])) {
+                    //     out.println("XXXXXXXXX");
+                    //     out.println("logProbs[i] = " + logProbs[i]);
+                    //     out.println("left = " + left);
+                    //     out.println("log left = " + Math.log(left));
+                    //     out.println("right = " + left);
+                    //     out.println("log right = " + Math.log(right));
+                    // }
+
+                    i++;
                 }
-                partition.setCCP(probability);
-                i++;
+
+                // log sum = log pMax - log( sum exp(log pi - logMax))
+                double intermSum = 0;
+                for (int j = 0; j < logProbs.length; j++) {
+                    if (Double.isFinite(logProbs[j])) {
+                        intermSum += Math.exp(logProbs[j] - logMax);
+                    }
+                }
+                double logSum = logMax - Math.log(intermSum);
+
+                // normalizing with normalized log pi = log pi - log sum
+                i = 0;
+                double pSum = 0;
+                for (CladePartition partition : clade.getPartitions()) {
+                    if (!Double.isFinite(logProbs[i])) {
+                        // we are still encountering underflows
+                        System.err.println("An underflow has occurred. Aborting");
+                        return 0;
+                    } else {
+                        double logProbability = logProbs[i] - logSum;
+                        double probability = Math.exp(logProbability);
+                        pSum += probability;
+
+                        if (Double.isNaN(probability)) {
+//                            out.println("NaN probability = " + probability);
+//                            out.println("logProbability = " + logProbability);
+//                            out.println("logProbs[i] = " + logProbs[i]);
+//                            out.println("logSum = " + logSum);
+                        }
+
+                        partition.setCCP(probability);
+                    }
+                    i++;
+                }
+            } else {
+                i = 0;
+                for (CladePartition partition : clade.getPartitions()) {
+                    double probability = sumPartitionSubtreeProbabilities[i] / sumSubtreeProbabilities;
+                    if (Double.isNaN(probability)) {
+//                        out.println("clade = " + clade);
+//                        out.println("partition = " + partition);
+//                        out.println("sumPartitionSubtreeProbabilities = " + sumPartitionSubtreeProbabilities[i]);
+//                        out.println("sumSubtreeProbabilities = " + sumSubtreeProbabilities);
+                    }
+                    partition.setCCP(probability);
+                    i++;
+                }
             }
 
-            // combined with probability of clade, we get sum of all subtree
-            // probabilities
-            double sumCladeCredibilities = sumSubtreeProbabilities * clade.getCladeCredibility();
+            // combined with probability of clade, we get sum of all subtree probabilities
+            double sumCladeCredibilities = sumSubtreeProbabilities * cladeValue;
             clade.setSumCladeCredibilities(sumCladeCredibilities);
             return sumCladeCredibilities;
         }
@@ -585,9 +941,9 @@ public class CCD0 extends AbstractCCD {
      *
      * @return the tree with maximum sum of clade probabilities
      */
-    public Node getMSCCTree(TreeData td) {
-        return this.getMSCCTree(HeightSettingStrategy.None, td);
-    }
+//    public Tree getMSCCTree() {
+//        return this.getMSCCTree(HeightSettingStrategy.None);
+//    }
 
     /**
      * Returns the tree with maximum sum of clade probabilities (#occurrences /
@@ -602,15 +958,16 @@ public class CCD0 extends AbstractCCD {
      * @param heightStrategy the strategy used to set the heights of the tree vertices
      * @return the tree with maximum sum of clade probabilities
      */
-    public Node getMSCCTree(HeightSettingStrategy heightStrategy, TreeData td) {
-        return getTreeBasedOnStrategy(SamplingStrategy.MaxSumCladeCredibility, heightStrategy, td);
-    }
+//    public Tree getMSCCTree(HeightSettingStrategy heightStrategy) {
+//        return getTreeBasedOnStrategy(SamplingStrategy.MaxSumCladeCredibility, heightStrategy);
+//    }
 
     /* -- OTHER METHODS -- */
     @Override
     public AbstractCCD copy() {
         CCD0 copy = new CCD0(this.getSizeOfLeavesArray(), false);
         copy.baseTrees.add(this.getSomeBaseTree());
+        copy.numBaseTrees = this.getNumberOfBaseTrees();
 
         AbstractCCD.buildCopy(this, copy);
 
@@ -631,8 +988,17 @@ public class CCD0 extends AbstractCCD {
     }
 
     @Override
-    protected double getNumberOfParameters() {
+    public double getNumberOfParameters() {
         return this.getNumberOfClades();
     }
+
+	@Override
+	void checkCladePartitionRemoval(Clade clade, CladePartition partition) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+    /* -- WORK IN PROGRESS - OPTIMIZATION & PRINTING -- */
 
 }

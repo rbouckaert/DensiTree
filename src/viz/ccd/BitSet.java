@@ -484,4 +484,25 @@ public class BitSet implements Cloneable {
 
         return true;
     }
+
+    /**
+     * Returns the index of the last bit that is set to {@code true}
+     * Returns -1 if no bit is set.
+     */
+    public int lastSetBit() {
+        int u = words.length-1;
+
+        long word = words[u];
+        while (word == 0 && u >= 0) {
+        	u--;
+        	word = words[u];
+        }
+        if (u < 0) {
+        	// no bit set
+        	return -1;
+        }
+
+        return ((u+1) * BITS_PER_WORD) - Long.numberOfLeadingZeros(word) - 1;
+    }
+    
 }

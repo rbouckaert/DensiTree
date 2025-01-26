@@ -347,4 +347,11 @@ public class BitSet128 extends BitSet {
         return ((word1 & otherset.word1) == 0)
                 && ((word2 & otherset.word2) == 0);
     }
+
+    @Override
+    public int lastSetBit() {
+    	if (word2 != 0)
+    		return 2 * BITS_PER_WORD - Long.numberOfLeadingZeros(word2) - 1;
+        return BITS_PER_WORD - Long.numberOfLeadingZeros(word1) - 1;
+    }
 }

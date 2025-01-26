@@ -437,4 +437,15 @@ public class BitSet256 extends BitSet {
                 && ((word4 & otherset.word4) == 0);
     }
 
+
+    @Override
+    public int lastSetBit() {
+    	if (word4 != 0)
+    		return 3 * BITS_PER_WORD - Long.numberOfLeadingZeros(word4) - 1;
+    	if (word3 != 0)
+    		return 3 * BITS_PER_WORD - Long.numberOfLeadingZeros(word3) - 1;
+    	if (word2 != 0)
+    		return 2 * BITS_PER_WORD - Long.numberOfLeadingZeros(word2) - 1;
+        return BITS_PER_WORD - Long.numberOfLeadingZeros(word1) - 1;
+    }
 }
