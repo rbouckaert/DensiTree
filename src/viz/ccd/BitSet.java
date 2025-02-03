@@ -42,16 +42,16 @@ public class BitSet implements Cloneable {
 
     public static BitSet newBitSet(BitSet other) {
         if (other instanceof BitSet128) {
-            return new BitSet128((BitSet128) other);
+            return new BitSet128((BitSet128)other);
         }
         if (other instanceof BitSet192) {
-            return new BitSet192((BitSet192) other);
+            return new BitSet192((BitSet192)other);
         }
         if (other instanceof BitSet64) {
-            return new BitSet64((BitSet64) other);
+            return new BitSet64((BitSet64)other);
         }
         if (other instanceof BitSet256) {
-            return new BitSet256((BitSet256) other);
+            return new BitSet256((BitSet256)other);
         }
         BitSet b = new BitSet(other.length());
         b.or(other);
@@ -118,6 +118,23 @@ public class BitSet implements Cloneable {
             // Handle last word (restores invariants)
             words[endWordIndex] |= lastWordMask;
         }
+    }
+
+    /**
+     * Sets the bit at the specified index to {@code false}.
+     *
+     * @param bitIndex a bit index
+     * @throws IndexOutOfBoundsException if the specified index is negative
+     */
+    public void clear(int bitIndex) {
+        if (bitIndex < 0)
+            throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+
+        int wordIndex = wordIndex(bitIndex);
+        if (wordIndex >= words.length)
+            return;
+
+        words[wordIndex] &= ~(1L << bitIndex);
     }
 
     /**
@@ -392,7 +409,7 @@ public class BitSet implements Cloneable {
     /**
      * Given a bit index, return word index containing it.
      */
-    private static int wordIndex(int bitIndex) {
+    static int wordIndex(int bitIndex) {
         return bitIndex >> ADDRESS_BITS_PER_WORD;
     }
 
@@ -484,6 +501,7 @@ public class BitSet implements Cloneable {
 
         return true;
     }
+
 
     /**
      * Returns the index of the last bit that is set to {@code true}

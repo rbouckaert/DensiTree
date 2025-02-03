@@ -307,24 +307,24 @@ public class CCD0 extends AbstractCCD {
         // observed in base trees
         if (!updateOnline || (cladeBuckets == null)) {
             // out.print("Initializing CCD0 parameters ... ");
-        	try {
-            	maxExpansionFactor = 0;
-	        	PrintStream out = new PrintStream(new File("/tmp/expand.dat"));
-	        	do {
-	        		maxExpansionFactor++;
-	        		long start = System.currentTimeMillis();
-	        		expand();        		
-		    		long end = System.currentTimeMillis();
-		        	out.print(maxExpansionFactor + ",");
-		        	for (int i = 0; i < cladeBuckets.size(); i++) {
-		        		out.print(cladeBuckets.get(i).size()+",");
-		        	}
-		        	out.println(end-start);
-	        	} while (maxExpansionFactor * getNumberOfLeaves() < cladeMapping.values().size());
-        	} catch (Exception e ) {
-        		e.printStackTrace();
-        	}
-//            expand();
+//        	try {
+//            	maxExpansionFactor = 0;
+//	        	PrintStream out = new PrintStream(new File("/tmp/expand.dat"));
+//	        	do {
+//	        		maxExpansionFactor++;
+//	        		long start = System.currentTimeMillis();
+//	        		expand();        		
+//		    		long end = System.currentTimeMillis();
+//		        	out.print(maxExpansionFactor + ",");
+//		        	for (int i = 0; i < cladeBuckets.size(); i++) {
+//		        		out.print(cladeBuckets.get(i).size()+",");
+//		        	}
+//		        	out.println(end-start);
+//	        	} while (maxExpansionFactor * getNumberOfLeaves() < cladeMapping.values().size());
+//        	} catch (Exception e ) {
+//        		e.printStackTrace();
+//        	}
+            expand();
         } else {
             // out.print("\nExpanding CCD graph (online) ... ");
             expandOnline();
@@ -377,10 +377,10 @@ public class CCD0 extends AbstractCCD {
         }
 
         // 2. sort clades
-        Clade[] cladesArray = (Clade []) cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toArray();
+        Object[] cladesArray = cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toArray();
         List<Clade> clades = new ArrayList<>(cladesArray.length);
-        for (Clade c : cladesArray) {
-        	clades.add(c);
+        for (Object c : cladesArray) {
+        	clades.add((Clade) c);
         }
 //        if ((progressStream != null) && verbose) {
 //            progressStream.println("Expanding CCD0: processing " + clades.size() + " clades");

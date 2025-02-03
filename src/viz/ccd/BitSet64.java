@@ -52,6 +52,23 @@ public class BitSet64 extends BitSet {
     }
 
     /**
+     * Sets the bit at the specified index to {@code false}.
+     *
+     * @param bitIndex a bit index
+     * @throws IndexOutOfBoundsException if the specified index is negative
+     */
+    public void clear(int bitIndex) {
+        if (bitIndex < 0)
+            throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+
+        int wordIndex = wordIndex(bitIndex);
+        if (wordIndex >= 1)
+            return;
+
+        word1 &= ~(1L << bitIndex);
+    }
+
+    /**
      * Performs a logical <b>OR</b> of this bit set with the bit set
      * argument. This bit set is modified so that a bit in it has the
      * value {@code true} if and only if it either already had the
@@ -273,7 +290,7 @@ public class BitSet64 extends BitSet {
         BitSet64 otherset = ((BitSet64) other);
         return (word1 & otherset.word1) == 0;
     }
-
+    
     @Override
     public int lastSetBit() {
         return BITS_PER_WORD - Long.numberOfLeadingZeros(word1) - 1;

@@ -111,6 +111,26 @@ public class BitSet256 extends BitSet {
     }
 
     /**
+     * Sets the bit at the specified index to {@code false}.
+     *
+     * @param bitIndex a bit index
+     * @throws IndexOutOfBoundsException if the specified index is negative
+     */
+    public void clear(int bitIndex) {
+        if (bitIndex < 0)
+            throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+
+        if (bitIndex < 64)
+            word1 &= ~(1L << bitIndex);
+        else if (bitIndex < 128)
+            word2 &= ~(1L << (bitIndex - 64));
+        else if (bitIndex < 192)
+            word3 &= ~(1L << (bitIndex - 128));
+        else
+            word4 &= ~(1L << (bitIndex - 192));
+    }
+
+    /**
      * Performs a logical <b>OR</b> of this bit set with the bit set
      * argument. This bit set is modified so that a bit in it has the
      * value {@code true} if and only if it either already had the

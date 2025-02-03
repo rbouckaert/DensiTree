@@ -33,7 +33,6 @@ public class BitSet192 extends BitSet {
         if (bitIndex < 0)
             throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
 
-
         if (bitIndex < 64)
             word1 |= (1L << bitIndex); // Restores invariants
         else if (bitIndex < 128)
@@ -82,6 +81,24 @@ public class BitSet192 extends BitSet {
             word3 = WORD_MASK >>> (-toIndex + 128);
             word3 &= (WORD_MASK << (fromIndex - 128));
         }
+    }
+
+    /**
+     * Sets the bit at the specified index to {@code false}.
+     *
+     * @param bitIndex a bit index
+     * @throws IndexOutOfBoundsException if the specified index is negative
+     */
+    public void clear(int bitIndex) {
+        if (bitIndex < 0)
+            throw new IndexOutOfBoundsException("bitIndex < 0: " + bitIndex);
+
+        if (bitIndex < 64)
+            word1 &= ~(1L << bitIndex);
+        else if (bitIndex < 128)
+            word2 &= ~(1L << (bitIndex - 64));
+        else
+            word3 &= ~(1L << (bitIndex - 128));
     }
 
     /**
@@ -373,6 +390,7 @@ public class BitSet192 extends BitSet {
                 && ((word3 & otherset.word3) == 0);
     }
 
+
     @Override
     public int lastSetBit() {
     	if (word3 != 0)
@@ -381,4 +399,5 @@ public class BitSet192 extends BitSet {
     		return 2 * BITS_PER_WORD - Long.numberOfLeadingZeros(word2) - 1;
         return BITS_PER_WORD - Long.numberOfLeadingZeros(word1) - 1;
     }
+
 }
