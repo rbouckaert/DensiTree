@@ -783,11 +783,11 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     }
 
     // @Override
-    public double getMaxTreeProbability() {
+    public double getMaxLogTreeProbability() {
         tidyUpCacheIfDirty();
         resetCacheIfProbabilitiesDirty();
 
-        return this.rootClade.getMaxSubtreeCCP();
+        return this.rootClade.getMaxSubtreeLogCCP();
     }
 
     /* Helper method */
@@ -954,6 +954,18 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
             return currentClade;
         }
+    }
+
+    /**
+     * Returns the probability of the most likely tree. Note that this can
+     * underflow for large trees. It is recommended to use {@link #getMaxLogTreeProbability()}
+     * instead.
+     *
+     * @return probability of the most likely tree.
+     */
+    //@Override
+    public double getMaxTreeProbability() {
+        return Math.exp(this.getMaxLogTreeProbability());
     }
 
     //@Override
@@ -1169,7 +1181,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     @Override
     public String toString() {
         return "[number of leaves: " + this.leafArraySize + ", number of clades: "
-                + this.getNumberOfClades() + ", max probability: " + this.getMaxTreeProbability()
+                + this.getNumberOfClades() + ", max probability: " + this.getMaxLogTreeProbability()
                 + ", entropy: " + this.getEntropy() + ", taxa: " + this.getTaxaAsBitSet() + "]";
     }
 

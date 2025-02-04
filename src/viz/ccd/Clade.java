@@ -68,7 +68,7 @@ public class Clade {
     /**
      * Computed max CCP of any subtree with the root on this clade.
      */
-    private double maxSubtreeCCP = -1;
+    private double maxSubtreeLogCCP = 1;
 
     /**
      * The partition of this clade realized by the subtree rooted at this clade
@@ -128,7 +128,7 @@ public class Clade {
         this.childClades = new ArrayList<Clade>(8);
 
         if (size == 1) {
-            this.maxSubtreeCCP = 1;
+            this.maxSubtreeLogCCP = 0;
             this.maxSubtreeSumCladeCredibility = 1;
             this.probability = 1;
             this.sumCladeCredibilities = 1;
@@ -231,7 +231,7 @@ public class Clade {
                 this.maxSubtreeSumCladeCredibilityPartition = null;
                 this.numTopologies = null;
             }
-            this.maxSubtreeCCP = -1;
+            this.maxSubtreeLogCCP = 1;
             this.maxSubtreeSumCladeCredibility = -1;
             this.entropy = -1;
             this.sumCladeCredibilities = -1;
@@ -532,81 +532,8 @@ public class Clade {
         return maxCCPPartition;
     }
 
-    /**
-     * @return max CCP of any subtree rooted at this clade
-     */
-    public double getMaxSubtreeCCP() {
-        if (this.maxSubtreeCCP < 0) {
-            this.computeMaxSubtreeCCP();
-        }
 
-        return maxSubtreeCCP;
-    }
-
-    /**
-     * Returns the partition of this clade that is realized in the max
-     * conditional clade probability subtree (so recursively) with the root at
-     * this clade.
-     *
-     * @return partition realized in max CCP subtree rooted at this clade
-     */
-    public CladePartition getMaxSubtreeCCPPartition() {
-        if ((this.maxSubtreeCCPPartition == null) || (this.maxSubtreeCCP < 0)) {
-            this.computeMaxSubtreeCCP();
-        }
-
-        return maxSubtreeCCPPartition;
-    }
-
-    /*
-     * Helper method. Computes the subtree with the root on this clade and that
-     * maximizes the conditional clade probability; so this maximizes the
-     * probability recursively.
-     */
-    private void computeMaxSubtreeCCP() {
-        // for a single non-leaf clade, to find the max probability subtree we
-        // only have to pick the partition of this clade with max probability in
-        // its two subtrees
-        for (CladePartition partition : partitions) {
-            double partitionMaxCCP = partition.getMaxSubtreeCCP();
-
-            if (partitionMaxCCP > maxSubtreeCCP) {
-                maxSubtreeCCP = partitionMaxCCP;
-                maxSubtreeCCPPartition = partition;
-            } else if (partitionMaxCCP == maxSubtreeCCP) {
-                // System.out.println("Tie found for computeMaxSubtreeCCP.");
-                Clade smallCladeMax = maxSubtreeCCPPartition.getSmallerChild();
-                Clade smallCladeCurrent = partition.getSmallerChild();
-
-                // we pick the more balanced partition
-                if (smallCladeMax.size() < smallCladeCurrent.size()) {
-                    maxSubtreeCCP = partitionMaxCCP;
-                    maxSubtreeCCPPartition = partition;
-                } else if (smallCladeMax.size() == smallCladeCurrent.size()) {
-                    // but if they are equally balanced, then decide lexicographically which partition to pick
-                    // to achieve that, we work with the bitsets of the clades
-                    BitSet bitsMax = smallCladeMax.getCladeInBits();
-                    BitSet bitsCurrent = smallCladeCurrent.getCladeInBits();
-
-                    if (bitsMax.equals(bitsCurrent)) {
-                        System.err.println(maxSubtreeCCPPartition);
-                        System.err.println(partition);
-                        throw new AssertionError("Tie breaking failed - duplicate partitions detected!");
-                    }
-
-                    BitSet bitsSmaller = BitSetUtil.getLexicographicFirst(bitsMax, bitsCurrent);
-                    if (bitsCurrent == bitsSmaller) {
-                        maxSubtreeCCP = partitionMaxCCP;
-                        maxSubtreeCCPPartition = partition;
-                    }
-                }
-            }
-        }
-
-        // TODO consider tie breaking mechanisms
-    }
-
-    /**
+ /**
      * @return clade credibility (Monte Carlo probability) of this clade
      * {@code (#occurrences / #trees)}
      */
@@ -655,6 +582,78 @@ public class Clade {
     }
 
     /**
+     * @return max log CCP of any subtree rooted at this clade.
+     */
+    public double getMaxSubtreeLogCCP() {
+        if (this.maxSubtreeLogCCP > 0) {
+            this.computeMaxSubtreeLogCCP();
+        }
+
+        return maxSubtreeLogCCP;
+    }
+
+    /**
+     * Returns the partition of this clade that is realized in the max
+     * conditional clade probability subtree (so recursively) with the root at
+     * this clade.
+     *
+     * @return partition realized in max CCP subtree rooted at this clade
+     */
+    public CladePartition getMaxSubtreeCCPPartition() {
+        if ((this.maxSubtreeCCPPartition == null) || (this.maxSubtreeLogCCP > 0)) {
+            this.computeMaxSubtreeLogCCP();
+        }
+
+        return maxSubtreeCCPPartition;
+    }
+
+    /*
+     * Helper method. Computes the subtree with the root on this clade and that
+     * maximizes the conditional clade probability; so this maximizes the
+     * probability recursively.
+     */
+    private void computeMaxSubtreeLogCCP() {
+        // for a single non-leaf clade, to find the max probability subtree we
+        // only have to pick the partition of this clade with max probability in
+        // its two subtrees
+        for (CladePartition partition : partitions) {
+            double partitionMaxLogCCP = partition.getMaxSubtreeLogCCP();
+
+            if (partitionMaxLogCCP > maxSubtreeLogCCP || maxSubtreeLogCCP > 0) {
+                maxSubtreeLogCCP = partitionMaxLogCCP;
+                maxSubtreeCCPPartition = partition;
+            } else if (partitionMaxLogCCP == maxSubtreeLogCCP) {
+                // System.out.println("Tie found for computeMaxSubtreeccd.");
+                Clade smallCladeMax = maxSubtreeCCPPartition.getSmallerChild();
+                Clade smallCladeCurrent = partition.getSmallerChild();
+
+                // we pick the more balanced partition
+                if (smallCladeMax.size() < smallCladeCurrent.size()) {
+                    maxSubtreeLogCCP = partitionMaxLogCCP;
+                    maxSubtreeCCPPartition = partition;
+                } else if (smallCladeMax.size() == smallCladeCurrent.size()) {
+                    // but if they are equally balanced, then decide lexicographically which partition to pick
+                    // to achieve that, we work with the bitsets of the clades
+                    BitSet bitsMax = smallCladeMax.getCladeInBits();
+                    BitSet bitsCurrent = smallCladeCurrent.getCladeInBits();
+
+                    if (bitsMax.equals(bitsCurrent)) {
+                        System.err.println(maxSubtreeCCPPartition);
+                        System.err.println(partition);
+                        throw new AssertionError("Tie breaking failed - duplicate partitions detected!");
+                    }
+
+                    BitSet bitsSmaller = BitSetUtil.getLexicographicFirst(bitsMax, bitsCurrent);
+                    if (bitsCurrent == bitsSmaller) {
+                        maxSubtreeLogCCP = partitionMaxLogCCP;
+                        maxSubtreeCCPPartition = partition;
+                    }
+                }
+            }
+        }
+    }
+
+      /**
      * @return if computed, sum of subtree clade credibilities of all subtrees
      * rooted at this clade; use
      * {@link Clade#computeSumCladeCredibilities()} to compute new value
