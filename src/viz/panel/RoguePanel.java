@@ -249,7 +249,7 @@ public class RoguePanel extends JPanel implements ChangeListener {
 		}
 		
 		RogueDetection.TerminationStrategy tStratgey = RogueDetection.TerminationStrategy.NumRogues;
-		tStratgey.setThreshold(dropSetSize);
+		tStratgey.setThreshold(m_dt.m_settings.m_sLabels.size());
         List<viz.ccd.AbstractCCD> ccds = RogueDetection.detectRoguesWhileImproving(
                 ccd,
                 dropSetSize,
