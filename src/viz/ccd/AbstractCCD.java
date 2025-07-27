@@ -1,10 +1,10 @@
 package viz.ccd;
 
-import viz.DensiTree;
 import viz.Node;
 import viz.TreeData;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +38,31 @@ import java.util.Set;
  *
  * @author Jonathan Klawitter
  */
-public abstract class AbstractCCD { // implements ITreeDistribution {
+public abstract class AbstractCCD implements ITreeDistribution {
+
+    /** Key for probability metadata stored in vertices of tree obtained from CCD. */
+    public static final String PROB_SUBTREE_KEY = "pSubtree";
+
+    /** Key for log-probability metadata stored in vertices of tree obtained from CCD. */
+    public static final String LOG_PROB_SUBTREE_KEY = "logPSubtree";
+
+    /** Key for posterior support (clade probability) of vertex based on CCD. */
+    public static final String CLADE_SUPPORT_KEY = "posterior";
+
+    /** Whether to use log probabilities instead of probabilities; necessary for huge/diffuse CCDs. */
+    protected boolean useLogProbabilities = false;
+
+    /** Whether to print information during construction, etc. */
+    public static boolean verbose = true;
+
+    /** Stream to print information to. */
+    public static PrintStream out = System.out;
+
+    /** Threshold used for rounding errors when adding up probabilities, to round back to 0 or 1. */
+    public final static double PROBABILITY_ROUNDING_EPSILON = 1e-10;
+
+    /** Threshold used for throwing error when probability that much out of bounds (mostly above 1). */
+    public final static double PROBABILITY_ERROR = 1e-5;
 
     /**
      * The trees this CCD is based on (burnin trees removed).
@@ -46,7 +70,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     protected List<Tree> baseTrees;
 
     /** The trees this CCD is based on (burnin trees removed). */
-    // protected TreeSet baseTreeSet;
+    //protected TreeSet baseTreeSet;
 
     /**
      * Whether to store the trees used to create this CCD.
@@ -118,48 +142,6 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         }
     }
 
-    /**
-     * Constructor for a {@link AbstractCCD} based on the given collection of
-     * trees (not containing any burnin trees).
-     *
-     * @param treeSet        an iterable set of trees, which contains no burnin trees and
-     *                       that are used to build and populate the CCD graph of this
-     *                       {@link AbstractCCD}
-     * @param storeBaseTrees whether to store the trees used to create this CCD
-     */
-//    public AbstractCCD(TreeSet treeSet, boolean storeBaseTrees) {
-//        this(storeBaseTrees);
-//        this.baseTreeSet = treeSet;
-//        this.burnin = 0;
-//        try {
-//            treeSet.reset();
-//            Tree tree = treeSet.next();
-//            initializeRootClade(tree.getLeafNodeCount());
-//
-//            System.out.println("Constructing CCD with "
-//                    + (treeSet.totalTrees - treeSet.burninCount) + " trees...");
-//
-//            while (tree != null) {
-//                this.numBaseTrees++;
-//                cladifyTree(tree);
-//
-//                // report progress
-//                if (numBaseTrees % 10 == 0) {
-//                    System.out.print(".");
-//                    System.out.flush();
-//                }
-//                if (numBaseTrees % 1000 == 0) {
-//                    System.out.println(" (" + numBaseTrees + ")");
-//                }
-//
-//                tree = treeSet.hasNext() ? treeSet.next() : null;
-//            }
-//            System.out.println(" ...done.");
-//
-//        } catch (IOException e) {
-//            System.err.println("Error reading in trees to create CCD.");
-//        }
-//    }
 
     /**
      * Constructor to start with an empty CDD graph. Trees can then be processed
@@ -265,8 +247,8 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     /**
      * Removes the given tree from set of trees the CCD graph is based on
      * (reduces the number of occurrences for each of the tree's clades and
-     * partitions by one). The behavior is unspecified if tree was used before
-     * to build CCD graph.
+     * partitions by one). The behavior is unspecified if tree wasn't used
+     * to build CCD graph or has been removed (to a count of 0) before.
      *
      * @param tree           to be taken out from set of trees this CCD is based on
      * @param tidyUpCCDGraph whether to keep the CCD graph tidy, that is, not keeping any
@@ -282,7 +264,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         this.numBaseTrees--;
 
         if (tidyUpCCDGraph) {
-            this.tidyUpCCDGraph();
+            this.tidyUpCCDGraph(false);
         }
 
         this.setCacheAsDirty();
@@ -312,27 +294,35 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
         // 3. reduce counts for its clade partitions
         if (!vertex.isLeaf()) {
-            CladePartition currentPartition = currentClade.getCladePartition(firstChildClade,
-                    secondChildClade);
+            CladePartition currentPartition = currentClade.getCladePartition(firstChildClade, secondChildClade);
             currentPartition.decreaseOccurrenceCount(vertex.getHeight());
 
-            checkCladePartitionRemoval(currentClade, currentPartition);
+            removeCladePartitionIfNecessary(currentClade, currentPartition);
         }
 
         return currentClade;
     }
 
-    abstract void checkCladePartitionRemoval(Clade clade, CladePartition partition);
+    /**
+     * Removes a clade partition if it shouldn't be kept in a CCD,
+     * e.g. after its count has been decreased.
+     *
+     * @param clade     parent of the clade partition
+     * @param partition to be checked and potentially removed
+     * @return whether the clade partition has been removed
+     */
+    protected abstract boolean removeCladePartitionIfNecessary(Clade clade, CladePartition partition);
 
     /**
      * Tidy up this CCD by removing nontrivial clades that have no clade
      * partitions and clade partitions whose parent or child clades have been
      * removed.
      *
+     * @param renormalize whether to renormalize CCPs of clade partitions under a clade where ones was removed
      * @return whether this CCD is still complete, i.e. returns {@code false}
      * when any leaf is not reachable anymore from the root
      */
-    public boolean tidyUpCCDGraph() {
+    public boolean tidyUpCCDGraph(boolean renormalize) {
         boolean complete = true;
         ArrayList<Clade> cladesToRemove = new ArrayList<Clade>();
 
@@ -345,20 +335,20 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         for (Clade clade : this.getCladeMapping().values()) {
             if (clade.isLeaf()) {
                 if (clade.getParentClades().isEmpty()) {
-//                    System.out.println("- leaf "
-//                            + clade.getCladeInBits() + " (" + this.baseTrees.get(0)
-//                            .getNode(clade.getCladeInBits().nextSetBit(0)).getID()
-//                            + ") has no parent clade!");
+                    // System.out.println("- leaf "
+                    //         + clade.getCladeInBits() + " (" + this.baseTrees.get(0)
+                    //         .getNode(clade.getCladeInBits().nextSetBit(0)).getID()
+                    //         + ") has no parent clade!");
                     complete = false;
                 }
             } else if (clade == this.rootClade) {
                 if (clade.getPartitions().isEmpty()) {
-//                    System.out.println("- root clade has no partitions!");
-                    complete = false;
+                    out.println("- root clade has no partitions!");
+                    // complete = false;
                 }
             } else if (clade.getParentClades().isEmpty() || clade.getPartitions().isEmpty()
                     || (clade.getNumberOfOccurrences() == 0)) {
-                // System.out.println("- clade found to remove: " + clade.getCladeInBits());
+                // out.println("- clade found to remove: " + clade.getCladeInBits());
                 cladesToRemove.add(clade);
             }
         }
@@ -366,12 +356,11 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         // when removing a clades, have to check their (old) parents/children
         while (!cladesToRemove.isEmpty()) {
             Clade cladeToRemove = cladesToRemove.remove(cladesToRemove.size() - 1);
-            // System.out.println("clade to remove: " +
-            // cladeToRemove.getCladeInBits());
+            // out.println("clade to remove: " + cladeToRemove.getCladeInBits());
 
             // keep trivial clades
             if (cladeToRemove.isLeaf() || (cladeToRemove == this.rootClade)) {
-                System.out.println("- request to remove " + (cladeToRemove.isLeaf() ? "leaf" : "root") + "!");
+                out.println("- request to remove " + (cladeToRemove.isLeaf() ? "leaf" : "root") + "!");
                 complete = false;
                 continue;
             }
@@ -382,6 +371,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
             if (this.cladeMapping.remove(cladeToRemove.getCladeInBits()) == null) {
                 continue;
             }
+            setCacheAsDirty();
             numCladesRemoved++;
 
             // b) remove connection to parent clades ...
@@ -399,6 +389,10 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
                         numPartitionsRemoved++;
                         if (parent.getPartitions().isEmpty()) {
                             cladesToRemove.add(parent);
+                        } else {
+                            if (renormalize) {
+                                parent.normalizeCCPs();
+                            }
                         }
 
                         // also update other child
@@ -428,9 +422,9 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         }
 
         /*- if ((numCladesRemoved > 0) || (numPartitionsRemoved > 0)) {
-            System.out.println("Tidying up CCD - removed " + numCladesRemoved + " clades and " + numPartitionsRemoved + " clade partitions.");
+            out.println("Tidying up CCD - removed " + numCladesRemoved + " clades and " + numPartitionsRemoved + " clade partitions.");
             if (!complete) {
-                System.out.println("=> CCD is not complete anymore (contains no tree or only incomplete ones)!");
+                out.println("=> CCD is not complete anymore (contains no tree or only incomplete ones)!");
             }
         }*/
 
@@ -452,7 +446,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
      * might be less than the taxa existing in this CCD, namely, if it
      * is filtered)
      */
-    //@Override
+    @Override
     public int getNumberOfLeaves() {
         return leafArraySize;
     }
@@ -475,12 +469,12 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         return rootClade;
     }
 
-    // @Override
+    @Override
     public int getNumberOfClades() {
         return cladeMapping.size();
     }
 
-    // @Override
+    @Override
     public Collection<Clade> getClades() {
         return cladeMapping.values();
     }
@@ -497,7 +491,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
      */
     public int getNumberOfCladePartitions() {
         int count = 0;
-        for (Clade clade : cladeMapping.values()) {
+        for (Clade clade : this.getClades()) {
             count += clade.getNumberOfPartitions();
         }
         return count;
@@ -537,9 +531,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         this.numBaseTrees = newNumberOfBaseTrees;
     }
 
-    /**
-     * @return trees this CCD is based on if stored, otherwise {@code null}
-     */
+    /** @return trees this CCD is based on if stored, otherwise {@code null} */
     public List<Tree> getBaseTrees() {
         if (this.baseTrees == null) {
             return null;
@@ -547,6 +539,11 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
             return (baseTrees.size() == this.numBaseTrees) ? this.baseTrees : null;
         }
     }
+
+    /** @return tree set used to construct this CCD if stored, otherwise {@code null} */
+//    public TreeSet getBaseTreeSet() {
+//        return baseTreeSet;
+//    }
 
     /**
      * Set the base TreeSet of this CCD.
@@ -575,20 +572,17 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
     /* -- STATE MANAGEMENT - STATE MANAGEMENT -- */
 
-    /**
-     * Whether cached probability values are out of date.
-     */
+    /** Whether cached probability values are out of date. */
     protected boolean probabilitiesDirty = false;
 
-    /**
-     * Whether cached entropy values are out of date.
-     */
+    /** Whether cached entropy values are out of date. */
     protected boolean entropyDirty = false;
 
-    /**
-     * Whether cached numbers of topologies are out of date.
-     */
+    /** Whether cached numbers of topologies are out of date. */
     protected boolean numberOfTopologiesDirty = false;
+
+    /** Whether cached numbers of topologies are out of date. */
+    protected boolean commonAncestorHeightsDirty = true;
 
     /**
      * Sets CCD as dirty lazily, meaning cached values become out of date and
@@ -613,6 +607,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         probabilitiesDirty = false;
         entropyDirty = false;
         numberOfTopologiesDirty = false;
+        commonAncestorHeightsDirty = true;
     }
 
     /* Helper method. */
@@ -627,12 +622,12 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
     /**
      * Compute the entropy of the tree distribution modeled by this CCD. Based
-     * on <a href="https://dx.doi.org/10.1093/sysbio/syw042">Lewis et al.
+     * on the algorithm by <a href="https://dx.doi.org/10.1093/sysbio/syw042">Lewis et al.
      * 2016</a>, Appendix 1 # Algorithm 1
      *
      * @return the entropy of the tree distribution modeled by this CCD
      */
-    public double getEntropy() {
+    public double getEntropyLewis() {
         if (entropyDirty) {
             resetCache();
         }
@@ -640,7 +635,26 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         return this.rootClade.getEntropy();
     }
 
-    // @Override
+    /**
+     * Compute the entropy of the tree distribution modeled by this CCD
+     * with the simple clade partition based formula.
+     *
+     * @return the entropy of the tree distribution modeled by this CCD
+     */
+    public double getEntropy() {
+        computeCladeProbabilitiesIfDirty();
+        double testro = 0;
+        for (Clade clade : getClades()) {
+            for (CladePartition partition : clade.getPartitions()) {
+                double logS = partition.getLogCCP();
+                testro += partition.getProbability() * logS;
+            }
+        }
+
+        return -testro;
+    }
+
+    @Override
     public BigInteger getNumberOfTrees() {
         if (numberOfTopologiesDirty) {
             resetCache();
@@ -678,52 +692,121 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     /** @return the number of parameters this CCD model has */
     abstract protected double getNumberOfParameters();
 
+    /** @return the log likelihood of this CCD based on the trees it was constructed with */
+    public double getLogLikelihood() {
+        double logP = 0;
+        for (Clade c : this.getClades()) {
+            for (CladePartition p : c.getPartitions()) {
+                int x = p.getNumberOfOccurrences();
+                if (x > 0) {
+                    logP += x * p.getLogCCP();
+                }
+            }
+        }
+        return logP;
+    }
+
+    /**
+     * Computes and returns the Fair Proportion Diversity Index of the taxa in this CCD
+     * by using branch length derived from heights set by the given strategy
+     *
+     * @param heightStrategy used to set clade heights
+     * @return Fair Proportion Diversity Index of the taxa in this CCD
+     */
+//    public double[] getFairProportionIndex(HeightSettingStrategy heightStrategy) {
+//        this.computeCladeProbabilitiesIfDirty();
+//        if (heightStrategy == HeightSettingStrategy.CommonAncestorHeights) {
+//            setupCommonAncestorHeightsIfDirty();
+//        }
+//
+//        double max = 0;
+//
+//        double[] index = new double[this.getSizeOfLeavesArray()];
+//
+//        for (Clade parent : this.getClades()) {
+//            double pClade = parent.getProbability();
+//
+//            for (CladePartition partition : parent.getPartitions()) {
+//                double pPartition = partition.getCCP();
+//
+//                for (Clade child : partition.getChildClades()) {
+//                    double branchLength = 0;
+//                    if (heightStrategy == HeightSettingStrategy.CommonAncestorHeights) {
+//                        branchLength = parent.getCommonAncestorHeight() - child.getCommonAncestorHeight();
+//                    } else if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
+//                        branchLength = parent.getMeanOccurredHeight() - child.getMeanOccurredHeight();
+//                    }
+//
+//                    if (branchLength < 0) {
+//                        throw new AssertionError("Negative branch length.");
+//                    }
+//
+//                    int size = child.size();
+//                    double diversity = pClade * pPartition * branchLength / size;
+//
+//                    BitSet bitset = child.getCladeInBits();
+//                    int i = bitset.nextSetBit(0);
+//                    while (i != -1) {
+//                        index[i] += diversity;
+//                        i = bitset.nextSetBit(i + 1);
+//                    }
+//                }
+//            }
+//        }
+//
+//        return index;
+//    }
+
 
     /* -- POINT ESTIMATE / SAMPLING METHODS -- */
 
-    // @Override
+//    @Override
 //    public Tree sampleTree() {
 //        return sampleTree(HeightSettingStrategy.None);
 //    }
-
-    // @Override
+//
+//    @Override
 //    public Tree sampleTree(HeightSettingStrategy heightStrategy) {
 //        return getTreeBasedOnStrategy(SamplingStrategy.Sampling, heightStrategy);
 //    }
-
-    // @Override
-    public Node getMAPTree(TreeData td) {
-        return this.getMAPTree(HeightSettingStrategy.One, td);
+//
+//    @Override
+    public Tree getMAPTree() {
+        return this.getMAPTree(HeightSettingStrategy.One);
     }
 
-    // @Override
+    @Override
+    public Tree getMAPTree(HeightSettingStrategy heightStrategy) {
+        // return getTreeBasedOnStrategy(SamplingStrategy.MAP, heightStrategy);
+        return null;
+    }
+
     public Node getMAPTree(HeightSettingStrategy heightStrategy, TreeData td) {
-        return getTreeBasedOnStrategy(SamplingStrategy.MAP, heightStrategy, td);
+        return  getTreeBasedOnStrategy(SamplingStrategy.MAP, heightStrategy, td);
     }
 
-    /* Helper for methods to assign indices to vertices */
-    private int runningIndex;
+    /* Helper for methods to assign indices to inner vertices */
+    private int runningInnerIndex;
+
+    /* Helper for methods to assign indices to leaves */
+    // private int runningLeafIndex;
 
     /* Strategy based tree sampling method */
-    protected Node getTreeBasedOnStrategy(SamplingStrategy samplingStrategy,
-                                          HeightSettingStrategy heightStrategy, TreeData td) {
+    protected Node getTreeBasedOnStrategy(SamplingStrategy samplingStrategy, HeightSettingStrategy heightStrategy, TreeData td) {
         tidyUpCacheIfDirty();
+        computeCladeProbabilitiesIfDirty();
 
-        runningIndex = this.getNumberOfLeaves();
+//        if (heightStrategy == HeightSettingStrategy.CommonAncestorHeights) {
+//            setupCommonAncestorHeightsIfDirty();
+//        }
+
+        runningInnerIndex = this.getSizeOfLeavesArray();
         Node root = getVertexBasedOnStrategy(this.rootClade, samplingStrategy, heightStrategy);
-        // Tree tree = new Tree(root);
-
-        if (heightStrategy == HeightSettingStrategy.MeanLCAHeight) {
-            setMeanLCAHeights(root);
-        } else if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
-            setMeanOccurredHeights(root, td);
-        }
-
         adjustLengths(root);
-        
         return root;
     }
-
+    
+    
     protected void adjustLengths(Node node) {
     	if (!node.isRoot()) {
     		node.m_fLength = node.getParent().m_fPosX - node.m_fPosX;
@@ -735,27 +818,31 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     		adjustLengths(node.m_right);
     	}
     };
+    
+    /* Recursive helper method */
+    private Node getVertexBasedOnStrategy(Clade clade, SamplingStrategy samplingStrategy, HeightSettingStrategy heightStrategy) {
+        // computeCladeProbabilitiesIfDirty();
 
-	/* Recursive helper method */
-    private Node getVertexBasedOnStrategy(Clade clade, SamplingStrategy samplingStrategy,
-                                          HeightSettingStrategy heightStrategy) {
         Node vertex = null;
         if (clade.isLeaf()) {
             int leafNr = clade.getCladeInBits().nextSetBit(0);
-            // String taxonName = this.getSomeBaseTree().getTaxaNames()[leafNr];
+            //String taxonName = this.getSomeBaseTree().getTaxaNames()[leafNr];
 
             vertex = new Node();
             vertex.m_iLabel = leafNr;
+//            vertex.setNr(leafNr);
+//            vertex.setMetaData(PROB_SUBTREE_KEY, 1.0);
+//            vertex.setMetaData(LOG_PROB_SUBTREE_KEY, 0.0);
+//            vertex.setMetaData(CLADE_SUPPORT_KEY, 1.0);
+            // vertex.setNr(runningLeafIndex++);
             if (heightStrategy != null) {
+                // common ancestor, mean height and ONE all use the same height for leaves
                 vertex.setHeight(clade.getMeanOccurredHeight());
             }
         } else {
             CladePartition partition = getPartitionBasedOnStrategy(clade, samplingStrategy);
             if (partition == null) {
-                System.err.println("clade has no partition - " + clade.getCladeInBits());
-                for (CladePartition partition2 : clade.getPartitions()) {
-                    System.err.println(partition2.toString());
-                }
+                throw new AssertionError("Unsuccessful to find clade partition of clade: " + clade.getCladeInBits());
             }
 
             Node firstChild = getVertexBasedOnStrategy(partition.getChildClades()[0],
@@ -765,24 +852,99 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
             // These are not needed and only make the output newick longer
             vertex = new Node();
-            vertex.m_iLabel = runningIndex++;
+            vertex.m_iLabel = runningInnerIndex++;
             vertex.m_left = firstChild;
             firstChild.setParent(vertex);
             vertex.m_right = secondChild;
             secondChild.setParent(vertex);
+//            vertex.setNr(runningInnerIndex++);
+//            double cladeProbability = clade.getProbability();
+//            vertex.setMetaData(CLADE_SUPPORT_KEY, cladeProbability);
+//            String posteriorSupport = CLADE_SUPPORT_KEY + "=" + cladeProbability;
+//            if (vertex.metaDataString != null) {
+//                vertex.metaDataString += "," + posteriorSupport;
+//            } else {
+//                vertex.metaDataString = posteriorSupport;
+//            }
+//            vertex.addChild(firstChild);
+//            vertex.addChild(secondChild);
 
-            if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
-                vertex.setHeight(clade.getMeanOccurredHeight());
-            } else if (heightStrategy == HeightSettingStrategy.One) {
+            // attach probability information
+//            Double p = (Double) firstChild.getMetaData(PROB_SUBTREE_KEY)
+//                    * (Double) secondChild.getMetaData(PROB_SUBTREE_KEY)
+//                    * partition.getCCP();
+//            Double logP = (Double) firstChild.getMetaData(LOG_PROB_SUBTREE_KEY)
+//                    + (Double) secondChild.getMetaData(LOG_PROB_SUBTREE_KEY)
+//                    + partition.getLogCCP();
+//            vertex.setMetaData(PROB_SUBTREE_KEY, p);
+//            vertex.setMetaData(LOG_PROB_SUBTREE_KEY, logP);
+
+//            if (heightStrategy == HeightSettingStrategy.MeanOccurredHeights) {
+//                vertex.setHeight(clade.getMeanOccurredHeight());
+//            } else if (heightStrategy == HeightSettingStrategy.One) {
                 double height = Math.max(firstChild.getHeight(), secondChild.getHeight()) + 1;
                 vertex.setHeight(height);
-            }
+//            } else if (heightStrategy == HeightSettingStrategy.CommonAncestorHeights) {
+//                // out.println("\nvertex = " + vertex);
+//                // out.println("vertex.getHeight() = " + vertex.getHeight());
+//                // out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//                vertex.setHeight(clade.getCommonAncestorHeight());
+//                // out.println("vertex.getHeight() = " + vertex.getHeight());
+//
+//                if (Double.isNaN(clade.getCommonAncestorHeight())) {
+//                    System.err.println("\nNaN height!");
+//                    System.err.println("clade = " + clade);
+//                    System.err.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//                }
+//
+//                if (vertex.getHeight() < 0) {
+//                    System.err.println("\nVertex with negative height");
+//                    System.err.println("vertex.getHeight() = " + vertex.getHeight());
+//                    System.err.println("clade.getCommonAncestorHeight =  " + clade.getCommonAncestorHeight());
+//                    System.err.println("clade.getMeanOccurredHeight =  " + clade.getMeanOccurredHeight());
+//                }
+//                if ((vertex.getHeight() - vertex.getChild(0).getHeight()) < 0) {
+//                    System.err.println("\nNegative branch length, L");
+//                    System.err.println("branchLength = " + (vertex.getHeight() - vertex.getChild(0).getHeight()));
+//                    System.err.println("parent = " + vertex);
+//                    System.err.println("childL = " + vertex.getChild(0));
+//                }
+//                if ((vertex.getHeight() - vertex.getChild(1).getHeight()) < 0) {
+//                    System.err.println("\nNegative branch length, R");
+//                    System.err.println("branchLength = " + (vertex.getHeight() - vertex.getChild(0).getHeight()));
+//                    System.err.println("parent = " + vertex);
+//                    System.err.println("childR = " + vertex.getChild(1));
+//                }
+//            }
         }
 
         return vertex;
     }
+//
+//    @Override
+//    public double sampleTreeProbability() {
+//        return (double) sampleTree().getRoot().getMetaData(PROB_SUBTREE_KEY);
+//    }
+//
+//    public double sampleTreeLogProbability() {
+//        return (double) sampleTree().getRoot().getMetaData(LOG_PROB_SUBTREE_KEY);
+//    }
+//
+    /**
+     * Returns the probability of the most likely tree. Note that this can
+     * underflow for large trees. It is recommended to use {@link #getMaxLogTreeProbability()}
+     * instead.
+     *
+     * @return probability of the most likely tree.
+     */
+    @Override
+    public double getMaxTreeProbability() {
+        return Math.exp(this.getMaxLogTreeProbability());
+    }
 
-    // @Override
+    /**
+     * @return the log probability of the most likely tree.
+     */
     public double getMaxLogTreeProbability() {
         tidyUpCacheIfDirty();
         resetCacheIfProbabilitiesDirty();
@@ -791,22 +953,11 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
     }
 
     /* Helper method */
-    private CladePartition getPartitionBasedOnStrategy(Clade clade,
-                                                       SamplingStrategy samplingStrategy) {
+    private CladePartition getPartitionBasedOnStrategy(Clade clade, SamplingStrategy samplingStrategy) {
         CladePartition partition = null;
         switch (samplingStrategy) {
             case MAP: {
                 partition = clade.getMaxSubtreeCCPPartition();
-
-                // check if partition tied with others
-			/*- 
-			ArrayList<CladePartition> partitions = clade.getPartitions();
-			for (CladePartition cladePartition : partitions) {
-				if ((cladePartition != partition)
-						&& (cladePartition.getMaxSubtreeCCP() == partition.getMaxSubtreeCCP())) {
-					System.out.println(" -!- tie in choice of max recursive probability tree");
-				}
-			}*/
                 break;
             }
             case Sampling: {
@@ -842,44 +993,157 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         return partition;
     }
 
-    /* Helper method */
-    private void setMeanLCAHeights(Node root) {
-        // initialize BitSet representation of trees
-    	Tree tree = new Tree(root);
-        WrappedBeastTree wrappedTree = new WrappedBeastTree(tree);
-        WrappedBeastTree[] wrappedUsedTrees = new WrappedBeastTree[numBaseTrees];
-        int i = 0;
-        for (Tree inputTree : baseTrees) {
-            wrappedUsedTrees[i++] = new WrappedBeastTree(inputTree);
-        }
+    /* Helper method. */
+//    protected void setupCommonAncestorHeightsIfDirty() {
+//        if (this.commonAncestorHeightsDirty) {
+//            setupCommonAncestorHeights();
+//            this.commonAncestorHeightsDirty = false;
+//        }
+//    }
 
-        for (Node vertex : tree.getNodesAsArray()) {
-            if (vertex == null) {
-                // if filtered, there can be null entries in vertex array
+    /**
+     * Set the common ancestor heights in all clades based on the treeset or list of trees used to construct this CCD.
+     * Note that if single trees were used, then this only works if the CCD was constructed with the parameter to store the base trees.
+     */
+//    protected void setupCommonAncestorHeights() {
+//        if ((this.baseTreeSet == null) && (this.baseTrees == null || this.numBaseTrees != this.baseTrees.size())) {
+//            throw new AssertionError("Method to set common ancestor heights called, " +
+//                    "but neither are the base trees nor a base treeset stored.");
+//        }
+//
+//        // - make sure heights are properly reset
+//        // - for monophyletic clades (which includes leaves and root),
+//        // the common ancestor height equals the mean observed height
+//        for (Clade clade : this.getClades()) {
+//            clade.setCommonAncestorHeight(0);
+//            if (clade.isLeaf() || clade.isRoot() || clade.isMonophyletic()) {
+//                clade.setCommonAncestorHeight(clade.getMeanOccurredHeight());
+//            }
+//        }
+//
+//        if (storeBaseTrees) {
+//            for (Tree tree : baseTrees) {
+//                extractCommonAncestorHeightsFromTree(tree);
+//            }
+//        } else {
+//            try {
+//                baseTreeSet.reset();
+//                while (baseTreeSet.hasNext()) {
+//                    Tree tree = baseTreeSet.next();
+//                    extractCommonAncestorHeightsFromTree(tree);
+//                }
+//
+//            } catch (IOException e) {
+//                throw new RuntimeException("Error opening/using trees file used to construct CCD.");
+//            }
+//        }
+//
+//        // validation
+//        for (Clade clade : this.getClades()) {
+//            // out.println("clade: " + clade);
+//            // out.println("clade.h: " + clade.getCommonAncestorHeight());
+//
+//            // if (clade.isLeaf() || clade.isRoot() || clade.isMonophyletic()) {
+//            //     if (Math.abs(clade.getMeanOccurredHeight() - clade.getCommonAncestorHeight()) != 0.0) {
+//            //         out.println("\nMean and CA heights differ where they shouldn't!");
+//            //         out.println("clade = " + clade);
+//            //         out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//            //         out.println("clade.getMeanOccurredHeight() = " + clade.getMeanOccurredHeight());
+//            //     }
+//            // }
+//
+//            if (clade.getCommonAncestorHeight() < 0) {
+//                out.println("\nNegative height!");
+//                out.println("clade = " + clade);
+//                out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//            }
+//
+//            if (clade.isRoot()) {
+//                continue;
+//            }
+//
+//            for (Clade parent : clade.getParentClades()) {
+//                if (parent.getCommonAncestorHeight() - clade.getCommonAncestorHeight() < 0) {
+//                    out.println("\nNegative branch length!");
+//                    out.println("parent:   " + parent);
+//                    out.println("parent.h: " + parent.getCommonAncestorHeight());
+//                    out.println("clade:    " + clade);
+//                    out.println("clade.h:  " + clade.getCommonAncestorHeight());
+//                }
+//            }
+//        }
+//    }
+//
+//    /* Helper method */
+    private void extractCommonAncestorHeightsFromTree(Tree tree) {
+        WrappedBeastTree wrappedTree = new WrappedBeastTree(tree);
+
+        for (Clade clade : this.getClades()) {
+            if (clade.isLeaf() || clade.isRoot() || clade.isMonophyletic()) {
                 continue;
             }
 
-            double meanHeight = 0;
-            if (vertex.isLeaf()) {
-                for (Tree inputTree : baseTrees) {
-                    double height = inputTree.getNode(vertex.getNr()).getHeight();
-                    meanHeight += height / baseTrees.size();
-                }
-            } else {
-                BitSet cladeInBits = wrappedTree.getCladeInBits(vertex.getNr());
-                for (WrappedBeastTree wrappedUsedTree : wrappedUsedTrees) {
-                    double height = wrappedUsedTree.getHeightOfClade(cladeInBits);
-                    meanHeight += height / baseTrees.size();
-                }
-            }
+            double height = wrappedTree.getCommonAncestorHeightOfClade(clade.getCladeInBits());
+            double additive = height / this.getNumberOfBaseTrees();
 
-            vertex.setHeight(meanHeight);
+            clade.setCommonAncestorHeight(clade.getCommonAncestorHeight() + additive);
         }
     }
 
+    /**
+     * Sets the heights of the given tree based on the given strategy.
+     *
+     * @param tree                  to receive heights
+     * @param heightSettingStrategy (not all implemented yet TODO)
+     */
+//    public Tree setHeights(Tree tree, HeightSettingStrategy heightSettingStrategy) {
+//        switch (heightSettingStrategy) {
+//            case MeanOccurredHeights -> setMeanOccurredHeights(tree);
+//            case CommonAncestorHeights -> setCommonAncestorHeights(tree);
+//            default -> System.err.println("This height setting strategy is not implemented yet."); // TODO
+//        }
+//
+//        return tree;
+//    }
+//
+//    /* Helper method */
+//    private void setCommonAncestorHeights(Tree tree) {
+//        setupCommonAncestorHeightsIfDirty();
+//
+//        // initialize BitSet representation of trees
+//        WrappedBeastTree wrappedTree = new WrappedBeastTree(tree);
+//        WrappedBeastTree[] wrappedUsedTrees = new WrappedBeastTree[numBaseTrees];
+//        int i = 0;
+//        for (Tree inputTree : baseTrees) {
+//            wrappedUsedTrees[i++] = new WrappedBeastTree(inputTree);
+//        }
+//
+//        for (Node vertex : tree.getNodesAsArray()) {
+//            if (vertex == null) {
+//                // if filtered, there can be null entries in vertex array
+//                continue;
+//            }
+//
+//            double meanHeight = 0;
+//            if (vertex.isLeaf()) {
+//                for (Tree inputTree : baseTrees) {
+//                    double height = inputTree.getNode(vertex.getNr()).getHeight();
+//                    meanHeight += height / baseTrees.size();
+//                }
+//            } else {
+//                BitSet cladeInBits = wrappedTree.getCladeInBits(vertex.getNr());
+//                for (WrappedBeastTree wrappedUsedTree : wrappedUsedTrees) {
+//                    double height = wrappedUsedTree.getCommonAncestorHeightOfClade(cladeInBits);
+//                    meanHeight += height / baseTrees.size();
+//                }
+//            }
+//
+//            vertex.setHeight(meanHeight);
+//        }
+//    }
+
     /* Helper method */
-    private void setMeanOccurredHeights(Node root, TreeData td) {
-    	Tree tree = new Tree(root, td);
+    private void setMeanOccurredHeights(Tree tree) {
         WrappedBeastTree wrappedTree = new WrappedBeastTree(tree);
 
         for (Node vertex : tree.getNodesAsArray()) {
@@ -900,21 +1164,76 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         }
     }
 
+    /**
+     * Returns a map from each clade with a respective vertex in the given tree to that vertex.
+     *
+     * @param tree to whose vertices we map from clades of this CCD
+     * @return a map from each clade with a respective vertex in the given tree to that vertex
+     */
+    public Map<Clade, Node> getCladeToNodeMap(Tree tree) {
+        Map<Clade, Node> map = new HashMap<>(tree.getNodeCount());
+        computeCladeToNodeMapping(tree.getRoot(), map);
+        return map;
+    }
+
+    /* Helper method */
+    private BitSet computeCladeToNodeMapping(Node vertex, Map<Clade, Node> map) {
+        BitSet bits;
+        if (vertex.isLeaf()) {
+            bits = BitSet.newBitSet(getSizeOfLeavesArray());
+            bits.set(vertex.getNr());
+        } else {
+            bits = computeCladeToNodeMapping(vertex.getChild(0), map);
+            BitSet otherBits = computeCladeToNodeMapping(vertex.getChild(1), map);
+            bits.or(otherBits);
+        }
+
+        Clade clade = getClade(bits);
+        if (clade == null) {
+            System.err.println("No clade found in CCD for this vertex (" + bits + ").");
+        }
+        map.put(clade, vertex);
+
+        return bits;
+    }
+
 
     /* -- PROBABILITY - PROBABILITY -- */
+    protected void setToUseLogProbabilities() {
+        this.useLogProbabilities = true;
+    }
 
-    //@Override
+    protected boolean useLogProbabilities() {
+        return useLogProbabilities;
+    }
+
+    @Override
     public double getProbabilityOfTree(Tree tree) {
         resetCacheIfProbabilitiesDirty();
 
         double[] runningProbability = new double[]{1};
-        computeProbabilityOfVertex(tree.getRoot(), runningProbability);
+        computeProbabilityOfVertex(tree.getRoot(), runningProbability, false);
+
+        return runningProbability[0];
+    }
+
+    /**
+     * Return the log probability of the given tree in this distribution.
+     *
+     * @param tree whose log probability is requested
+     * @return the log probability of the given tree
+     */
+    public double getLogProbabilityOfTree(Tree tree) {
+        resetCacheIfProbabilitiesDirty();
+
+        double[] runningProbability = new double[]{0};
+        computeProbabilityOfVertex(tree.getRoot(), runningProbability, true);
 
         return runningProbability[0];
     }
 
     /* Recursive helper method */
-    private Clade computeProbabilityOfVertex(Node vertex, double[] runningProbability) {
+    private Clade computeProbabilityOfVertex(Node vertex, double[] runningProbability, boolean computeLog) {
         BitSet cladeInBits = BitSet.newBitSet(leafArraySize);
 
         if (vertex.isLeaf()) {
@@ -925,13 +1244,15 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
             return cladeMapping.get(cladeInBits);
         } else {
-            Clade firstChildClade = computeProbabilityOfVertex(vertex.getChild(0),
-                    runningProbability);
-            Clade secondChildClade = computeProbabilityOfVertex(vertex.getChild(1),
-                    runningProbability);
+            Clade firstChildClade = computeProbabilityOfVertex(vertex.getChild(0), runningProbability, computeLog);
+            Clade secondChildClade = computeProbabilityOfVertex(vertex.getChild(1), runningProbability, computeLog);
+
+            if (computeLog && runningProbability[0] > 0) {
+                return null;
+            }
 
             if ((firstChildClade == null) || (secondChildClade == null)) {
-                runningProbability[0] = 0;
+                setComputedNoProbability(runningProbability, computeLog);
                 return null;
             }
 
@@ -940,66 +1261,67 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
             Clade currentClade = cladeMapping.get(cladeInBits);
             if (currentClade != null) {
-
-                CladePartition partition = currentClade.getCladePartition(firstChildClade,
-                        secondChildClade);
+                CladePartition partition = currentClade.getCladePartition(firstChildClade, secondChildClade);
                 if (partition != null) {
-                    runningProbability[0] *= partition.getCCP();
+                    if (computeLog) {
+                        runningProbability[0] += partition.getLogCCP();
+
+                    } else {
+                        runningProbability[0] *= partition.getCCP();
+                    }
                 } else {
-                    runningProbability[0] = 0;
+                    setComputedNoProbability(runningProbability, computeLog);
                 }
             } else {
-                runningProbability[0] = 0;
+                setComputedNoProbability(runningProbability, computeLog);
             }
 
             return currentClade;
         }
     }
 
-    /**
-     * Returns the probability of the most likely tree. Note that this can
-     * underflow for large trees. It is recommended to use {@link #getMaxLogTreeProbability()}
-     * instead.
-     *
-     * @return probability of the most likely tree.
-     */
-    //@Override
-    public double getMaxTreeProbability() {
-        return Math.exp(this.getMaxLogTreeProbability());
+    private static void setComputedNoProbability(double[] runningProbability, boolean computeLog) {
+        if (computeLog) {
+            runningProbability[0] = 1;
+        } else {
+            runningProbability[0] = 0;
+        }
     }
 
-    //@Override
+    @Override
     public boolean containsTree(Tree tree) {
         return (getProbabilityOfTree(tree) > 0);
     }
 
-    //@Override
+    @Override
     public double getCladeProbability(BitSet cladeInBits) {
         resetCacheIfProbabilitiesDirty();
 
         Clade clade = cladeMapping.get(cladeInBits);
         if (clade == null) {
             return 0;
+        } else {
+            if (clade.getProbability() < 0) {
+                computeCladeProbabilities();
+            }
+            return clade.getProbability();
         }
-
-        double probability = clade.getProbability();
-        if (probability < 0) {
-            computeCladeProbabilities();
-        }
-
-        return clade.getProbability();
     }
 
-    /**
-     * Compute the probabilities of all clades in this distribution.
-     */
+    /** Compute the probabilities of all clades in this distribution unless there are cached values. */
+    public void computeCladeProbabilitiesIfDirty() {
+        resetCacheIfProbabilitiesDirty();
+        if (rootClade.getProbability() < 0) {
+            computeCladeProbabilities();
+        }
+    }
+
+    /** Compute the probabilities of all clades in this distribution. */
     public void computeCladeProbabilities() {
         resetCacheIfProbabilitiesDirty();
 
-        if (rootClade.getProbability() > 0) {
-            // if values have already been computed and nothing was dirty,
-            // then no need to do again
-            return;
+        for (Clade clade : this.getClades()) {
+            clade.setProbability(-1);
         }
 
         // the probability of a clade in a CCD is given by the sum of products
@@ -1007,8 +1329,8 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
         // hence, to compute it for each clade, we use a BFS-like traversal of
         // the CCD graph where a clade is handled only if all edges from parent
         // clades have been used (we keep track of this with counters)
-        HashMap<Clade, Integer> visitCountMap = new HashMap<Clade, Integer>(cladeMapping.size());
-        Queue<Clade> queue = new LinkedList<Clade>();
+        HashMap<Clade, Integer> visitCountMap = new HashMap<>(cladeMapping.size());
+        Queue<Clade> queue = new LinkedList<>();
 
         rootClade.setProbability(1);
         queue.add(rootClade);
@@ -1020,21 +1342,52 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
             if (count != clade.getNumberOfParentClades()) {
                 // clade was not visited often enough or was already handled
                 continue;
-            } else if (clade.isLeaf()) {
-                continue;
             }
 
             double parentProbability = clade.getProbability();
+
             for (CladePartition partition : clade.getPartitions()) {
                 for (Clade childClade : partition.getChildClades()) {
-                    if (childClade.isLeaf()) {
-                        continue;
-                    }
-
                     // if reset, value is -1, so have to start with 0
                     double childProbability = Math.max(0, childClade.getProbability());
                     // probability of child clade is sum
                     childProbability += parentProbability * partition.getCCP();
+
+                    if (childProbability > 1 + PROBABILITY_ERROR) {
+                        System.err.println("\nComputed invalid probability.");
+                        System.err.println("parent clade = " + clade);
+                        System.err.println("    with probability: " + parentProbability);
+                        System.err.println("child clade = " + childClade);
+                        System.err.println("    w old probability:   " + childClade.getProbability());
+                        System.err.println("    and new probability: " + childProbability);
+                        System.err.println("    and following parents: ");
+                        for (Clade nextParent : childClade.getParentClades()) {
+                            System.err.println("\t" + nextParent);
+                        }
+                        System.err.println("Partition = " + partition);
+                        System.err.println("    with CCP: " + partition.getCCP());
+                        // System.err.println("List all partitions of parent clade: ");
+                        // for (CladePartition partition1 : clade.getPartitions()) {
+                        //     System.err.println("\t" + partition1);
+                        // }
+                        throw new AssertionError("Computation of invalid probability.");
+                    }
+
+                    if (childProbability > (1 + PROBABILITY_ROUNDING_EPSILON)) {
+                        System.err.println("\nComputed probability for a clade above 1+epsilon.");
+                        System.err.println("childClade = " + childClade);
+                        System.err.println("oldChildProbability = " + childClade.getProbability());
+                        System.err.println("newChildProbability = " + childProbability);
+                        System.err.println("parentProbability = " + parentProbability);
+                        System.err.println("partition.ccp = " + partition.getCCP());
+                        System.err.println("Could just come from  rounding errors.");
+                    }
+
+                    // rounding correction
+                    if (childProbability > 1 && (childProbability < (1 + PROBABILITY_ROUNDING_EPSILON))) {
+                        childProbability = 1.0;
+                    }
+
                     childClade.setProbability(childProbability);
 
                     if (visitCountMap.containsKey(childClade)) {
@@ -1049,7 +1402,82 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
             visitCountMap.put(clade, -1);
         }
+
     }
+
+    /** Compute the sum of clade credibilities of all clades in this distribution. */
+    public void computeCladeSumCladeCredibilities() {
+        resetCacheIfProbabilitiesDirty();
+        resetSumCladeCredibilities();
+        rootClade.computeSumCladeCredibilities();
+    }
+
+    /**
+     * Resets the sum of clade credibilities of all clades in this distribution,
+     * i.e. to -1 for all non-leaf, non-cherry clades.
+     */
+    public void resetSumCladeCredibilities() {
+        for (Clade clade : this.getClades()) {
+            clade.resetSumCladeCredibilities();
+        }
+    }
+
+
+    /* -- CREDIBLE SET - CREDIBLE SET -- */
+
+//    /** Different credible sets used for this CCD. */
+//    private Map<CredibleSetType, ICredibleSet> credibleSets = new HashMap<>(3);
+//
+//    @Override
+//    public double getCredibleLevel(Tree tree, CredibleSetType type) {
+//        ICredibleSet credibleSet = credibleSets.get(type);
+//        if (credibleSet == null) {
+//            credibleSet = initializeCredibleSet(type);
+//        }
+//        return credibleSet.getCredibleLevel(tree);
+//    }
+//
+//    /**
+//     * Initialize and return a credible set of this CCD based on sampling trees ({@link CredibleSetType#TreeSampling}).
+//     * Is also stored in this CCD for further use. A credible set will overwrite a previous one of the same type.
+//     *
+//     * @param numberOfSamples specifying how many sampled trees to use construct credible set
+//     * @return the tree based credible set
+//     */
+//    public ProbabilityBasedCredibleSetComputer initializeTreeBasedCredibleSet(int numberOfSamples) {
+//        ProbabilityBasedCredibleSetComputer credibleSet = new ProbabilityBasedCredibleSetComputer(this, numberOfSamples);
+//        credibleSets.put(CredibleSetType.TreeSampling, credibleSet);
+//        return credibleSet;
+//    }
+//
+//    /**
+//     * Initialize and return a credible set of this CCD based on the given type/strategy.
+//     * Is also stored in this CCD for further use. A credible set will overwrite a previous one of the same type.
+//     *
+//     * @param type which type of credible set is wanted
+//     * @return the credible set
+//     */
+//    public ICredibleSet initializeCredibleSet(CredibleSetType type) {
+//        ICredibleSet credibleSet;
+//        if (type == CredibleSetType.TreeSampling) {
+//            credibleSet = new ProbabilityBasedCredibleSetComputer(this);
+//        } else if (type == CredibleSetType.Frequency) {
+//            throw new IllegalArgumentException("Frequency based credible set not supported for CCDs");
+//        } else {
+//            credibleSet = CredibleCCDComputer.getCredibleCCDComputer(this, type);
+//        }
+//        credibleSets.put(type, credibleSet);
+//
+//        return credibleSet;
+//    }
+//
+//    /**
+//     * @param type of credible set information
+//     * @return whether the credible set information has been computed and set
+//     */
+//    public boolean isCredibleSetInformationInitialized(CredibleSetType type) {
+//        return credibleSets.get(type) != null;
+//    }
 
 
     /*-- DISTANCES - DISTANCES -- */
@@ -1106,23 +1534,21 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
         double lostProbability = 0.0;
         handledClades.add(clade);
-//        System.out.println("o");
 
         for (CladePartition partition : clade.getPartitions()) {
             Clade firstChild = partition.getChildClades()[0];
             Clade secondChild = partition.getChildClades()[1];
 
             if (excludedClades.contains(firstChild) || excludedClades.contains(secondChild)) {
-//                System.out.print("x");
                 lostProbability += partition.getCCP();
             } else {
-//                System.out.print("z");
                 lostProbability += lostProbability(firstChild, excludedClades, handledClades)
                         + lostProbability(secondChild, excludedClades, handledClades);
             }
         }
         return lostProbability;
     }
+
 
     /* -- OTHER METHODS -- */
 
@@ -1134,6 +1560,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
      */
     public abstract AbstractCCD copy();
 
+    /* General copy helper method for all types of CCD */
     protected static void buildCopy(AbstractCCD original, AbstractCCD copy) {
         for (Clade originalClade : original.getClades()) {
             Clade copiedClade = originalClade.copy(copy);
@@ -1151,7 +1578,7 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
 
                 CladePartition copiedPartition = copiedParent.createCladePartition(copiedChildFirst,
                         copiedChildSecond, true);
-                if (originalPartition.getNumberOfOccurrences() <= 0) {
+                if ((originalPartition.getNumberOfOccurrences() <= 0) || originalPartition.isCCPSet()) {
                     copiedPartition.setCCP(originalPartition.getCCP());
                 } else {
                     copiedPartition.increaseOccurrenceCountBy(
@@ -1170,18 +1597,46 @@ public abstract class AbstractCCD { // implements ITreeDistribution {
      * @return names of taxa as "{name1, name2, ...}"
      */
     public String getTaxaNames(BitSet mask) {
+        return this.getTaxaNames(mask, ", ");
+    }
+
+    /**
+     * Returns the names of the taxa specified by the mask
+     * concatenated with the given separator.
+     *
+     * @param mask      specifies which taxa the names are requested for
+     * @param separator used between two taxa
+     * @return names of taxa concatenated with given separator
+     */
+    public String getTaxaNames(BitSet mask, String separator) {
         Tree tree = this.getSomeBaseTree();
-        String taxa = "{";
+        StringBuilder taxa = new StringBuilder("{");
         for (int j = mask.nextSetBit(0); j >= 0; j = mask.nextSetBit(j + 1)) {
-            taxa += tree.getID(j) + ", ";
+            taxa.append(tree.getID(j)).append(separator);
         }
-        return taxa.substring(0, taxa.length() - 2) + "}";
+        return taxa.substring(0, taxa.length() - separator.length()) + "}";
+    }
+
+    /**
+     * Returns a set of the names of the taxa specified by the mask.
+     *
+     * @param mask specifies which taxa the names are requested for
+     * @return set of names of taxa
+     */
+    public Set<String> getTaxaNamesList(BitSet mask) {
+        Tree tree = this.getSomeBaseTree();
+        Set<String> names = new HashSet<>(mask.cardinality());
+        int index = 0;
+        for (int j = mask.nextSetBit(0); j >= 0; j = mask.nextSetBit(j + 1)) {
+            names.add(tree.getID(j));
+        }
+        return names;
     }
 
     @Override
     public String toString() {
-        return "[number of leaves: " + this.leafArraySize + ", number of clades: "
-                + this.getNumberOfClades() + ", max probability: " + this.getMaxLogTreeProbability()
+        return "[number of leaves: " + this.getNumberOfLeaves() + ", number of clades: "
+                + this.getNumberOfClades() + ", max probability: " + this.getMaxTreeProbability()
                 + ", entropy: " + this.getEntropy() + ", taxa: " + this.getTaxaAsBitSet() + "]";
     }
 

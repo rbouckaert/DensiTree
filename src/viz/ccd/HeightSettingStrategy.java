@@ -5,15 +5,23 @@ package viz.ccd;
  */
 public enum HeightSettingStrategy {
     MeanOccurredHeights("Mean (sampled) heights"), //
-    MeanLCAHeight("Mean of Least Common Ancestor heights"), //
-    One("Min branch length 1, contemperaneous leaves"), //
-    None("No heights/branch lenghts set");
+    CommonAncestorHeights("Mean of Least Common Ancestor heights"), //
+    One("Leaves at mean heights, parent one above higher child"), //
+    None("No heights set");
 
     String description;
 
     HeightSettingStrategy(String description) {
         this.description = description;
     }
+
+//    public static HeightSettingStrategy fromName(String name) {
+//        return switch (name.toUpperCase()) {
+//            case "CA", "LCA", "COMMONANCESTOR", "COMMONANCESTORHEIGHTS" -> CommonAncestorHeights;
+//            case "MH", "MEANOCCURRED", "MEANOCCURREDHEIGHTS" -> MeanOccurredHeights;
+//            default -> One;
+//        };
+//    }
 
     @Override
     public String toString() {

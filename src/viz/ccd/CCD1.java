@@ -1,8 +1,9 @@
 package viz.ccd;
 
-import java.util.ArrayList;
+
+
+
 import java.util.List;
-import java.util.Set;
 
 /**
  * This class represents a tree distribution via the conditional clade
@@ -51,9 +52,33 @@ public class CCD1 extends AbstractCCD {
      * Constructor for a {@link CCD1} based on the given collection of trees
      * (not containing any burnin trees).
      *
+     * @param treeSet an iterable set of trees, which contains no burnin trees,
+     *                whose distribution is approximated by the resulting
+     *                {@link CCD1}; all of its trees are used
+     */
+//    public CCD1(TreeSet treeSet) {
+//        this(treeSet, false);
+//    }
+
+    /**
+     * Constructor for a {@link CCD1} based on the given collection of trees
+     * (not containing any burnin trees).
+     *
+     * @param treeSet       an iterable set of trees, which contains no burnin trees,
+     *                      whose distribution is approximated by the resulting {@link CCD1}
+     * @param numTreesToUse the number of trees to use from the treeSet
+     */
+//    public CCD1(TreeSet treeSet, int numTreesToUse) {
+//        super(treeSet, numTreesToUse, false);
+//    }
+
+    /**
+     * Constructor for a {@link CCD1} based on the given collection of trees
+     * (not containing any burnin trees).
+     *
      * @param treeSet        an iterable set of trees, which contains no burnin trees,
      *                       whose distribution is approximated by the resulting
-     *                       {@link CCD1}
+     *                       {@link CCD1}; all of its trees are used
      * @param storeBaseTrees whether to store the trees used to create this CCD
      */
 //    public CCD1(TreeSet treeSet, boolean storeBaseTrees) {
@@ -88,17 +113,18 @@ public class CCD1 extends AbstractCCD {
     }
 
     @Override
-    protected void checkCladePartitionRemoval(Clade clade, CladePartition partition) {
-        // when a partition has no registered occurrences more, we can remove it
-        if (partition.getNumberOfOccurrences() == 0) {
+    protected boolean removeCladePartitionIfNecessary(Clade clade, CladePartition partition) {
+        // when a partition has no registered occurrences more, we remove it
+        if (partition.getNumberOfOccurrences() <= 0) {
             clade.removePartition(partition);
+            return true;
         }
+        return false;
     }
 
     /* -- PROBABILITY, POINT ESTIMATE & SAMPLING METHODS -- */
     // all handled by parent class AbstractCCD as long as clade partition
     // probabilities are set correctly
-
 
     /* -- OTHER METHODS -- */
 
@@ -111,6 +137,7 @@ public class CCD1 extends AbstractCCD {
     public AbstractCCD copy() {
         CCD1 copy = new CCD1(this.getSizeOfLeavesArray(), false);
         copy.baseTrees.add(this.getSomeBaseTree());
+        copy.numBaseTrees = this.getNumberOfBaseTrees();
 
         AbstractCCD.buildCopy(this, copy);
 
@@ -120,43 +147,6 @@ public class CCD1 extends AbstractCCD {
     @Override
     protected double getNumberOfParameters() {
         return this.getNumberOfCladePartitions();
-    }
-
-    /* -- UNDER DEVELOPMENT -- */
-
-    public List<CladePartition> findAttachmentPointsOfClade(Clade attachingClade) {
-        // TODO WORK IN PRORGESS
-        ArrayList<CladePartition> parentPartitions = new ArrayList<CladePartition>();
-        for (Clade clade : cladeMapping.values()) {
-            if (clade == attachingClade) {
-                continue;
-            } else if (clade.containsClade(attachingClade)) {
-                for (CladePartition partition : clade.getPartitions()) {
-                    if (partition.containsChildClade(attachingClade)) {
-                        parentPartitions.add(partition);
-                    }
-                }
-            }
-        }
-
-        return parentPartitions;
-    }
-
-    private double lostProbability1(Clade clade, Set<Clade> excludedCladePartitions) {
-        double lostProbability = 0.0;
-        for (CladePartition partition : clade.getPartitions()) {
-            Clade firstChild = partition.getChildClades()[0];
-            Clade secondChild = partition.getChildClades()[1];
-
-            if (excludedCladePartitions.contains(partition)) {
-                lostProbability += partition.getCCP();
-            } else {
-                lostProbability += partition.getCCP() *
-                        lostProbability1(firstChild, excludedCladePartitions) *
-                        lostProbability1(secondChild, excludedCladePartitions);
-            }
-        }
-        return lostProbability;
     }
 
 }

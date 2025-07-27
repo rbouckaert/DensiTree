@@ -1,6 +1,10 @@
 package viz.ccd;
 
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * This class represents a conditional clade distribution (CCD) obtained by
@@ -34,11 +38,11 @@ public class FilteredCCD extends AbstractCCD {
         }
         // input checks
         if (taxaToRemove.length() > baseCCD.getSizeOfLeavesArray()) {
-            throw new IllegalArgumentException("Highest bit in taxa to remove mask (" + taxaToRemove.length() + ") " +
+            throw new IllegalArgumentException("Highest bit in taxa-to-remove mask (" + taxaToRemove.length() + ") " +
                     "is larger than the number of original taxa (data structure wise, " + baseCCD.getNumberOfLeaves() + ").");
         }
         if (taxaToRemove.cardinality() == 0) {
-            throw new IllegalArgumentException("Cannot filter CCD with empty taxa to remove mask.");
+            throw new IllegalArgumentException("Cannot filter CCD with empty taxa-to-remove mask.");
         }
 
         this.baseCCD = baseCCD;
@@ -76,6 +80,8 @@ public class FilteredCCD extends AbstractCCD {
         // throughout need to ensure that no two (filtered) clades on the same taxa exist
 
         // 1. test if clade has already been processed
+        // this happens because we traverse the whole CCD graph
+        // so for any clade with multiple parents, this method will be called multiple times on it
         BitSet remainingTaxaBits = filterBitSet(clade.getCladeInBits());
         Clade processedClade = checkFilteringNecessity(clade, remainingTaxaBits);
         if (processedClade != null) {
@@ -86,6 +92,8 @@ public class FilteredCCD extends AbstractCCD {
         filterChildren(clade);
 
         // 3. set up new filtered clade or update existing one
+        // 3a. filtered clade already exists, then we have to merge the information
+        // 3b. otherwise, we can create a new clade
         Clade filteredClade = setUpFilteredClade(clade, remainingTaxaBits);
 
         // 4. set up partitions
@@ -185,16 +193,14 @@ public class FilteredCCD extends AbstractCCD {
             firstClade = cladeMapping.get(firstBitsFiltered);
             secondClade = cladeMapping.get(secondBitsFiltered);
 
-            CladePartition filteredPartition = filteredClade.getCladePartition(firstClade,
-                    secondClade);
+            CladePartition filteredPartition = filteredClade.getCladePartition(firstClade, secondClade);
             if (filteredPartition != null) {
                 // case that filtered partition already exists
                 filteredPartition.increaseOccurrenceCountBy(partition.getNumberOfOccurrences(),
                         partition.getMeanOccurredHeight());
             } else {
                 // otherwise, create a new one
-                filteredPartition = filteredClade.createCladePartition(firstClade, secondClade,
-                        storeParent);
+                filteredPartition = filteredClade.createCladePartition(firstClade, secondClade, storeParent);
                 filteredPartition.setNumOccurrences(partition.getNumberOfOccurrences());
                 filteredPartition.setMeanOccurredHeight(partition.getMeanOccurredHeight());
             }
@@ -232,7 +238,7 @@ public class FilteredCCD extends AbstractCCD {
     }
 
     @Override
-    void checkCladePartitionRemoval(Clade clade, CladePartition partition) {
+    protected boolean removeCladePartitionIfNecessary(Clade clade, CladePartition partition) {
         // since we do not allow adding or removing trees, this should even not be called
         throw new IllegalStateException("Method should not be called on filtered CCD.");
     }
@@ -251,6 +257,108 @@ public class FilteredCCD extends AbstractCCD {
     protected double getNumberOfParameters() {
         throw new UnsupportedOperationException();
     }
+
+//    @Override
+//    protected void setupCommonAncestorHeights() {
+//        if (rootCCD.commonAncestorHeightsDirty) {
+//            rootCCD.setupCommonAncestorHeights();
+//        }
+//
+//        // - make sure heights are properly reset
+//        // - for leaves, the common ancestor height equals the mean observed height
+//        // - for clades also existing in root CCD, do not have to recompute anything
+//        List<Clade> unhandledClades = new ArrayList<>();
+//        for (Clade clade : this.getClades()) {
+//            clade.setCommonAncestorHeight(0);
+//
+//            if (clade.isLeaf()) {
+//                clade.setCommonAncestorHeight(clade.getMeanOccurredHeight());
+//            } else {
+//                Clade rootClade = this.rootCCD.getClade(clade.getCladeInBits());
+//                if (rootClade != null) {
+//                    clade.setCommonAncestorHeight(rootClade.getCommonAncestorHeight());
+//
+//                    if (Double.isNaN(clade.getCommonAncestorHeight())) {
+//                        System.out.println("\nHeight is NaN! Stupid root ccd!");
+//                        System.out.println("clade = " + clade);
+//                        System.out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//                        throw new AssertionError("NaN vertex height");
+//                    }
+//                } else {
+//                    unhandledClades.add(clade);
+//                }
+//            }
+//        }
+//
+//        // using list of base trees not supported
+//
+//        try {
+//            TreeAnnotator.TreeSet rootTreeSet = this.rootCCD.getBaseTreeSet();
+//            rootTreeSet.reset();
+//            while (rootTreeSet.hasNext()) {
+//                WrappedBeastTree tree = new WrappedBeastTree(rootTreeSet.next());
+//
+//                for (Clade clade : unhandledClades) {
+//                    double height = tree.getCommonAncestorHeightOfClade(clade.getCladeInBits());
+//                    double additive = height / this.getNumberOfBaseTrees();
+//
+//                    clade.setCommonAncestorHeight(clade.getCommonAncestorHeight() + additive);
+//
+//                    if (Double.isNaN(clade.getCommonAncestorHeight())) {
+//                        System.err.println("\nHeight is NaN!");
+//                        System.out.println("height = " + height);
+//                        System.out.println("additive = " + additive);
+//                        System.out.println("clade = " + clade);
+//                        System.out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//                    }
+//                }
+//            }
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException("Error opening/using trees file used to construct CCD.");
+//        }
+//
+//        // validation
+//        for (Clade clade : this.getClades()) {
+//            // System.out.println("clade: " + clade);
+//            // System.out.println("clade.h: " + clade.getCommonAncestorHeight());
+//
+//            // if (clade.isLeaf() || clade.isRoot() || clade.isMonophyletic()) {
+//            //     if (Math.abs(clade.getMeanOccurredHeight() - clade.getCommonAncestorHeight()) != 0.0) {
+//            //         System.out.println("\nMean and CA heights differ where they shouldn't!");
+//            //         System.out.println("clade = " + clade);
+//            //         System.out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//            //         System.out.println("clade.getMeanOccurredHeight() = " + clade.getMeanOccurredHeight());
+//            //     }
+//            // }
+//            if (Double.isNaN(clade.getCommonAncestorHeight())) {
+//                System.err.println("\nHeight is NaN!");
+//                System.out.println("clade = " + clade);
+//                System.out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//            }
+//
+//            if (clade.getCommonAncestorHeight() < 0) {
+//                System.err.println("\nNegative height!");
+//                System.out.println("clade = " + clade);
+//                System.out.println("clade.getCommonAncestorHeight() = " + clade.getCommonAncestorHeight());
+//            }
+//
+//            if (clade.isRoot()) {
+//                continue;
+//            }
+//
+//            for (Clade parent : clade.getParentClades()) {
+//                if (parent.getCommonAncestorHeight() - clade.getCommonAncestorHeight() < 0) {
+//                    System.err.println("\nNegative branch length!");
+//                    System.out.println("parent:   " + parent);
+//                    System.out.println("parent.h: " + parent.getCommonAncestorHeight());
+//                    System.out.println("clade:    " + clade);
+//                    System.out.println("clade.h:  " + clade.getCommonAncestorHeight());
+//                }
+//            }
+//        }
+//    }
+//
 
     @Override
     public FilteredCCD copy() {

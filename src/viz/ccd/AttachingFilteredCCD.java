@@ -1,5 +1,6 @@
 package viz.ccd;
 
+
 import java.util.HashSet;
 
 /**
@@ -89,6 +90,11 @@ public class AttachingFilteredCCD extends FilteredCCD {
     @Override
     protected void setUpPartitions(Clade clade, Clade filteredClade, boolean storeParent) {
         super.setUpPartitions(clade, filteredClade, false);
+    }
+
+    @Override
+    public double getEntropy() {
+        return super.getEntropyLewis();
     }
 
     @Override

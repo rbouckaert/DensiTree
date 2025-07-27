@@ -1,8 +1,11 @@
 package viz.ccd;
 
+
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,10 +42,14 @@ public class Clade {
      */
     private int numOccurrences = 0;
 
-    /**
-     * Average height over all occurrences of this clade.
-     */
+    /** Average height over all occurrences of this clade. */
     private double meanHeight = 0;
+
+    /** Common ancestor height stored for this clade. */
+    private double commonAncestorHeight = 0;
+
+    /** Custom parameter associated with this clade. */
+    private double parameter = -1;
 
     /**
      * Child clades this clade is split into.
@@ -92,6 +99,11 @@ public class Clade {
      * The sum of subtree clade credibilities of all trees rooted at this clade.
      */
     private double sumCladeCredibilities = -1;
+
+    /**
+     * The log of sum of subtree clade credibilities of all trees rooted at this clade.
+     */
+    private double sumLogCladeCredibilities = 1;
 
     /**
      * The probability of this clade appearing in a tree of the respective
@@ -145,6 +157,7 @@ public class Clade {
     public Clade copy(AbstractCCD targetCCD) {
         Clade copiedClade = new Clade((BitSet) this.cladeAsBitSet.clone(), targetCCD);
         copiedClade.increaseOccurrenceCountBy(getNumberOfOccurrences(), getMeanOccurredHeight());
+        copiedClade.setCladeParameter(this.getCladeParameter());
         return copiedClade;
     }
 
@@ -161,6 +174,22 @@ public class Clade {
         for (CladePartition cladePartition : partitions) {
             if (cladePartition.containsChildClade(firstChildClade)
                     && cladePartition.containsChildClade(secondChildClade)) {
+                return cladePartition;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns a stored bipartition of this clade containing the given clade;
+     * returns null if partition not existent.
+     *
+     * @param someChildClade one of the two child clades forming the bipartition
+     * @return the stored partition of this clade containing the given child clade
+     */
+    public CladePartition getCladePartition(Clade someChildClade) {
+        for (CladePartition cladePartition : partitions) {
+            if (cladePartition.containsChildClade(someChildClade)) {
                 return cladePartition;
             }
         }
@@ -189,8 +218,7 @@ public class Clade {
      *                         clades
      * @return a new clade partition based on the two given child clades
      */
-    public CladePartition createCladePartition(Clade firstChildClade, Clade secondChildClade,
-                                               boolean storeParent) {
+    public CladePartition createCladePartition(Clade firstChildClade, Clade secondChildClade, boolean storeParent) {
         Clade[] partitioningClades = new Clade[]{firstChildClade, secondChildClade};
 
         CladePartition newPartition = new CladePartition(this, partitioningClades);
@@ -206,18 +234,58 @@ public class Clade {
         return newPartition;
     }
 
-    /** Removes the given partition from this clade. */
+    /**
+     * Removes the given partition from this clade.
+     *
+     * @param partition to be removed
+     */
     public void removePartition(CladePartition partition) {
         if (this.partitions.remove(partition)) {
-            this.childClades.remove(partition.getChildClades()[0]);
-            partition.getChildClades()[0].parentClades.remove(this);
-            this.childClades.remove(partition.getChildClades()[1]);
-            partition.getChildClades()[1].parentClades.remove(this);
+            for (Clade child : partition.getChildClades()) {
+                this.childClades.remove(child);
+                child.parentClades.remove(this);
+            }
+        }
+    }
+
+    /**
+     * Removes the given partition from this clade and renormalizes the CCPs of the remaining partitions if wanted.
+     *
+     * @param partition   to be removed
+     * @param renormalize whether to renormalize the CCPs of the remaining partitions
+     */
+    public void removePartition(CladePartition partition, boolean renormalize) {
+        this.removePartition(partition);
+
+        if (renormalize) {
+            normalizeCCPs();
+        }
+    }
+
+    protected void normalizeCCPs() {
+        double sum = 0;
+        for (CladePartition remaining : this.partitions) {
+            sum += remaining.getCCP();
+        }
+
+        if ((sum <= 0) && !partitions.isEmpty()) {
+            System.err.println("CCPs of clade partitions of this clade are not set, but renormalizing requested.");
+            System.err.println("Clade: " + this);
+            System.err.println("With clade partitions:");
+            for (CladePartition remaining : this.partitions) {
+                System.out.println(remaining);
+                System.out.println(remaining.getCCP());
+            }
+            throw new AssertionError();
+        }
+
+        for (CladePartition remaining : this.partitions) {
+            remaining.setCCP(remaining.getCCP() / sum);
         }
     }
 
 
-    /* -- STATE MANGEMENT -- */
+    /* -- STATE MANAGEMENT -- */
 
     /**
      * Resets the cached values of this clade (and its clade partitions).
@@ -235,12 +303,14 @@ public class Clade {
             this.maxSubtreeSumCladeCredibility = -1;
             this.entropy = -1;
             this.sumCladeCredibilities = -1;
+            this.sumLogCladeCredibilities = 1;
             this.probability = -1;
 
             for (CladePartition partition : partitions) {
                 partition.resetCachedValues();
             }
         }
+        this.commonAncestorHeight = 0;
     }
 
 
@@ -331,6 +401,18 @@ public class Clade {
         this.numOccurrences = numOccurrences;
     }
 
+    /**
+     * @return the common ancestor height of this clade (wrt trees used to construct it);
+     * note that not maintained automatically
+     */
+    public double getCommonAncestorHeight() {
+        return commonAncestorHeight;
+    }
+
+    /** @param commonAncestorHeight set stored common ancestor height (since not maintained automatically) */
+    public void setCommonAncestorHeight(double commonAncestorHeight) {
+        this.commonAncestorHeight = commonAncestorHeight;
+    }
 
     /* -- GRAPH STRUCTURE GETTERS & BASIC GETTERS -- */
 
@@ -380,7 +462,8 @@ public class Clade {
     public String toString() {
         return "Clade [taxa = " + cladeAsBitSet + ", numOccurrences = " + numOccurrences
                 // + ", ccd = " + ccd
-                + ", num partitions = " + partitions.size() + "]";
+                + ", num partitions = " + partitions.size()
+                + ", parameter = " + ((parameter < 0) ? getCladeCredibility() : parameter) + "]";
     }
 
     /**
@@ -439,7 +522,7 @@ public class Clade {
      * @return set of all descendant clades (or up to monophyletic) of this clade
      */
     public Set<Clade> getDescendantClades(boolean untilMonophyletics) {
-        Set<Clade> descendants = new HashSet<Clade>();
+        Set<Clade> descendants = new HashSet<>();
 
         for (Clade child : this.getChildClades()) {
             child.collectDescendantClades(untilMonophyletics, descendants);
@@ -457,6 +540,44 @@ public class Clade {
                 }
             }
         }
+    }
+
+    /**
+     * Returns a set of all ancestral clades of this clade, including this clade if requested.
+     *
+     * @param inclusive whether this clade is added to the set or not
+     * @return set of all ancestral clades of this clade
+     */
+    public Set<Clade> getAncestorClades(boolean inclusive) {
+        Set<Clade> ancestors = new HashSet<>();
+        if (inclusive) {
+            ancestors.add(this);
+        }
+
+        for (Clade parent : this.getParentClades()) {
+            parent.collectAncestorClades(ancestors);
+        }
+
+        return ancestors;
+    }
+
+    /* Recursive (upward) helper method */
+    private void collectAncestorClades(Set<Clade> ancestors) {
+        if (ancestors.add(this)) {
+            for (Clade parent : this.getParentClades()) {
+                parent.collectAncestorClades(ancestors);
+            }
+        }
+    }
+
+    /** @param p custom parameter to be set for this clade */
+    public void setCladeParameter(double p) {
+        this.parameter = p;
+    }
+
+    /** @return custom parameter of this clade */
+    public double getCladeParameter() {
+        return this.parameter;
     }
 
 
@@ -532,55 +653,6 @@ public class Clade {
         return maxCCPPartition;
     }
 
-
- /**
-     * @return clade credibility (Monte Carlo probability) of this clade
-     * {@code (#occurrences / #trees)}
-     */
-    public double getCladeCredibility() {
-        return this.getNumberOfOccurrences() / (double) this.ccd.getNumberOfBaseTrees();
-    }
-
-    /**
-     * @return max sum of clade credibilities of any subtree rooted at this
-     * clade
-     */
-    public double getMaxSubtreeSumCladeCredibility() {
-        if (this.maxSubtreeSumCladeCredibility < 0) {
-            this.computeMaxSubtreeSumCladeCredibility();
-        }
-
-        return maxSubtreeSumCladeCredibility;
-    }
-
-    /**
-     * @return partition realized in max sum of clade credibilities subtree
-     * rooted at this clade
-     */
-    public CladePartition getMaxSubtreeSumCladeCredibilityPartition() {
-        if ((this.maxSubtreeSumCladeCredibilityPartition == null)
-                || (this.maxSubtreeSumCladeCredibility < 0)) {
-            this.computeMaxSubtreeSumCladeCredibility();
-        }
-
-        return maxSubtreeSumCladeCredibilityPartition;
-    }
-
-    /*
-     * Helper method. Computes the subtree with the root on this clade and that
-     * maximizes the sum of clade credibilities.
-     */
-    private void computeMaxSubtreeSumCladeCredibility() {
-        double sumCladeCredibilites = this.getCladeCredibility();
-        for (CladePartition partition : partitions) {
-            double currentSCC = sumCladeCredibilites + partition.getMaxSubtreeSumCladeCredibility();
-            if (currentSCC > maxSubtreeSumCladeCredibility) {
-                maxSubtreeSumCladeCredibility = currentSCC;
-                maxSubtreeSumCladeCredibilityPartition = partition;
-            }
-        }
-    }
-
     /**
      * @return max log CCP of any subtree rooted at this clade.
      */
@@ -653,10 +725,56 @@ public class Clade {
         }
     }
 
-      /**
-     * @return if computed, sum of subtree clade credibilities of all subtrees
-     * rooted at this clade; use
-     * {@link Clade#computeSumCladeCredibilities()} to compute new value
+    /**
+     * @return clade credibility (Monte Carlo probability) of this clade
+     * {@code (#occurrences / #trees)}
+     */
+    public double getCladeCredibility() {
+        return this.getNumberOfOccurrences() / (double) this.ccd.getNumberOfBaseTrees();
+    }
+
+    /**
+     * @return max sum of clade credibilities of any subtree rooted at this
+     * clade
+     */
+    public double getMaxSubtreeSumCladeCredibility() {
+        if (this.maxSubtreeSumCladeCredibility < 0) {
+            this.computeMaxSubtreeSumCladeCredibility();
+        }
+
+        return maxSubtreeSumCladeCredibility;
+    }
+
+    /**
+     * @return partition realized in max sum of clade credibilities subtree
+     * rooted at this clade
+     */
+    public CladePartition getMaxSubtreeSumCladeCredibilityPartition() {
+        if ((this.maxSubtreeSumCladeCredibilityPartition == null)
+                || (this.maxSubtreeSumCladeCredibility < 0)) {
+            this.computeMaxSubtreeSumCladeCredibility();
+        }
+
+        return maxSubtreeSumCladeCredibilityPartition;
+    }
+
+    /*
+     * Helper method. Computes the subtree with the root on this clade and that
+     * maximizes the sum of clade credibilities.
+     */
+    private void computeMaxSubtreeSumCladeCredibility() {
+        double sumCladeCredibilites = this.getCladeCredibility();
+        for (CladePartition partition : partitions) {
+            double currentSCC = sumCladeCredibilites + partition.getMaxSubtreeSumCladeCredibility();
+            if (currentSCC > maxSubtreeSumCladeCredibility) {
+                maxSubtreeSumCladeCredibility = currentSCC;
+                maxSubtreeSumCladeCredibilityPartition = partition;
+            }
+        }
+    }
+
+    /**
+     * @return if computed, sum of subtree clade credibilities of all subtrees rooted at this clade
      */
     public double getSumCladeCredibilities() {
         return this.sumCladeCredibilities;
@@ -667,20 +785,22 @@ public class Clade {
      * subtrees rooted at this clade
      */
     public double computeSumCladeCredibilities() {
-        if (this.isLeaf() || this.isCherry()) {
-            return this.getCladeCredibility();
-        } else {
-            if (this.sumCladeCredibilities <= 0) {
+        if (this.sumCladeCredibilities < 0) {
+            if (this.isLeaf()) {
+                this.sumCladeCredibilities = 1;
+            } else if (this.isCherry()) {
+                this.sumCladeCredibilities = this.getCladeCredibility();
+            } else {
                 double sum = 0;
                 for (CladePartition partition : partitions) {
-                    sum += partition.getChildClades()[0].getSumCladeCredibilities()
-                            * partition.getChildClades()[1].getSumCladeCredibilities();
+                    sum += partition.getChildClades()[0].computeSumCladeCredibilities()
+                            * partition.getChildClades()[1].computeSumCladeCredibilities();
                 }
                 this.sumCladeCredibilities = sum * this.getCladeCredibility();
-
             }
-            return this.sumCladeCredibilities;
         }
+
+        return sumCladeCredibilities;
     }
 
     /**
@@ -688,29 +808,82 @@ public class Clade {
      *              this clade
      */
     public void setSumCladeCredibilities(double value) {
+        if (value < 0) {
+            throw new AssertionError("Sum clade credibilities cannot be negative, but requested value to set is: " + value);
+        }
         this.sumCladeCredibilities = value;
     }
 
     /**
-     * Better to call {@link ITreeDistribution#getCladeProbability(BitSet)} to
-     * get this value. Returns the probability of this clade appearing in a tree
-     * of a distribution ({@link ITreeDistribution}), if computed by the
-     * distribution; otherwise returns -1;
+     * Reset the sum of clade credibilities to the default un-computed value of -1 (for non-leaf non-cherry clades).
+     */
+    public void resetSumCladeCredibilities() {
+        if (this.isLeaf()) {
+            this.sumCladeCredibilities = 1;
+        } else {
+            this.sumCladeCredibilities = -1;
+        }
+    }
+
+    /**
+     * @return if computed, log of sum of subtree clade credibilities of all subtrees rooted at this clade
+     */
+    public double getLogSumCladeCredibilities() {
+        return this.sumLogCladeCredibilities;
+    }
+
+    /**
+     * @return the newly computed log of sum of subtree clade credibilities of all
+     * subtrees rooted at this clade
+     */
+    public double computeLogSumCladeCredibilities() {
+        if (this.sumLogCladeCredibilities > 0) {
+            if (this.isLeaf()) {
+                this.sumLogCladeCredibilities = 0;
+            } else if (this.isCherry()) {
+                this.sumLogCladeCredibilities = Math.log(this.getCladeCredibility());
+            } else {
+                double sum = 0;
+                for (CladePartition partition : partitions) {
+                    // TODO
+                    // sum += partition.getChildClades()[0].computeSumCladeCredibilities()
+                    //         * partition.getChildClades()[1].computeSumCladeCredibilities();
+                }
+                this.sumLogCladeCredibilities = sum * this.getCladeCredibility();
+            }
+        }
+
+        return sumLogCladeCredibilities;
+    }
+
+    /**
+     * @param value sum of subtree clade credibilities of all subtrees rooted at
+     *              this clade
+     */
+    public void setLogSumCladeCredibilities(double value) {
+        if (value > 0) {
+            throw new AssertionError("Log probabilities must be non-positive but given value is " + value + ".");
+        }
+        this.sumLogCladeCredibilities = value;
+    }
+
+    /**
+     * Returns the probability of this clade appearing in a tree
+     * of a distribution ({@link ITreeDistribution}).
      *
-     * @return probability of this clade appearing in a tree; -1 if not computed
-     * yet
+     * @return probability of this clade appearing in a tree
      */
     public double getProbability() {
         return probability;
     }
 
     /**
-     * Set the probability of this clade appearing in a tree of a distribution
+     * Set the probability of this clade appearing in a tree of its distribution
      * ({@link ITreeDistribution}).
      *
-     * @param probability
+     * @param probability of clade appearing in a tree of its distribution
      */
-    protected void setProbability(double probability) {
+    public void setProbability(double probability) {
         this.probability = probability;
     }
 
@@ -779,7 +952,7 @@ public class Clade {
     }
 
 
-    /* -- BASE CLADE 4 FILTERED CCDs -- */
+    /* -- BASE CLADE FOR FILTERED CCDs -- */
 
     /**
      * Clade this one is based one; can be used for filtered clades.
@@ -799,6 +972,18 @@ public class Clade {
      */
     protected void setBaseClade(Clade baseClade) {
         this.baseClade = baseClade;
+    }
+
+
+    /* -- BASE CLADE FOR FILTERED CCDs -- */
+
+    public Map<String, Object> data;
+
+    public void addData(String key, Object value) {
+        if (data == null) {
+            data = new HashMap<>(2);
+        }
+        data.put(key, value);
     }
 
 }

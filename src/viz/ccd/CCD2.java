@@ -1,16 +1,15 @@
 package viz.ccd;
 
-//import beast.base.evolution.tree.Node;
-//import beast.base.evolution.tree.Tree;
-//import beastfx.app.treeannotator.TreeAnnotator.TreeSet;
+import viz.Node;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import viz.Node;
 
 /**
  * This class represents a tree distribution using an extended CCD graph
@@ -33,15 +32,16 @@ import viz.Node;
  * </p>
  *
  * <p>
- * The MAP tree of this distribution is the tree with highest CCP.
+ * The MAP tree of this distribution is the tree with highest ccd.
  * </p>
  *
  * @author Jonathan Klawitter
  */
 public class CCD2 extends AbstractCCD {
 
-    Map<BitSet, CladePartition> cladePartitionMapping = new HashMap<>();
     private Map<BitSet, Map<BitSet, ExtendedClade>> extendedCladeMapping;
+
+    private HashSet<Clade> clades;
 
     /* -- CONSTRUCTORS & CONSTRUCTION METHODS -- */
 
@@ -78,6 +78,18 @@ public class CCD2 extends AbstractCCD {
      * Constructor for a {@link CCD2} based on the given collection of trees
      * (not containing any burnin trees).
      *
+     * @param treeSet an iterable set of trees, which contains no burnin trees,
+     *                whose distribution is approximated by the resulting
+     *                {@link CCD2}
+     */
+//    public CCD2(TreeSet treeSet) {
+//        this(treeSet, false);
+//    }
+
+    /**
+     * Constructor for a {@link CCD2} based on the given collection of trees
+     * (not containing any burnin trees).
+     *
      * @param treeSet        an iterable set of trees, which contains no burnin trees,
      *                       whose distribution is approximated by the resulting
      *                       {@link CCD2}
@@ -85,33 +97,41 @@ public class CCD2 extends AbstractCCD {
      */
 //    public CCD2(TreeSet treeSet, boolean storeBaseTrees) {
 //        super(storeBaseTrees);
-//        extendedCladeMapping = new HashMap<>();
 //
 //        this.burnin = 0;
 //        try {
 //            treeSet.reset();
 //            Tree tree = treeSet.next();
+//            extendedCladeMapping = new HashMap<>(10 * tree.getLeafNodeCount());
+//            clades = new HashSet<>(10 * tree.getLeafNodeCount());
 //            super.initializeRootClade(tree.getLeafNodeCount());
+//            clades.add(this.rootClade);
 //
-//            System.out.println("Constructing CCD with " + (treeSet.totalTrees - treeSet.burninCount)
-//                    + " trees...");
+//            if (verbose) {
+//                out.println("Constructing CCD2 with " + (treeSet.totalTrees - treeSet.burninCount) + " trees...");
+//            }
 //
 //            while (tree != null) {
 //                this.numBaseTrees++;
 //                cladifyTree(tree);
 //
 //                // report progress
-//                if (numBaseTrees % 10 == 0) {
-//                    System.out.print(".");
-//                    System.out.flush();
-//                }
-//                if (numBaseTrees % 1000 == 0) {
-//                    System.out.println(" (" + numBaseTrees + ")");
+//                if (verbose) {
+//                    if (numBaseTrees % 10 == 0) {
+//                        System.out.print(".");
+//                        System.out.flush();
+//                    }
+//                    if (numBaseTrees % 1000 == 0) {
+//                        System.out.println(" (" + numBaseTrees + ")");
+//                    }
 //                }
 //
 //                tree = treeSet.hasNext() ? treeSet.next() : null;
 //            }
-//            System.out.println(" ...done.");
+//
+//            if (verbose) {
+//                System.out.println(" ...done.");
+//            }
 //
 //        } catch (IOException e) {
 //            System.err.println("Error reading in trees to create CCD.");
@@ -127,7 +147,8 @@ public class CCD2 extends AbstractCCD {
      */
     public CCD2(int numLeaves, boolean storeBaseTrees) {
         super(numLeaves, storeBaseTrees);
-        extendedCladeMapping = new HashMap<>();
+        extendedCladeMapping = new HashMap<>(10 * numLeaves);
+        clades = new HashSet<>(10 * numLeaves);
     }
 
     @Override
@@ -155,8 +176,8 @@ public class CCD2 extends AbstractCCD {
         BitSet rightInBits = BitSet.newBitSet(leafArraySize);
 
         // 1. process the children: create them, return bundled, set bits in BitSet
-        ExtendedClade[] leftChildren = processChildren(leftVertex, leftInBits);
-        ExtendedClade[] rightChildren = processChildren(rightVertex, rightInBits);
+        ExtendedClade[] leftChildren = processChildrenCladifying(leftVertex, leftInBits);
+        ExtendedClade[] rightChildren = processChildrenCladifying(rightVertex, rightInBits);
 
         // 2. create extended clades, if they don't exist yet
         ExtendedClade leftClade = getExtendedClade(leftInBits, rightInBits);
@@ -175,14 +196,14 @@ public class CCD2 extends AbstractCCD {
         leftClade.increaseOccurrenceCount(leftVertex.getHeight());
         rightClade.increaseOccurrenceCount(rightVertex.getHeight());
 
-        processCladePartition(leftVertex, leftClade, leftChildren);
-        processCladePartition(rightVertex, rightClade, rightChildren);
+        processCladePartitionCladifying(leftVertex, leftClade, leftChildren);
+        processCladePartitionCladifying(rightVertex, rightClade, rightChildren);
 
         return new ExtendedClade[]{leftClade, rightClade};
     }
 
     /* Helper method */
-    private ExtendedClade[] processChildren(Node parent, BitSet cladeInBits) {
+    private ExtendedClade[] processChildrenCladifying(Node parent, BitSet cladeInBits) {
         ExtendedClade[] children = null;
         if (parent.isLeaf()) {
             cladeInBits.set(parent.getNr());
@@ -211,6 +232,7 @@ public class CCD2 extends AbstractCCD {
             }
         }
 
+        clades.add(clade);
         if (vertex.isLeaf()) {
             cladeMapping.put(cladeInBits, clade);
         } else {
@@ -226,7 +248,7 @@ public class CCD2 extends AbstractCCD {
     }
 
     /* Helper method */
-    private static void processCladePartition(Node vertex, ExtendedClade clade, ExtendedClade[] children) {
+    private static void processCladePartitionCladifying(Node vertex, ExtendedClade clade, ExtendedClade[] children) {
         if (!vertex.isLeaf()) {
             CladePartition currentPartition = clade.getCladePartition(children[0], children[1]);
             if (currentPartition == null) {
@@ -261,7 +283,64 @@ public class CCD2 extends AbstractCCD {
 
     @Override
     public void removeTree(Tree tree, boolean tidyUpCCDGraph) {
-        throw new UnsupportedOperationException("Removing trees not supported for CCD2s yet.");
+        // throw new UnsupportedOperationException("Removing trees not supported for CCD2s yet.");
+        if (super.storesBaseTrees() && !this.baseTrees.remove(tree)) {
+            System.err.println("WARNING: Removing tree from CCD that was not part of it.");
+        }
+
+        Node root = tree.getRoot();
+        ExtendedClade[] children = reduceCladeCount(root.getChild(0), root.getChild(1));
+
+        if (tidyUpCCDGraph) {
+            this.tidyUpCCDGraph(false);
+        }
+
+        this.setCacheAsDirty();
+    }
+
+    /* Recursive helper method */
+    private ExtendedClade[] reduceCladeCount(Node leftVertex, Node rightVertex) {
+        BitSet leftInBits = BitSet.newBitSet(leafArraySize);
+        BitSet rightInBits = BitSet.newBitSet(leafArraySize);
+
+        // 1. build BitSet to retrieve clade and call recursion
+        ExtendedClade[] leftChildren = processChildrenRemoving(leftVertex, leftInBits);
+        ExtendedClade[] rightChildren = processChildrenRemoving(rightVertex, rightInBits);
+
+        // 2. retrieve clades and reduce count
+        ExtendedClade leftClade = getExtendedClade(leftInBits, rightInBits);
+        leftClade.decreaseOccurrenceCount(leftVertex.getHeight());
+        ExtendedClade rightClade = getExtendedClade(rightInBits, leftInBits);
+        rightClade.decreaseOccurrenceCount(rightVertex.getHeight());
+
+        // 3. reduce counts for its clade partitions
+        processCladePartitionRemoving(leftVertex, leftClade, leftChildren);
+        processCladePartitionRemoving(rightVertex, rightClade, rightChildren);
+
+        return new ExtendedClade[]{leftClade, rightClade};
+    }
+
+    /* Recursive helper method */
+    private ExtendedClade[] processChildrenRemoving(Node parent, BitSet cladeInBits) {
+        ExtendedClade[] children = null;
+        if (parent.isLeaf()) {
+            cladeInBits.set(parent.getNr());
+        } else {
+            children = reduceCladeCount(parent.getChild(0), parent.getChild(1));
+            cladeInBits.or(children[0].getCladeInBits());
+            cladeInBits.or(children[1].getCladeInBits());
+        }
+        return children;
+    }
+
+    /* Helper method */
+    private void processCladePartitionRemoving(Node vertex, ExtendedClade clade, ExtendedClade[] children) {
+        if (!vertex.isLeaf()) {
+            CladePartition currentPartition = clade.getCladePartition(children[0], children[1]);
+            currentPartition.decreaseOccurrenceCount(vertex.getHeight());
+
+            removeCladePartitionIfNecessary(clade, currentPartition);
+        }
     }
 
 
@@ -269,11 +348,12 @@ public class CCD2 extends AbstractCCD {
 
     @Override
     public int getNumberOfClades() {
-        int count = 0;
-        for (Map<BitSet, ExtendedClade> map : extendedCladeMapping.values()) {
-            count += map.size();
-        }
-        return count + 1; // + 1 for root clade
+        return clades.size();
+    }
+
+    @Override
+    public Collection<Clade> getClades() {
+        return clades;
     }
 
     @Override
@@ -303,11 +383,10 @@ public class CCD2 extends AbstractCCD {
 
         double probability = 0;
         for (ExtendedClade clade : map.values()) {
-            double current = clade.getProbability();
-            if (current < 0) {
+            if (clade.getProbability() < 0) {
                 computeCladeProbabilities();
             }
-            probability += current;
+            probability += clade.getProbability();
         }
 
         return probability;
@@ -337,13 +416,13 @@ public class CCD2 extends AbstractCCD {
     }
 
     @Override
-    protected void checkCladePartitionRemoval(Clade clade, CladePartition partition) {
+    protected boolean removeCladePartitionIfNecessary(Clade clade, CladePartition partition) {
         // when a partition has no registered occurrences more, we can remove it
         if (partition.getNumberOfOccurrences() == 0) {
             clade.removePartition(partition);
+            return true;
         }
-
-        // TODO
+        return false;
     }
 
 
@@ -432,8 +511,6 @@ public class CCD2 extends AbstractCCD {
 
         return leftChildren;
     }
-
-
 
 
     /* -- OTHER METHODS -- */

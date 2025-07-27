@@ -10,8 +10,6 @@ package viz.ccd;
 public class ExtendedClade extends Clade {
 
     ExtendedClade sibling;
-    Clade parentClade;
-    CladePartition parentCladePartition;
 
     /**
      * Construct a new Clade on the taxa specified by the given BitSet and being

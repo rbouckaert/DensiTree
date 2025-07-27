@@ -2,6 +2,7 @@ package viz.ccd;
 
 import viz.Node;
 
+
 import java.util.ArrayList;
 
 public class WrappedBeastTree {
@@ -41,12 +42,18 @@ public class WrappedBeastTree {
         return cladeAsBitSet;
     }
 
-    public double getHeightOfClade(BitSet cladeInBits) {
-        return getHeightOfClade(cladeInBits, wrappedTree.getRoot());
+    /**
+     * Returns the height of the least common ancestor clade of the given clade.
+     *
+     * @param cladeInBits whose lca height is requested
+     * @return the height of the least common ancestor clade of the given clade
+     */
+    public double getCommonAncestorHeightOfClade(BitSet cladeInBits) {
+        return getCommonAncestorHeightOfClade(cladeInBits, wrappedTree.getRoot());
     }
 
     /* Recursive helper method */
-    private double getHeightOfClade(BitSet cladeInBits, Node vertex) {
+    private double getCommonAncestorHeightOfClade(BitSet cladeInBits, Node vertex) {
         if (vertex.isLeaf()) {
             return vertex.getHeight();
         }
@@ -62,20 +69,20 @@ public class WrappedBeastTree {
         // otherwise the current vertex is the LCA of that clade
 
         // test first child
-        BitSet copy = (BitSet) cladeOfVertex[vertex.getChild(0).getNr()].clone();
-        copy.and(cladeInBits);
-        copy.xor(cladeInBits);
-        if (copy.isEmpty()) {
-            return getHeightOfClade(cladeInBits, vertex.getChild(0));
-        }
+        // System.out.println("\n\ncladeInBits = " + cladeInBits);
+        // System.out.println("left =  " + cladeOfVertex[vertex.getChild(0).getNr()]);
+        // System.out.println("right = " + cladeOfVertex[vertex.getChild(1).getNr()]);
 
-        // otherwise test second child
-        copy = (BitSet) cladeOfVertex[vertex.getChild(1).getNr()].clone();
-        copy.and(cladeInBits);
-        copy.xor(cladeInBits);
-        if (copy.isEmpty()) {
-            return getHeightOfClade(cladeInBits, vertex.getChild(1));
+        if (cladeOfVertex[vertex.getChild(0).getNr()].contains(cladeInBits)) {
+            // System.out.println("left");
+            return getCommonAncestorHeightOfClade(cladeInBits, vertex.getChild(0));
         }
+        // otherwise test second child
+        if (cladeOfVertex[vertex.getChild(1).getNr()].contains(cladeInBits)) {
+            // System.out.println("right");
+            return getCommonAncestorHeightOfClade(cladeInBits, vertex.getChild(1));
+        }
+        // System.out.println("this");
 
         // otherwise return height of this vertex
         return vertex.getHeight();
@@ -91,7 +98,7 @@ public class WrappedBeastTree {
 
     public boolean containsClade(BitSet cladeInBits) {
         for (BitSet treeCladeInBits : cladeOfVertex) {
-            if (treeCladeInBits.equals(cladeInBits)) {
+            if ((treeCladeInBits != null) && treeCladeInBits.equals(cladeInBits)) {
                 return true;
             }
         }
@@ -122,57 +129,57 @@ public class WrappedBeastTree {
         return count;
     }
 
-//    /** @return distance matrix of pairwise leaf path lengths */
-//    public double[][] getPathDistanceMatrix() {
-//        if (pathDistanceMatrix == null) {
-//            computePathDistanceMatrix();
-//        }
-//
-//        return pathDistanceMatrix;
-//    }
-//
-//    /** Computes the distance matrix of pairwise leaf path lengths. */
-//    public void computePathDistanceMatrix() {
-//        Tree tree = wrappedTree;
-//        int n = tree.getLeafNodeCount();
-//        pathDistanceMatrix = new double[n][n];
-//
-//        for (int i = 0; i < n; i++) {
-//            Node prev = tree.getNode(i);
-//            computePathDistanceMatrix(prev, prev.getParent(), 1, i, true);
-//        }
-//    }
-//
-//    /* Tree traversal helper method */
-//    private void computePathDistanceMatrix(Node prev, Node next, int d, int indexReferenceLeaf,
-//                                           boolean up) {
-//        if (up) {
-//            // go further up
-//            if (!next.isRoot()) {
-//                computePathDistanceMatrix(next, next.getParent(), d + 1, indexReferenceLeaf, true);
-//            }
-//
-//            // go down on other paths
-//            for (Node child : next.getChildren()) {
-//                if (child == prev) {
-//                    continue;
-//                } else if (child.isLeaf()) {
-//                    pathDistanceMatrix[indexReferenceLeaf][child.getNr()] = d + 1;
-//                } else {
-//                    computePathDistanceMatrix(next, child, d + 1, indexReferenceLeaf, false);
-//                }
-//            }
-//
-//        } else {
-//            // go down all paths
-//            for (Node child : next.getChildren()) {
-//                if (child.isLeaf()) {
-//                    pathDistanceMatrix[indexReferenceLeaf][child.getNr()] = d + 1;
-//                } else {
-//                    computePathDistanceMatrix(next, child, d + 1, indexReferenceLeaf, false);
-//                }
-//            }
-//        }
-//
-//    }
+    /** @return distance matrix of pairwise leaf path lengths */
+    public double[][] getPathDistanceMatrix() {
+        if (pathDistanceMatrix == null) {
+            computePathDistanceMatrix();
+        }
+
+        return pathDistanceMatrix;
+    }
+
+    /** Computes the distance matrix of pairwise leaf path lengths. */
+    public void computePathDistanceMatrix() {
+        Tree tree = wrappedTree;
+        int n = tree.getLeafNodeCount();
+        pathDistanceMatrix = new double[n][n];
+
+        for (int i = 0; i < n; i++) {
+            Node prev = tree.getNode(i);
+            computePathDistanceMatrix(prev, prev.getParent(), 1, i, true);
+        }
+    }
+
+    /* Tree traversal helper method */
+    private void computePathDistanceMatrix(Node prev, Node next, int d, int indexReferenceLeaf,
+                                           boolean up) {
+        if (up) {
+            // go further up
+            if (!next.isRoot()) {
+                computePathDistanceMatrix(next, next.getParent(), d + 1, indexReferenceLeaf, true);
+            }
+
+            // go down on other paths
+            for (Node child : next.getChildren()) {
+                if (child == prev) {
+                    continue;
+                } else if (child.isLeaf()) {
+                    pathDistanceMatrix[indexReferenceLeaf][child.getNr()] = d + 1;
+                } else {
+                    computePathDistanceMatrix(next, child, d + 1, indexReferenceLeaf, false);
+                }
+            }
+
+        } else {
+            // go down all paths
+            for (Node child : next.getChildren()) {
+                if (child.isLeaf()) {
+                    pathDistanceMatrix[indexReferenceLeaf][child.getNr()] = d + 1;
+                } else {
+                    computePathDistanceMatrix(next, child, d + 1, indexReferenceLeaf, false);
+                }
+            }
+        }
+
+    }
 }

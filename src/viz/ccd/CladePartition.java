@@ -47,7 +47,6 @@ public class CladePartition {
      */
     private double maxSubtreeLogCCP = 1;
 
-
     /** Number of different tree topologies with this partition at the root. */
     private BigInteger numTopologies = null;
 
@@ -186,10 +185,12 @@ public class CladePartition {
         this.meanHeight = height;
     }
 
-    /* -- GRAPH STUCTURE GETTERS & BASIC GETTERS -- */
+
+    /* -- GRAPH STRUCTURE GETTERS & BASIC GETTERS -- */
+
     @Override
     public String toString() {
-        return "CladePartition [numOccurrences = " + numOccurrences + ", meanHeight = " + meanHeight
+        return "CladePartition [CCP = " + this.getCCP() + ", numOccurrences = " + numOccurrences + ", meanHeight = " + meanHeight
                 + ", childClades = " + Arrays.toString(childClades) + "]";
     }
 
@@ -262,6 +263,16 @@ public class CladePartition {
                     .multiply(childClades[1].getNumberOfTopologies());
         }
         return this.numTopologies;
+    }
+
+    /**
+     * Returns the probability of this clade partition appearing in a tree
+     * of a distribution ({@link ITreeDistribution}).
+     *
+     * @return probability of this clade appearing in a tree
+     */
+    public double getProbability() {
+        return parentClade.getProbability() * this.getCCP();
     }
 
     /**
@@ -340,11 +351,23 @@ public class CladePartition {
     public void setCCP(double ccp) {
         if (Double.isNaN(ccp)) {
             throw new IllegalArgumentException("CCP value cannot be NaN");
+        } else if (ccp < 0) {
+            System.out.println("\n" + this);
+            System.err.println("Old CCP: " + this.getCCP());
+            System.err.println("New CCP: " + ccp);
+            System.out.println("parent.parameter: " + this.parentClade.getCladeParameter());
+            System.out.println("child[0].parameter: " + this.getChildClades()[0].getCladeParameter());
+            System.out.println("child[1].parameter: " + this.getChildClades()[1].getCladeParameter());
+            throw new AssertionError("You shall not set negative CCPs (" + ccp + "), " + this);
         }
         this.ccp = ccp;
         this.ccpSet = true;
     }
 
+    /** @return whether the CCP of this partition has been set directly (instead of computed from counts) */
+    public boolean isCCPSet() {
+        return ccpSet;
+    }
 
     /**
      * Computes and returns the maximum conditional log clade probability (CCP) of
@@ -364,6 +387,7 @@ public class CladePartition {
 
         return maxSubtreeLogCCP;
     }
+
     /**
      * Computes and returns the maximum sum of clade credibilities (MSCC) of the
      * subtree with the root on the parent clade and that realizes this
