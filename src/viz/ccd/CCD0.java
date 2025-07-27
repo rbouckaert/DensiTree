@@ -403,10 +403,10 @@ public class CCD0 extends AbstractCCD {
         }
 
         // 2. sort clades
-        List<Clade> clades = cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toList();
+        Clade[] clades = (Clade[]) cladesToExpand.sorted(Comparator.comparingInt(x -> x.size())).toArray();
         if ((progressStream != null) && verbose) {
-            progressStream.println("Expanding CCD0: processing " + clades.size() + " clades");
-            if (clades.size() > 100000 && maxExpansionFactor == -1) {
+            progressStream.println("Expanding CCD0: processing " + clades.length + " clades");
+            if (clades.length > 100000 && maxExpansionFactor == -1) {
                 progressStream.println("If this takes too long, consider using Approximated CCD0 instead.");
                 progressStream.println("This generally runs faster and gives reasonably good point estimates.");
             }
@@ -419,7 +419,7 @@ public class CCD0 extends AbstractCCD {
         // 4. find missing clade partitions
         done = new HashSet<>();
         threadCount = Runtime.getRuntime().availableProcessors();
-        if (threadCount <= 1 || clades.size() < NUM_CLADES_PARALLELIZATION_THRESHOLD
+        if (threadCount <= 1 || clades.length < NUM_CLADES_PARALLELIZATION_THRESHOLD
                 || updateOnline) {
             threadCount = 1;
             findChildPartitions(clades);
@@ -430,7 +430,7 @@ public class CCD0 extends AbstractCCD {
                 }
                 countDown = new CountDownLatch(threadCount);
                 ExecutorService exec = Executors.newFixedThreadPool(threadCount);
-                int end = clades.size();
+                int end = clades.length;
                 for (int i = 0; i < threadCount; i++) {
                     ExpandWorker coreRunnable = new ExpandWorker(clades, i, end);
                     exec.execute(coreRunnable);
@@ -467,7 +467,7 @@ public class CCD0 extends AbstractCCD {
      * @param leafArraySize = maximum clade size
      * @return clade buckets
      */
-    private List<List<Clade>> processCladeBuckets(List<Clade> clades, int leafArraySize) {
+    private List<List<Clade>> processCladeBuckets(Clade [] clades, int leafArraySize) {
         List<List<Clade>> cladeBuckets = new ArrayList<>(leafArraySize);
 
         // 3.i init clade buckets
@@ -546,7 +546,10 @@ public class CCD0 extends AbstractCCD {
 
         // 0. take out clades that have no occurrences left
         // and do nothing if no new clades remain
-        List<Clade> emptyClades = newClades.stream().filter(x -> (x.getNumberOfOccurrences() != 0)).toList();
+        List<Clade> emptyClades = new ArrayList<>();
+        for (Clade clade : (Clade[]) newClades.stream().filter(x -> (x.getNumberOfOccurrences() != 0)).toArray()) {
+        	emptyClades.add(clade);
+        }
         newClades.removeAll(emptyClades);
         if (newClades.isEmpty()) {
             return;
@@ -573,6 +576,29 @@ public class CCD0 extends AbstractCCD {
      *
      * @param parentClades for which we search for new clade partitions
      */
+    private void findChildPartitions(Clade [] parentClades) {
+        BitSet helperBits = BitSet.newBitSet(parentClades[0].getCCD().getSizeOfLeavesArray());
+
+        // we go through clades in increasing size, then check for each clade of
+        // at most half potential parent's size, whether we can find a partner
+        int progressed = 0;
+        int i = 0;
+        for (Clade parent : parentClades) {
+            findChildPartitionsOf(parent, helperBits);
+            if ((progressStream != null) && verbose) {
+                while (progressed < (i * 61 / parentClades.length)) {
+                    progressStream.print(".");
+                    progressed++;
+                }
+            }
+            i++;
+        }
+
+        if ((progressStream != null) && verbose) {
+            progressStream.println();
+        }
+    }
+
     private void findChildPartitions(List<Clade> parentClades) {
         BitSet helperBits = BitSet.newBitSet(parentClades.get(0).getCCD().getSizeOfLeavesArray());
 
@@ -709,11 +735,11 @@ public class CCD0 extends AbstractCCD {
 
     /* Thread worker for embarrassingly parallelizing parts of the expand step */
     class ExpandWorker implements java.lang.Runnable {
-        private List<Clade> clades;
+        private Clade [] clades;
         private int start;
         private int end;
 
-        ExpandWorker(List<Clade> clades, int start, int end) {
+        ExpandWorker(Clade [] clades, int start, int end) {
             this.clades = clades;
             this.start = start;
             this.end = end;
@@ -723,13 +749,13 @@ public class CCD0 extends AbstractCCD {
         public void run() {
             int i = start;
             try {
-                BitSet helperBits = BitSet.newBitSet(clades.get(0).getCCD().getSizeOfLeavesArray());
+                BitSet helperBits = BitSet.newBitSet(clades[0].getCCD().getSizeOfLeavesArray());
                 while (i < end) {
-                    findChildPartitionsOf(clades.get(i), helperBits);
+                    findChildPartitionsOf(clades[i], helperBits);
                     i += threadCount;
 
                     if (progressStream != null) {
-                        while (progressed < (i * 61 / clades.size())) {
+                        while (progressed < (i * 61 / clades.length)) {
                             progressStream.print("*");
                             progressed++;
                         }
