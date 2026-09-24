@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.Set;
 
 
@@ -142,11 +141,6 @@ public class CladeDrawer {
 		}
 
 		
-		if (treeData == m_dt.m_treeData2) {
-			int xx = 4;
-			xx--;
-		}
-		
 		
 		// draw selection
 		if (!m_bSelectedOnly) {
@@ -165,25 +159,6 @@ public class CladeDrawer {
 				h = w;
 				g.drawOval(x- w / 2, y- h / 2, w, h);
 				
-//				if (m_dt.treeData2 != null) {
-//					TreeData treeData2 = m_dt.treeData2;
-//					String clade = Arrays.toString(m_dt.treeData.m_clades.get(i));
-//					Integer j = m_dt.m_mirrorCladeToCladeMap.get(clade);
-//					if (j != null) {
-//						if (!m_dt.m_treeDrawer.m_bRootAtTop) {
-//							x = (int) ((treeData2.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleX * m_dt.m_fTreeScale);
-//							y = (int) (treeData2.m_cladePosition[i] * fScaleY);
-//						} else {
-//							x = (int) (treeData2.m_cladePosition[i] * fScaleX);
-//							y = /*nHeight -*/ (int) ((treeData2.m_cladeHeight.get(i) - m_dt.m_fTreeOffset) * fScaleY * m_dt.m_fTreeScale);
-//						}
-//						w = (int)(10 +  treeData2.m_cladeWeight.get(i)*10);
-//						h = w;
-//						((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, m_dt.getWidth()/2, 0));
-//						g.drawOval(x- w / 2, y- h / 2, w, h);
-//						((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
-//					}
-//				}
 			}
 		}
 	

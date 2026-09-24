@@ -21,11 +21,11 @@
 
 package viz.graphics;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+//import java.awt.AlphaComposite;
+//import java.awt.BasicStroke;
+//import java.awt.Color;
+//import java.awt.Graphics2D;
+//import java.awt.Stroke;
 
 /** This class takes care of drawing a single tree out of a tree set in SVG
  * into a StringBuffer 
@@ -39,10 +39,11 @@ public class SVGTreeDrawer extends TreeDrawer {
 
 	public int m_branchStyle = 0;
 	
-	private void draw(int nX1, int nY1, int nX2, int nY2, float fWidth) {
+	private void draw(int nX1, int nY1, int nX2, int nY2, float fWidth, int [] color) {
 		m_buf.append("<path " +
 				"fill='none' " +
-				"stroke='rgb(" +m_color.getRed()+ "," + m_color.getGreen() +"," + m_color.getBlue()+")' " +
+				//"stroke='rgb(" +m_color.getRed()+ "," + m_color.getGreen() +"," + m_color.getBlue()+")' " +
+				"stroke='rgb(" + color[0]+ "," + color[1] +"," + color[2] +")' " +
 				"stroke-width='"+ fWidth+"' " +
 				"opacity='" + m_fAlpha + "' " +
 				" d='");
@@ -65,12 +66,12 @@ public class SVGTreeDrawer extends TreeDrawer {
 	 * required
 	 **/
 	@Override
-	void drawBlockTree(float[] nX, float[] nY, int [] color, Graphics2D g, float fScaleX, float fScaleY) {
+	void drawBlockTree(float[] nX, float[] nY, int [] color, float fLineWidth, float fAlpha, float fScaleX, float fScaleY) {
 		if (nX == null || nY == null) {
 			return;
 		}
-		float fLineWidth = ((BasicStroke)g.getStroke()).getLineWidth();
-		float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
+//		float fLineWidth = ((BasicStroke)g.getStroke()).getLineWidth();
+//		float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
 		int nRed = (color[0] >> 16) & 0xFF;//g.getColor().getRed();
 		int nGreen = (color[0] >> 8) & 0xFF;//g.getColor().getGreen();
 		int nBlue = (color[0] >> 0) & 0xFF;//g.getColor().getBlue();
@@ -115,7 +116,7 @@ public class SVGTreeDrawer extends TreeDrawer {
 
 	/** draw block tree with variable line widths, where line width represents some information in the metadata **/
 	@Override
-	void drawBlockTree(float[] nX, float[] nY, float[]fLineWidth, float [] fTopLineWidth, int [] color, Graphics2D g, float fScaleX, float fScaleY) {
+	void drawBlockTree(float[] nX, float[] nY, float[]fLineWidths, float [] fTopLineWidth, int [] color, float fLineWidth, float fAlpha, float fScaleX, float fScaleY) {
 		if (nX == null || nY == null) {
 			return;
 		}
@@ -123,39 +124,39 @@ public class SVGTreeDrawer extends TreeDrawer {
 			for (int i = 0; i < nX.length - 2; i++) {
 				if (i % 4 != 3) {
 					if (i % 4 == 0 || i % 4 == 2) {
-						float fWidth = fLineWidth[i] * LINE_WIDTH_SCALE;
+						float fWidth = fLineWidths[i] * LINE_WIDTH_SCALE;
 						float fTopWidth = fTopLineWidth[i] * LINE_WIDTH_SCALE;
-						Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-						((Graphics2D) g).setStroke(stroke);
+//						Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+//						((Graphics2D) g).setStroke(stroke);
 						if (m_bViewBlockTree) {
 							if (i % 4 == 0) {
-								draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fTopWidth/2.0f), fWidth);
+								draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fTopWidth/2.0f), fWidth, color);
 							} else {
 								// i % 4 == 2
-								draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fTopWidth/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth);								
+								draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fTopWidth/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, color);								
 							}
 						} else {
 							if (i % 4 == 0) { 							
 								float fTopWidth2 = fTopLineWidth[i+2] * LINE_WIDTH_SCALE;
 								if (nY[i+1] < nY[i+2]) {
-									draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth+fTopWidth2)/2.0f), fWidth);
+									draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth+fTopWidth2)/2.0f), fWidth, color);
 								} else {
-									draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth-fTopWidth2)/2.0f), fWidth);										
+									draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY - fWidth/2.0f), (int) (nX[i + 1] * fScaleX)-1, (int) (((nY[i+1] + nY[i+2])/2.0) * fScaleY - (fTopWidth-fTopWidth2)/2.0f), fWidth, color);										
 								}
 							} else {
 								// i % 4 == 2
 								float fTopWidth2 = fTopLineWidth[i-2] * LINE_WIDTH_SCALE;
 								if (nY[i-1] < nY[i]) {
-									draw( (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth-fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth);
+									draw( (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth-fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, color);
 								} else {
-									draw( (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth+fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth);
+									draw( (int) (nX[i] * fScaleX)-1, (int) (((nY[i] +nY[i-1])/2.0)* fScaleY - (fTopWidth+fTopWidth2)/2.0f), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, color);
 								}
 							}
 						}
 					} else if (i % 4 == 1 && m_bViewBlockTree) {
-						Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-						((Graphics2D) g).setStroke(stroke);
-						draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY), m_nTreeWidth);
+						//Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+						//((Graphics2D) g).setStroke(stroke);
+						draw( (int) (nX[i] * fScaleX), (int) (nY[i] * fScaleY), (int) (nX[i + 1] * fScaleX), (int) (nY[i + 1] * fScaleY), m_nTreeWidth, color);
 					}
 				}
 			}
@@ -166,17 +167,17 @@ public class SVGTreeDrawer extends TreeDrawer {
 			}
 			for (int i = 0; i < nX.length - 1; i++) {
 				if (i % 4 != 3) {
-					draw( nXJ[i], (int) (nY[i] * fScaleY), nXJ[i + 1], (int) (nY[i + 1] * fScaleY), m_nTreeWidth);
+					draw( nXJ[i], (int) (nY[i] * fScaleY), nXJ[i + 1], (int) (nY[i + 1] * fScaleY), m_nTreeWidth, color);
 				}
 				if (i % 4 == 0 || i % 4 == 2) {
-					float fWidth = fLineWidth[i] * LINE_WIDTH_SCALE;
-					Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
-					draw( nXJ[i], (int) (nY[i] * fScaleY - fWidth/2.0f), nXJ[i + 1], (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth);
+					float fWidth = fLineWidths[i] * LINE_WIDTH_SCALE;
+					//Stroke stroke = new BasicStroke(fWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+					//((Graphics2D) g).setStroke(stroke);
+					draw( nXJ[i], (int) (nY[i] * fScaleY - fWidth/2.0f), nXJ[i + 1], (int) (nY[i + 1] * fScaleY - fWidth/2.0f), fWidth, color);
 				} else if (i % 4 == 1) {
-					Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-					((Graphics2D) g).setStroke(stroke);
-					draw( nXJ[i], (int) (nY[i] * fScaleY), nXJ[i + 1], (int) (nY[i + 1] * fScaleY), m_nTreeWidth);
+					//Stroke stroke = new BasicStroke(m_nTreeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
+					//((Graphics2D) g).setStroke(stroke);
+					draw( nXJ[i], (int) (nY[i] * fScaleY), nXJ[i + 1], (int) (nY[i + 1] * fScaleY), m_nTreeWidth, color);
 				}
 			}
 		}
@@ -188,12 +189,12 @@ public class SVGTreeDrawer extends TreeDrawer {
 	 * if required
 	 **/
 	@Override
-	void drawTriangleTree(float[] nX, float[] nY, int [] color, Graphics2D g, float fScaleX, float fScaleY) {
+	void drawTriangleTree(float[] nX, float[] nY, int [] color, float fLineWidth, float fAlpha, float fScaleX, float fScaleY) {
 		if (nX == null || nY == null) {
 			return;
 		}
-		float fLineWidth = ((BasicStroke)g.getStroke()).getLineWidth();
-		float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
+//		float fLineWidth = ((BasicStroke)g.getStroke()).getLineWidth();
+//		float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
 //		Color color = g.getColor();
 		int nRed = (color[0] >> 16) & 0xFF;//g.getColor().getRed();
 		int nGreen = (color[0] >> 8) & 0xFF;//g.getColor().getGreen();
@@ -293,7 +294,7 @@ public class SVGTreeDrawer extends TreeDrawer {
 	}
 
 	
-	Color m_color;
+	//Color m_color;
 	float m_fAlpha;
 } // class BranchDrawer
 

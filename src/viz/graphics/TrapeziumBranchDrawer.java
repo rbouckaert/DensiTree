@@ -20,15 +20,13 @@
 */
 package viz.graphics;
 
-import java.awt.AlphaComposite;
-import java.awt.Graphics2D;
 
 public class TrapeziumBranchDrawer extends BranchDrawer {
 
 	@Override
-	public void draw(BufferedImageF image, int color, Graphics2D g, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
+	public void draw(BufferedImageF image, int color, float fLineWidth, float fAlpha, int x1, int y1, int x2, int y2, float fBottomWidth, float fTopWidth) {
 		if (fBottomWidth == 0) {
-			super.draw(image, color, g, x1, y1, x2, y2, fBottomWidth, fTopWidth);
+			super.draw(image, color, fLineWidth, fAlpha, x1, y1, x2, y2, fBottomWidth, fTopWidth);
 			return;
 		}
 			//g.drawLine(x1, y1, x2, y2);
@@ -38,7 +36,7 @@ public class TrapeziumBranchDrawer extends BranchDrawer {
 			nRed = (nRed<<16);
 			nGreen = (nGreen<<16);
 			nBlue = (nBlue<<16);
-			float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
+//			float fAlpha = ((AlphaComposite)g.getComposite()).getAlpha();
 //			nRed = (int)(nRed * fAlpha);
 //			nGreen = (int)(nGreen * fAlpha);
 //			nBlue = (int)(nBlue * fAlpha);

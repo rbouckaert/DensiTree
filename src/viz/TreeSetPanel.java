@@ -184,7 +184,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //								g.setColor(m_dt.m_color[3]);
 //							}
 
-							m_dt.m_treeDrawer.draw(i, treeData.m_fLinesX, treeData.m_fLinesY, treeData.m_fLineWidth, treeData.m_fTopLineWidth, treeData.m_nLineColor, g, fScaleX,
+							m_dt.m_treeDrawer.draw(i, treeData.m_fLinesX, treeData.m_fLinesY, treeData.m_fLineWidth, treeData.m_fTopLineWidth, treeData.m_nLineColor, 
+									((BasicStroke)g.getStroke()).getLineWidth(), ((AlphaComposite)g.getComposite()).getAlpha(), 
+									fScaleX,
 									fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('.');
@@ -211,7 +213,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 						if (m_iTreeTopology < 0 || m_iTreeTopology == i) {
 							g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
 									Math.min(1.0f, 0.5f * m_dt.m_settings.m_fCTreeIntensity * treeData.m_fTreeWeight[i])));
-							m_dt.m_treeDrawer.draw(i, treeData.m_fCLinesX, treeData.m_fCLinesY, treeData.m_fCLineWidth, treeData.m_fTopCLineWidth, treeData.m_nCLineColor, g,
+							m_dt.m_treeDrawer.draw(i, treeData.m_fCLinesX, treeData.m_fCLinesY, treeData.m_fCLineWidth, treeData.m_fTopCLineWidth, treeData.m_nCLineColor, 
+									((BasicStroke)g.getStroke()).getLineWidth(), ((AlphaComposite)g.getComposite()).getAlpha(),
 									fScaleX, fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('x');
@@ -654,7 +657,8 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g.setStroke(stroke);
 		g.setColor(m_dt.m_settings.m_color[DensiTree.ROOTCANALCOLOR]);
 		m_dt.m_treeDrawer.draw(0, treeData.m_fRLinesX, treeData.m_fRLinesY, treeData.m_fRLineWidth,
-				treeData.m_fRTopLineWidth, treeData.m_nRLineColor, g, fScaleX, fScaleY);
+				treeData.m_fRTopLineWidth, treeData.m_nRLineColor, 
+				((BasicStroke)g.getStroke()).getLineWidth(), ((AlphaComposite)g.getComposite()).getAlpha(), fScaleX, fScaleY);
 	}
 
 	/** draw new frame in animation or browse action **/
