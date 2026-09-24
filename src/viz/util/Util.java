@@ -2,10 +2,8 @@ package viz.util;
 
 
 import java.awt.Font;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

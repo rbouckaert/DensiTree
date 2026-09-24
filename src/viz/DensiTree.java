@@ -37,6 +37,15 @@ package viz;
 //RRB: not for public release
 
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.TilePane;
+import javafx.scene.layout.VBox;
 
 
 
@@ -78,16 +87,16 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import viz.GridDrawer.GridMode;
 import viz.graphics.*;
-import viz.panel.BurninPanel;
-import viz.panel.CladePanel;
-import viz.panel.ColorPanel;
-import viz.panel.ExpandablePanel;
-import viz.panel.GeoPanel;
-import viz.panel.GridPanel;
-import viz.panel.LabelPanel;
-import viz.panel.LineWidthPanel;
-import viz.panel.RoguePanel;
-import viz.panel.ShowPanel;
+import viz.fxpanel.BurninPanel;
+import viz.fxpanel.CladePanel;
+import viz.fxpanel.ColorPanel;
+import viz.fxpanel.ExpandablePanel;
+import viz.fxpanel.GeoPanel;
+import viz.fxpanel.GridPanel;
+import viz.fxpanel.LabelPanel;
+import viz.fxpanel.LineWidthPanel;
+import viz.fxpanel.RoguePanel;
+import viz.fxpanel.ShowPanel;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
@@ -3813,27 +3822,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (viz.util.Util.isMac()) {
 			B = 10;
 		}
-		JPanel panel = new JPanel();
-		panel.setBorder(new EmptyBorder(3, B, 5, B));
-		panel.setLayout(new GridLayout(0, 2));
-		panel.add(createToolBarButton(action));
-		panel.add(createToolBarButton(action3));
-		panel.add(createToolBarButton(action4));
-		panel.add(createToolBarButton(action5));
-
+//		JPanel panel = new JPanel();
+//		panel.setBorder(new EmptyBorder(3, B, 5, B));
+//		panel.setLayout(new GridLayout(0, 2));
+//		panel.add(createToolBarButton(action));
+//		panel.add(createToolBarButton(action3));
+//		panel.add(createToolBarButton(action4));
+//		panel.add(createToolBarButton(action5));
 		
-		JPanel toolPanel = new JPanel();
-		toolPanel.setLayout(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridwidth = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.anchor = GridBagConstraints.PAGE_START;
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		//m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
-		toolPanel.add(new ExpandablePanel("Type", panel, true), gbc);
-		//toolPanel.add(panel, gbc);
-				
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			/**
 			 * 
@@ -3878,35 +3874,107 @@ public class DensiTree extends JPanel implements ComponentListener {
 				setStyle(3);
 			}
 		};
-		panel = new JPanel();
-		panel.setBorder(new EmptyBorder(3, B, 3, B));
-		panel.setLayout(new GridLayout(0, 2));
-		panel.add(createToolBarButton(action6));
-		panel.add(createToolBarButton(action7));
-		panel.add(createToolBarButton(action8));
-		panel.add(createToolBarButton(action9));
-		
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Style", panel, true), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Show", new ShowPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Grid", new GridPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Label", new LabelPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Geography", new GeoPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Line Width", new LineWidthPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Line Color", new ColorPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
-		gbc.gridy++;
-		toolPanel.add(new ExpandablePanel("Rogues", new RoguePanel(this)), gbc);
-		gbc.gridy++;				
-		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
+//		panel = new JPanel();
+//		panel.setBorder(new EmptyBorder(3, B, 3, B));
+//		panel.setLayout(new GridLayout(0, 2));
+//		panel.add(createToolBarButton(action6));
+//		panel.add(createToolBarButton(action7));
+//		panel.add(createToolBarButton(action8));
+//		panel.add(createToolBarButton(action9));
+
+
+//		JPanel toolPanel = new JPanel();
+//		toolPanel.setLayout(new GridBagLayout());
+//		GridBagConstraints gbc = new GridBagConstraints();
+//		gbc.gridwidth = 1;
+//		gbc.fill = GridBagConstraints.HORIZONTAL;
+//		gbc.anchor = GridBagConstraints.PAGE_START;
+//		gbc.gridx = 0;
+//		gbc.gridy = 0;
+//		//m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
+//		toolPanel.add(new ExpandablePanel("Type", panel, true), gbc);
+//		//toolPanel.add(panel, gbc);
+//
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Style", panel, true), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Show", new ShowPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Grid", new GridPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Label", new LabelPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Geography", new GeoPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Line Width", new LineWidthPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Line Color", new ColorPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
+//		gbc.gridy++;
+//		toolPanel.add(new ExpandablePanel("Rogues", new RoguePanel(this)), gbc);
+//		gbc.gridy++;				
+//		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
 		//JScrollPane toolPaneScroller = new JScrollPane(toolPanel);
+		
+		// 1. Create the JFXPanel to embed JavaFX components inside Swing
+		JFXPanel toolPanel = new JFXPanel();
+
+		// 2. Initialize JavaFX UI on the JavaFX Application Thread
+		Platform.runLater(() -> {
+			TilePane typePanel = new TilePane();
+			typePanel.setPrefColumns(2); // Fixes the grid to 2 columns
+			typePanel.setPadding(new Insets(3, B, 5, B));
+			typePanel.setHgap(4);
+			typePanel.setVgap(4);
+
+			typePanel.getChildren().addAll(
+			    createToolBarButton(action),
+			    createToolBarButton(action3),
+			    createToolBarButton(action4),
+			    createToolBarButton(action5)
+			);
+
+			TilePane stylePanel = new TilePane();
+			stylePanel.setPrefColumns(2); // Fixes the grid to 2 columns
+			stylePanel.setPadding(new Insets(3, B, 5, B));
+			stylePanel.setHgap(4);
+			stylePanel.setVgap(4);
+
+			stylePanel.getChildren().addAll(
+			    createToolBarButton(action),
+			    createToolBarButton(action3),
+			    createToolBarButton(action4),
+			    createToolBarButton(action5)
+			);
+
+		    VBox vbox = new VBox(2);
+		    vbox.setPadding(new Insets(5));
+		    vbox.setFillWidth(true);
+
+		    // Add all ExpandablePanels with their respective JavaFX child panels
+		    vbox.getChildren().addAll(
+		        new ExpandablePanel("Type", typePanel, true),
+		        new ExpandablePanel("Style", stylePanel, true),
+		        new ExpandablePanel("Show", new ShowPanel(this)),
+		        new ExpandablePanel("Grid", new GridPanel(this)),
+		        new ExpandablePanel("Label", new LabelPanel(this)),
+		        new ExpandablePanel("Geography", new GeoPanel(this)),
+		        new ExpandablePanel("Line Width", new LineWidthPanel(this)),
+		        new ExpandablePanel("Line Color", new ColorPanel(this)),
+		        new ExpandablePanel("Burn in", new BurninPanel(this)),
+		        new ExpandablePanel("Rogues", new RoguePanel(this)),
+		        new ExpandablePanel("Clades", new CladePanel(this))
+		    );
+
+		    // Wrap in a ScrollPane so the tool panel scrolls cleanly if the window is resized
+		    ScrollPane scrollPane = new ScrollPane(vbox);
+		    scrollPane.setFitToWidth(true);
+		    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+		    // Set the JavaFX Scene on the JFXPanel
+		    toolPanel.setScene(new Scene(scrollPane));
+		});
 		m_jTbTools2.add(toolPanel);
 //		for (int i = 0; i < 100; i++) {
 //			gbc.gridy++;
@@ -4036,14 +4104,55 @@ public class DensiTree extends JPanel implements ComponentListener {
 		return -1;
 	}
 	
-	private JButton createToolBarButton(Action action) {
-		// Add a button to the toolbar; remove the label and margin before adding
-		JButton c1 = new JButton(action);
-		c1.setText(null);
-		c1.setMargin(new Insets(0, 0, 0, 0));
-		return c1;
-	}
+//	private JButton createToolBarButton(Action action) {
+//		// Add a button to the toolbar; remove the label and margin before adding
+//		JButton c1 = new JButton(action);
+//		c1.setText(null);
+//		c1.setMargin(new Insets(0, 0, 0, 0));
+//		return c1;
+//	}
+	
+	private javafx.scene.control.Button createToolBarButton(Action action) {
+	    javafx.scene.control.Button button = new javafx.scene.control.Button();
+	    button.setPadding(new Insets(2)); // Compact padding for toolbars (replaces setMargin)
+	    button.setFocusTraversable(false);
 
+	    if (action != null) {
+	        // 1. Convert Swing Icon to JavaFX Graphic
+	        Object iconObj = action.getValue(Action.SMALL_ICON);
+	        if (iconObj instanceof Icon icon) {
+	            BufferedImage bImg = new BufferedImage(
+	                icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB
+	            );
+	            Graphics2D g2 = bImg.createGraphics();
+	            icon.paintIcon(null, g2, 0, 0);
+	            g2.dispose();
+
+	            button.setGraphic(new ImageView(javafx.embed.swing.SwingFXUtils.toFXImage(bImg, null)));
+	        }
+
+	        // 2. Set Tooltip from Action.SHORT_DESCRIPTION
+	        Object tip = action.getValue(Action.SHORT_DESCRIPTION);
+	        if (tip != null) {
+	            button.setTooltip(new Tooltip(tip.toString()));
+	        }
+
+	        // 3. Forward click to Swing Action
+	        button.setOnAction(e -> {
+	            action.actionPerformed(new java.awt.event.ActionEvent(
+	                button, 
+	                java.awt.event.ActionEvent.ACTION_PERFORMED, 
+	                (String) action.getValue(Action.ACTION_COMMAND_KEY)
+	            ));
+	        });
+
+	        // 4. Enabled / Disabled state
+	        button.setDisable(!action.isEnabled());
+	    }
+
+	    return button;
+	}
+	
 	void setIcon(JCheckBoxMenuItem item, String sIcon) {
 		java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
 		if (tempURL != null) {
