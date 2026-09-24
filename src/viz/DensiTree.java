@@ -44,6 +44,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 
@@ -3822,13 +3824,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		if (viz.util.Util.isMac()) {
 			B = 10;
 		}
-//		JPanel panel = new JPanel();
-//		panel.setBorder(new EmptyBorder(3, B, 5, B));
-//		panel.setLayout(new GridLayout(0, 2));
-//		panel.add(createToolBarButton(action));
-//		panel.add(createToolBarButton(action3));
-//		panel.add(createToolBarButton(action4));
-//		panel.add(createToolBarButton(action5));
 		
 		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
 			/**
@@ -3874,48 +3869,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				setStyle(3);
 			}
 		};
-//		panel = new JPanel();
-//		panel.setBorder(new EmptyBorder(3, B, 3, B));
-//		panel.setLayout(new GridLayout(0, 2));
-//		panel.add(createToolBarButton(action6));
-//		panel.add(createToolBarButton(action7));
-//		panel.add(createToolBarButton(action8));
-//		panel.add(createToolBarButton(action9));
 
-
-//		JPanel toolPanel = new JPanel();
-//		toolPanel.setLayout(new GridBagLayout());
-//		GridBagConstraints gbc = new GridBagConstraints();
-//		gbc.gridwidth = 1;
-//		gbc.fill = GridBagConstraints.HORIZONTAL;
-//		gbc.anchor = GridBagConstraints.PAGE_START;
-//		gbc.gridx = 0;
-//		gbc.gridy = 0;
-//		//m_jTbTools2.setLayout(new BoxLayout(m_jTbTools2, BoxLayout.Y_AXIS));
-//		toolPanel.add(new ExpandablePanel("Type", panel, true), gbc);
-//		//toolPanel.add(panel, gbc);
-//
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Style", panel, true), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Show", new ShowPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Grid", new GridPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Label", new LabelPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Geography", new GeoPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Line Width", new LineWidthPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Line Color", new ColorPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Burn in", new BurninPanel(this)), gbc);
-//		gbc.gridy++;
-//		toolPanel.add(new ExpandablePanel("Rogues", new RoguePanel(this)), gbc);
-//		gbc.gridy++;				
-//		toolPanel.add(new ExpandablePanel("Clades", new CladePanel(this)), gbc);
-		//JScrollPane toolPaneScroller = new JScrollPane(toolPanel);
 		
 		// 1. Create the JFXPanel to embed JavaFX components inside Swing
 		JFXPanel toolPanel = new JFXPanel();
@@ -3942,10 +3896,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 			stylePanel.setVgap(4);
 
 			stylePanel.getChildren().addAll(
-			    createToolBarButton(action),
-			    createToolBarButton(action3),
-			    createToolBarButton(action4),
-			    createToolBarButton(action5)
+			    createToolBarButton(action6),
+			    createToolBarButton(action7),
+			    createToolBarButton(action8),
+			    createToolBarButton(action9)
 			);
 
 		    VBox vbox = new VBox(2);
@@ -3971,15 +3925,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 		    ScrollPane scrollPane = new ScrollPane(vbox);
 		    scrollPane.setFitToWidth(true);
 		    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
 		    // Set the JavaFX Scene on the JFXPanel
 		    toolPanel.setScene(new Scene(scrollPane));
 		});
 		m_jTbTools2.add(toolPanel);
-//		for (int i = 0; i < 100; i++) {
-//			gbc.gridy++;
-//			m_jTbTools2.add(Box.createVerticalGlue(), gbc);
-//		}
 
 		m_treeData.m_cladelist = new JList<String>(m_treeData.m_cladelistmodel);
 		m_treeData.m_cladelist.addListSelectionListener(new ListSelectionListener() {
