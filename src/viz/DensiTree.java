@@ -1,5 +1,4 @@
 /*
-
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,54 +15,50 @@
  */
 /*
  * DensiTree.java
- * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2023 
+ * Copyright Remco Bouckaert remco@cs.auckland.ac.nz (C) 2011 - 2026 
  */
-
 
 package viz;
 
-/**
- * Shows sets of cluster trees represented in Newick format as dendrograms and other graphs.
- * There are 2 modes of viewing a tree set
- * 1. draw all trees in the set
- * 2. browsing through the set of trees/animate through trees in the set, drawing them one by one
- * Restriction: binary trees only
- * 
- * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
- * @version $Revision: 3.0.3 $
- */
-
-// the magic sentence to look for when releasing:
-//RRB: not for public release
-
-
+import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.embed.swing.SwingNode;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
-
-
-import jam.framework.DocumentFrame;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.print.*;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -74,12 +69,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -103,153 +97,76 @@ import viz.fxpanel.RoguePanel;
 import viz.fxpanel.ShowPanel;
 import viz.util.Util;
 
-public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "3.1.0";
+public class DensiTree extends BorderPane {
+	final static String VERSION = "3.2.0";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
-//	final static String CITATION = "Remco R. Bouckaert\n"+
-//		"DensiTree: making sense of sets of phylogenetic trees\n"+
-//		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
-//		"doi: 10.1093/bioinformatics/btq110";
-	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
-			"DensiTree 2: Seeing Trees Through the Forest\n"+
+	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n" +
+			"DensiTree 2: Seeing Trees Through the Forest\n" +
 			"bioRxiv, 2014,\n" +
 			"http://dx.doi.org/10.1101/012401\n";
-	static int instances = 1;
-	
-	public Settings m_settings = new Settings();
+	public static int instances = 0;
 
+	public Settings m_settings = new Settings();
 	public TreeData m_treeData = new TreeData(this, m_settings);
 	public TreeData m_treeData2;
-	
-	
-	
-	/** used for finding clade from treeData in clade set of treeData2 **/
-	public int [] m_mirrorCladeToIDMap = null, m_cladeToIDMap = null;
-//	Map<String,Integer> m_mirrorCladeToIDMap = null;
-//	/** used for finding clade from treeData2 in clade set of treeData **/ 
-//	Map<String,Integer> m_cladeToIDMap = null;
 
-	
+	public int[] m_mirrorCladeToIDMap = null, m_cladeToIDMap = null;
 	static public float GEO_OFFSET = 3.0f;
-	
-	/** flag for testing summary tree optimisation **/
+
 	public String m_sOptFile = null;
-	/** number of tree in tree set to use as root canal tree **/
 	public int m_iOptTree = -1;
 	public Node m_optTree = null;
-	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
 
-	static int B = 1; // frame boundary -- should be 10 on OS X, 1 otherwise
-	JFrame frame;
-	
-	private static final long serialVersionUID = 1L;
+	static int B = 1;
+	public Stage stage;
 
-	/** path for icons */
 	public static final String ICONPATH = "viz/icons/";
-
-	/**
-	 * default tree branch length, used when that info is not in the Newick tree
-	 **/
 	final static double DEFAULT_LENGTH = 0.001f;
-	
 
-
-
-	/** height of highest tree **/
 	public float m_fHeight = 0;
-	/** scale factors for drawing to screen **/
 	float m_fScaleX = 10;
 	float m_fScaleY = 10;
 	float m_fScaleGX = 10;
 	float m_fScaleGY = 10;
-	/** global scale for zooming **/
 	float m_fScale = 1.0f;
-	/** user scale, for scaling grid and clade heights **/
 	public float m_fUserScale = 1.0f;
 
-	/** determines which part of the tree-set is shown wrt maximum tree height **/
 	public float m_fTreeOffset = 0;
 	public float m_fTreeScale = 1;
 
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
 
-	/** flag to allow leafs to be draw and dragged around.
-	 * As a side effect, internal clades will not be positioned correctly,
-	 * so this flag can only be set with the -allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions flag **/
 	boolean m_bLeafCladeSelection = false;
-	/** flag to indicate not to draw anything due to being busy initialising **/
 	boolean m_bInitializing;
 
-
-	/** rectangles with on screen coordinates of labels **/
 	public Rectangle[] m_bLabelRectangle;
-	/** rectangles with geographic locations on screen **/
 	public Rectangle[] m_bGeoRectangle;
-	/** selection rectangle drawn through dragging with left mouse button */
 	public Rectangle m_nSelectedRect = null;
 
-	/**
-	 * burn in = nr of trees ignored at the start of tree file, can be set by
-	 * command line option
-	 **/
 	public int m_nBurnIn = 10;
 	public int m_nThin = 1;
 	public boolean m_bBurnInIsPercentage = true;
 
-	/** mean cumulative width, calculated from trees **/
 	public double m_w = 0;
 
 	public static int HEIGHTCOLOR = 6,
-		CONSCOLOR = 4,
-		LABELCOLOR = 5,
-		BGCOLOR = 7,
-		GEOCOLOR = 8,
-		ROOTCANALCOLOR=9;
+			CONSCOLOR = 4,
+			LABELCOLOR = 5,
+			BGCOLOR = 7,
+			GEOCOLOR = 8,
+			ROOTCANALCOLOR = 9;
 
-	/** image used for the background **/
 	public BufferedImage m_bgImage;
-	
-	/**
-	 * bounding box for area contained in bfImage, derived from the image name:
-	 * if the name matches (lat0,long0)x(lat1,long1) e.g. NZ(-40,140)x(-10,180)
-	 * it will assume the image covers the box 40 South 140 East to 10 South,
-	 * 180 East. NB first coordinate should contain lower values, and the second
-	 * coordinate the higher values.
-	 */
 	double[] m_fBGImageBox = { -180, -90, 180, 90 };
-
-
-
-	
 	BufferedImage m_rotate;
-
-	/** default regular expression **/
-	//final static String DEFAULT_PATTERN = "theta=([0-9\\.Ee-]+)";
-	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),([0-9\\.Ee-]+)";
-	//final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),";
 	final static String DEFAULT_PATTERN = ".*location=\"([^\"]*).*";
-	// final static String DEFAULT_PATTERN = .*dmv=\{(.*),(.*)\}.*
-	// final static String DEFAULT_PATTERN = "s=([0-9\\.Ee-]+)";
-	// final static String DEFAULT_PATTERN = "([0-9\\.Ee-]+),y=([0-9\\.Ee-]+)";
 
-
-	/** used to store name of tree file so that when burn-in changes, the tree set
-	 * can be reloaded
-	 */
 	public String m_sFileName;
-	// file name of mirror set
 	public String m_sFileName2;
-	
-
-	
-	/** for storing the PDF file name from CLI **/
 	String m_asPDF = null, m_cladeComparisonAsPDF = null;
-	
-	/** thread for processing meta data **/
 	Thread thread = null;
-	
 
 	private boolean isExporting = false;
 	boolean isExporting() {
@@ -257,57 +174,110 @@ public class DensiTree extends JPanel implements ComponentListener {
 	}
 
 	public void setWaitCursor() {
-		if (frame != null && frame.getCursor().getType() != Cursor.WAIT_CURSOR) {
-			frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-		}
+		Platform.runLater(() -> {
+			if (stage != null && stage.getScene() != null) {
+				stage.getScene().setCursor(Cursor.WAIT);
+			}
+		});
 	}
+
 	public void setDefaultCursor() {
-		if (frame != null && frame.getCursor().getType() != Cursor.DEFAULT_CURSOR) {
-			frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-		}
+		Platform.runLater(() -> {
+			if (stage != null && stage.getScene() != null) {
+				stage.getScene().setCursor(Cursor.DEFAULT);
+			}
+		});
 	}
-	
-	/** constructors **/
+
+	/* Swing components wrapped inside SwingNodes */
+	public TreeSetPanel m_Panel;
+	public CladeSetComparisonPanel m_cladeSetComparisonPanel;
+	public SwingNode m_panelSwingNode = new SwingNode();
+	public SwingNode m_cladeComparisonSwingNode = new SwingNode();
+
+	/* JavaFX UI Components */
+	public ScrollPane m_jScrollPane;
+	public MenuBar m_menuBar;
+	public ToolBar m_tbTools = new ToolBar();
+	public VBox m_tbTools2 = new VBox();
+	public BorderPane m_cladeToolsPane = new BorderPane();
+	public Label m_jStatusBar = new Label("Status bar");
+
+	private SplitPane m_mainSplitPane;
+	private SplitPane m_centerSplitPane;
+
+	public Font m_font = new Font("sansserif", Font.PLAIN, 12);
+	public boolean m_bAlignLabels = false;
+
+	public boolean m_bViewCTrees = false;
+	public boolean m_bViewAllTrees = true;
+	public double m_fExponent = 1.0;
+
+	boolean m_bAnimateOverwrite = false;
+	int m_iAnimateTree;
+	int m_nAnimationDelay = 100;
+	boolean m_bAutoRefresh = true;
+	boolean m_bIsDirty = true;
+
+	public enum ViewMode {
+		DRAW, ANIMATE, BROWSE
+	}
+
+	public ViewMode m_viewMode = ViewMode.DRAW;
+	public TreeDrawer m_treeDrawer = new TreeDrawer();
+	int m_nStyle = 0;
+
+	public CheckMenuItem m_viewEditTree;
+	public CheckMenuItem m_viewClades;
+
 	public DensiTree() {
 		m_gridDrawer = new GridDrawer(this);
 		m_cladeDrawer = new CladeDrawer(this);
 		instances++;
-	}
 
-	public DensiTree(String[] args) {
-		this();
-		System.out.println(banner());
 		m_treeData.m_bSelection = new boolean[0];
 		m_settings.m_nRevOrder = new int[0];
 		m_treeData.m_cTrees = new Node[0];
 		m_treeData.m_trees = new Node[0];
 		initColors();
 
-		setSize(1000, 800);
 		m_Panel = new TreeSetPanel(this);
-		parseArgs(args);
-		m_settings.m_pattern = createPattern();
-		System.err.println(getSize().width + "x" + getSize().height);
-
-		m_jScrollPane = new JScrollPane(m_Panel);
-		makeToolbar(m_jTbTools);
-		m_menuBar = new JMenuBar();
-		makeMenuBar(m_menuBar);
-		addComponentListener(this);
-		this.setLayout(new BorderLayout());
-		this.add(m_jScrollPane, BorderLayout.CENTER);
-
 		m_cladeSetComparisonPanel = new CladeSetComparisonPanel(this);
-		m_cladeSetComparisonPanel.setVisible(false);
-		this.add(m_jScrollPane, BorderLayout.WEST);
-		
-		
-		a_zoomout.setEnabled(false);
-		a_zoomouttree.setEnabled(false);
 
-		m_Panel.setPreferredSize(getSize());
+		SwingUtilities.invokeLater(() -> {
+			m_panelSwingNode.setContent(m_Panel);
+			m_cladeComparisonSwingNode.setContent(m_cladeSetComparisonPanel);
+		});
 
-		java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + "rotate.png");
+		m_jScrollPane = new ScrollPane(m_panelSwingNode);
+		m_jScrollPane.setPannable(true);
+		m_jScrollPane.setFitToWidth(false);
+		m_jScrollPane.setFitToHeight(false);
+
+		makeToolbar();
+		m_menuBar = makeMenuBar();
+
+		m_centerSplitPane = new SplitPane();
+		m_centerSplitPane.setOrientation(Orientation.HORIZONTAL);
+		m_centerSplitPane.getItems().addAll(m_jScrollPane);
+
+		m_mainSplitPane = new SplitPane();
+		m_mainSplitPane.setOrientation(Orientation.VERTICAL);
+		m_mainSplitPane.getItems().add(m_centerSplitPane);
+
+		VBox topContainer = new VBox(m_menuBar, m_tbTools);
+		setTop(topContainer);
+		setCenter(m_mainSplitPane);
+		setRight(m_tbTools2);
+
+		HBox statusContainer = new HBox(m_jStatusBar);
+		statusContainer.setPadding(new Insets(2, 5, 2, 5));
+		setBottom(statusContainer);
+
+		widthProperty().addListener((obs, oldV, newV) -> fitToScreen());
+		heightProperty().addListener((obs, oldV, newV) -> fitToScreen());
+
+		URL tempURL = ClassLoader.getSystemResource(ICONPATH + "rotate.png");
 		if (tempURL != null) {
 			try {
 				m_rotate = ImageIO.read(tempURL);
@@ -315,23 +285,114 @@ public class DensiTree extends JPanel implements ComponentListener {
 				e.printStackTrace();
 			}
 		}
+	}
 
-	} // c'tor
+	public DensiTree(String[] args) {
+		this();
+		System.out.println(banner());
+		parseArgs(args);
+		m_settings.m_pattern = createPattern();
+	}
+
+	public static Image getFxIcon(String sIcon) {
+		URL url = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
+		if (url != null) {
+			return new Image(url.toExternalForm());
+		}
+		return null;
+	}
+
+	public static ImageView getFxIconView(String sIcon) {
+		Image img = getFxIcon(sIcon);
+		if (img != null) {
+			ImageView iv = new ImageView(img);
+			iv.setFitWidth(18);
+			iv.setFitHeight(18);
+			return iv;
+		}
+		return null;
+	}
+
+	public void repaint() {
+		SwingUtilities.invokeLater(() -> {
+			if (m_Panel != null) m_Panel.repaint();
+			if (m_cladeSetComparisonPanel != null) m_cladeSetComparisonPanel.repaint();
+		});
+	}
+
+	public void makeDirty() {
+		m_treeData.m_rotationPoints = null;
+		if (m_treeData2 != null) {
+			m_treeData2.m_rotationPoints = null;
+		}
+		if (m_bAutoRefresh) {
+			SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+		} else {
+			m_bIsDirty = true;
+		}
+		repaint();
+	}
+
+	public void fitToScreen() {
+		if (m_settings.m_sLabels == null) {
+			return;
+		}
+		m_fScaleX = 10;
+		m_fScaleY = 10;
+		int nW = (int) getWidth();
+		int nH = (int) getHeight() - 24;
+		if (nW <= 0) nW = 1000;
+		if (nH <= 0) nH = 750;
+
+		if (m_treeDrawer.m_bRootAtTop) {
+			m_fScaleX = (nW + 0.0f) / m_settings.m_sLabels.size();
+			m_fScaleGX = (nW + 0.0f) / (m_settings.m_fMaxLong - m_settings.m_fMinLong);
+			if (m_fHeight > 0) {
+				if (m_settings.m_bRotateTextWhenRootAtTop) {
+					m_fScaleY = (nH - m_settings.m_nLabelWidth - 0.0f) / m_fHeight;
+					m_fScaleGY = (nH - m_settings.m_nLabelWidth - 0.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
+				} else {
+					m_fScaleY = (nH - 10.0f) / m_fHeight;
+					m_fScaleGY = (nH - 10.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
+				}
+			}
+		} else {
+			if (m_settings.m_sLabels != null && m_settings.m_sLabels.size() > 0) {
+				m_fScaleY = (nH + 0.0f) / m_settings.m_sLabels.size();
+				m_fScaleGY = (nH + 0.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
+			}
+			if (m_fHeight > 0) {
+				m_fScaleX = (nW - m_settings.m_nLabelWidth + 0.0f) / m_fHeight;
+				m_fScaleGX = (nW - m_settings.m_nLabelWidth + 0.0f) / (m_settings.m_fMaxLong - m_settings.m_fMinLong);
+			}
+		}
+
+		final int panelW = (int) (nW * m_fScale);
+		final int panelH = (int) (nH * m_fScale);
+		SwingUtilities.invokeLater(() -> m_Panel.setPreferredSize(new Dimension(panelW, panelH)));
+
+		m_fScaleX *= m_fScale;
+		m_fScaleY *= m_fScale;
+
+		if (m_treeData2 != null) {
+			m_fScaleX /= 2.0;
+		}
+		makeDirty();
+	}
 
 	public Pattern createPattern() {
-		String sPattern = "";
+		StringBuilder sPattern = new StringBuilder();
 		for (int i = 0; i < m_settings.m_iPatternForBottom; i++) {
-			sPattern += "[0-9\\.Ee-]+[^0-9]+";
+			sPattern.append("[0-9\\.Ee-]+[^0-9]+");
 		}
-		sPattern += "([0-9\\.Ee-]+)";
+		sPattern.append("([0-9\\.Ee-]+)");
 		if (m_settings.m_iPatternForTop > m_settings.m_iPatternForBottom) {
-			//sPattern += "[^0-9]+";
 			for (int i = m_settings.m_iPatternForBottom + 1; i < m_settings.m_iPatternForTop; i++) {
-				sPattern += "[^0-9]+[0-9\\.Ee-]+";
+				sPattern.append("[^0-9]+[0-9\\.Ee-]+");
 			}
-			sPattern += "[^0-9]+([0-9\\.Ee-]+)";
+			sPattern.append("[^0-9]+([0-9\\.Ee-]+)");
 		}
-		return Pattern.compile(sPattern);
+		return Pattern.compile(sPattern.toString());
 	}
 
 	void initColors() {
@@ -360,51 +421,33 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_settings.m_color[k++] = Color.darkGray;
 		m_settings.m_color[k++] = Color.magenta;
 		m_settings.m_color[k++] = new Color(100, 200, 25);
-		;
-//		m_color[k++] = new Color(100, 0, 25);
-//		m_color[k++] = new Color(25, 0, 100);
-//		m_color[k++] = new Color(0, 25, 100);
-//		m_color[k++] = new Color(0, 100, 25);
-//		m_color[k++] = new Color(100, 25, 100);
-//		m_color[k++] = new Color(25, 100, 100);
-//		m_color[k++] = new Color(100, 100, 100);
 
 		for (float saturation = 0.9f; saturation >= 0.0f; saturation -= 0.2) {
 			for (float hue = 0.0f; hue < 1.0f; hue += 0.1) {
-				m_settings.m_color[k++] = new Color(Color.HSBtoRGB(hue+saturation/10, saturation, 0.9f));
+				m_settings.m_color[k++] = new Color(Color.HSBtoRGB(hue + saturation / 10, saturation, 0.9f));
 			}
 		}
-	} // initColors
+	}
 
-	/** parse command line arguments, and load file if specified **/
 	void parseArgs(String[] args) {
-		// check whether there is a config file to pick up arguments from
 		File cfgFile = new File(".densitree");
 		if (cfgFile.exists()) {
-			List<String> cfgArgs = new ArrayList<String>();
-			try {
-				BufferedReader fin = new BufferedReader(new FileReader(cfgFile));
-				//StringBuffer buf = new StringBuffer();
-				String sStr = null;
-				while (fin.ready()) {
-					sStr = fin.readLine();
+			List<String> cfgArgs = new ArrayList<>();
+			try (BufferedReader fin = new BufferedReader(new FileReader(cfgFile))) {
+				String sStr;
+				while ((sStr = fin.readLine()) != null) {
 					if (sStr.length() > 0 && !sStr.matches("^\\s*$")) {
-							cfgArgs.add(sStr);
+						cfgArgs.add(sStr);
 					}
 				}
-				fin.close();
-				for (String arg : args) {
-					cfgArgs.add(arg);
-				}
-				args = cfgArgs.toArray(new String[]{});
+				Collections.addAll(cfgArgs, args);
+				args = cfgArgs.toArray(new String[0]);
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
 				System.err.println("WARNING: could not process cfg file");
 			}
 		}
-				
-		
-		// process arguments
+
 		int i = 0;
 		try {
 			while (i < args.length) {
@@ -446,7 +489,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						String[] sStrs = args[i + 1].split("x");
 						int nWidth = Integer.parseInt(sStrs[0]);
 						int nHeight = Integer.parseInt(sStrs[1]);
-						setSize(nWidth, nHeight);
+						setPrefSize(nWidth, nHeight);
 						i += 2;
 					} else if (args[i].equals("-geooffset")) {
 						GEO_OFFSET = Float.parseFloat(args[i + 1]);
@@ -455,20 +498,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_settings.m_bInvertLongitude = true;
 						i += 1;
 					} else if (args[i].equals("-scalemode")) {
-						String sMode = args[i+1].toLowerCase();
+						String sMode = args[i + 1].toLowerCase();
 						if (sMode.equals("none")) {
 							m_gridDrawer.m_nGridMode = GridMode.NONE;
 						} else if (sMode.equals("short")) {
 							m_gridDrawer.m_nGridMode = GridMode.SHORT;
 						} else if (sMode.equals("full")) {
 							m_gridDrawer.m_nGridMode = GridMode.FULL;
-						} else 
+						} else {
 							throw new Exception("expected scalemode to be NONE, SHORT or FULL");
+						}
 						i += 2;
-					} else if (args[i].equals("-li") || args[i].equals("-label.indent") ) {
+					} else if (args[i].equals("-li") || args[i].equals("-label.indent")) {
 						m_settings.m_fLabelIndent = Float.parseFloat(args[i + 1]);
 						i += 2;
-					} else if (args[i].equals("-label.width") ) {
+					} else if (args[i].equals("-label.width")) {
 						m_settings.m_nLabelWidth = Integer.parseInt(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-label.hide")) {
@@ -479,7 +523,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i += 2;
 					} else if (args[i].equals("-kml")) {
 						m_settings.m_sKMLFile = args[i + 1];
-						//loadKML(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-geowidth")) {
 						m_settings.m_nGeoWidth = Integer.parseInt(args[i + 1]);
@@ -490,7 +533,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 					} else if (args[i].equals("-bg")) {
 						try {
 							loadBGImage(args[i + 1]);
-							// m_bgImage = ImageIO.read(new File(args[i+1]));
 						} catch (Exception e) {
 							System.err.println("Error loading file: " + e.getMessage());
 							return;
@@ -521,135 +563,113 @@ public class DensiTree extends JPanel implements ComponentListener {
 						i++;
 					} else if (args[i].equals("-transform")) {
 						m_settings.m_bUseLogScale = true;
-						m_fExponent = Double.parseDouble(args[i+1]);
+						m_fExponent = Double.parseDouble(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-allowLeafsToBeMovedIKnowThisMessesUpInternalCladePositions")) {
 						m_bLeafCladeSelection = true;
 						i += 1;
 					} else if (args[i].equals("-optfile")) {
-						m_sOptFile = args[i+1];
+						m_sOptFile = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-rootcanaltree")) {
 						try {
-							m_iOptTree = Integer.parseInt(args[i+1]);
+							m_iOptTree = Integer.parseInt(args[i + 1]);
 						} catch (NumberFormatException e) {
-							m_sOptTree = args[i+1];
+							m_sOptTree = args[i + 1];
 						}
 						i += 2;
 					} else if (args[i].equals("-rawrootcanaltree")) {
-						m_sOptTree = args[i+1];
+						m_sOptTree = args[i + 1];
 						m_settings.m_bOptimiseRootCanalTree = false;
 						i += 2;
 					} else if (args[i].equals("-asPDF")) {
-						m_asPDF = args[i+1];
+						m_asPDF = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-cladeComparisonAsPDF")) {
-						m_cladeComparisonAsPDF = args[i+1];
+						m_cladeComparisonAsPDF = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-mirror")) {
-						m_sFileName2 = args[i+1];
+						m_sFileName2 = args[i + 1];
 						i += 2;
 					} else if (args[i].equals("-viewCladeComparison")) {
-						m_cladeSetComparisonPanel.setVisible(true);
+						setCladeComparisonVisible(true);
 						i += 1;
 					} else if (args[i].equals("-cladeThreshold")) {
-						m_settings.m_cladeThreshold = Double.parseDouble(args[i+1]);
+						m_settings.m_cladeThreshold = Double.parseDouble(args[i + 1]);
 						i += 2;
 					} else if (args[i].equals("-r")) {
 						m_settings.m_bDrawReverse = true;
 						i += 1;
 					} else if (args[i].equals("-order")) {
-						m_settings.m_sOrderFile = args[i+1];
+						m_settings.m_sOrderFile = args[i + 1];
 						i += 2;
 					}
-					
-					
+
 					if (i == iOld) {
 						if (new File(args[i]).exists()) {
 							init(args[i++]);
 							calcLines();
 
 							if (i != args.length) {
-								String [] args2 = new String[args.length - 1];
+								String[] args2 = new String[args.length - 1];
 								for (int k = 0; k < i - 1; k++) {
 									args2[k] = args[k];
 								}
 								for (int k = i; k < args.length; k++) {
-									args2[k-1] = args[k];
+									args2[k - 1] = args[k];
 								}
 								startNew(args2);
 							}
 							return;
 						}
-						throw new Exception("Wrong argument: " + (i< args.length ? args[i] : i+""));
+						throw new Exception("Wrong argument: " + (i < args.length ? args[i] : i + ""));
 					}
 				} else {
 					init(args[i++]);
 					calcLines();
 				}
 			}
-			if (m_cladeSetComparisonPanel != null && m_cladeSetComparisonPanel.isVisible()) {
-				new Thread() {
-					public void run() {
-						Container c = m_cladeSetComparisonPanel.getParent();
-						while (c == null) {
-							try {
-								Thread.sleep(500);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							c = m_cladeSetComparisonPanel.getParent();
-						}
-						if (c instanceof JSplitPane) {
-							((JSplitPane)c).setDividerLocation(0.5);
-						}
-					};
-				}.start();
-			}
+
 			if (m_asPDF != null || m_cladeComparisonAsPDF != null) {
-				new Thread() {
-					@Override
-					public void run() {
+				new Thread(() -> {
+					try {
+						Thread.sleep(5000);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					while (!m_treeData.m_bMetaDataReady) {
 						try {
-							Thread.sleep(5000);
+							Thread.sleep(100);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						while (!m_treeData.m_bMetaDataReady) {
+					}
+					if (m_cladeComparisonAsPDF != null) {
+						while (m_treeData2 == null || !m_treeData2.m_bMetaDataReady) {
 							try {
 								Thread.sleep(100);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
 						}
-						if (m_cladeComparisonAsPDF != null) {
-							while (!m_treeData2.m_bMetaDataReady) {
-								try {
-									Thread.sleep(100);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-	                    	exportPDF(m_cladeComparisonAsPDF, m_cladeSetComparisonPanel);
-						}
-						if (m_asPDF != null) {
-							exportPDF(m_asPDF, m_Panel);
-						}
-						System.exit(0);
-					};
-				}.start();
+						exportPDF(m_cladeComparisonAsPDF, m_cladeSetComparisonPanel);
+					}
+					if (m_asPDF != null) {
+						exportPDF(m_asPDF, m_Panel);
+					}
+					System.exit(0);
+				}).start();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(null, "Error parsing command line arguments: " + Arrays.toString(args)
-					+ "\nArguments ignored\n\n" + getStatus(), "Argument Parsing Error", JOptionPane.PLAIN_MESSAGE);
+			showErrorAlert("Error parsing command line arguments: " + Arrays.toString(args)
+					+ "\nArguments ignored\n\n" + getStatus());
 		}
-	} // parseArgs
+	}
 
-	/** print some useful info to stdout **/
 	String banner() {
 		return "DensiTree - Tree Set Visualizer\nVersion " + VERSION + "\n\n" + "Remco Bouckaert\n"
-				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2023\n\n\n"
+				+ "r.bouckaert@auckland.ac.nz\nrrb@xm.co.nz\n" + "(c) 2010-2026\n\n\n"
 				+ "Key shortcuts:\n" + "c/Ctrl-c decrease/increase consensus tree intensity\n"
 				+ "i/Ctrl-i decrease/increase tree intensity\n"
 				+ "j/Ctrl-j decrease/increase jitter on trees (not consensus trees)\n"
@@ -658,20 +678,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 				+ "f/Ctrl-f decrease/increase animation time delay - shorter delay = faster animation\n"
 				+ "t/Ctrl-t decrease/increase number of drawing threads for drawing tree set\n\n"
 				+ "Arrow keys & Page-Up/Down to scroll\n";
-	} // banner
+	}
 
 	String formatColor(int iColor) {
 		return " 0x" + Integer.toHexString(m_settings.m_color[iColor].getRGB()).substring(2) + ' ';
 	}
 
-	/** get status of internal settings **/
 	String getStatus() {
 		int nSelected = 0;
 		if (m_treeData.m_bSelection != null) {
 			for (boolean b : m_treeData.m_bSelection) {
-				if (b) {
-					nSelected++;
-				}
+				if (b) nSelected++;
 			}
 		}
 		return "\n\nCurrent status:\n" + m_treeData.m_trees.length + " trees with " + m_treeData.m_cTrees.length + " topologies " +
@@ -686,27 +703,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 				+ formatColor(BGCOLOR) + "\tHeight color:" + formatColor(HEIGHTCOLOR);
 	}
 
-	
 	class MetaDataThread extends Thread {
 		TreeData treeData;
 		DensiTree m_dt;
-		
+
 		MetaDataThread(TreeData treeData, DensiTree dt) {
 			this.treeData = treeData;
 			this.m_dt = dt;
 		}
-		
+
 		@Override
 		public void run() {
-			m_jStatusBar.setText("Calculating clades");
+			updateStatus("Calculating clades");
 			treeData.calcClades();
 			treeData.m_bCladesReady = true;
-			
+
 			if (treeData.drawMode == TreeData.MODE_RIGHT) {
-//				m_mirrorCladeToIDMap = new HashMap<>();
-//				for (int i = 0; i < treeData2.m_clades.size(); i++) {
-//					m_mirrorCladeToIDMap.put(Arrays.toString(treeData2.m_clades.get(i)), i);
-//				}
 				m_cladeToIDMap = new int[m_dt.m_treeData.m_clades.size()];
 				for (int i = 0; i < m_dt.m_treeData.m_clades.size(); i++) {
 					m_cladeToIDMap[i] = findClade(m_dt.m_treeData2, m_dt.m_treeData.m_clades.get(i));
@@ -715,12 +727,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 				for (int i = 0; i < m_dt.m_treeData2.m_clades.size(); i++) {
 					m_mirrorCladeToIDMap[i] = findClade(m_dt.m_treeData, m_dt.m_treeData2.m_clades.get(i));
 				}
-				
-				
 			}
-			
-			m_jStatusBar.setText("Optimising node order");
-			int [] oldOrder = m_settings.m_nOrder.clone();
+
+			updateStatus("Optimising node order");
+			int[] oldOrder = m_settings.m_nOrder.clone();
 			if (!m_settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
 				reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH);
 			}
@@ -729,7 +739,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				calcLines();
 				notifyChangeListeners();
 				if (orderChanged(oldOrder)) {
-					System.err.println("Node order changed");	
+					System.err.println("Node order changed");
 					makeDirty();
 				}
 			}
@@ -738,16 +748,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 				parseMetaData(treeData.m_trees[k]);
 				if (k % 100 == 0) {
 					statusMsg += ".";
-					m_jStatusBar.setText(statusMsg);
+					updateStatus(statusMsg);
 					setWaitCursor();
-//					if (getCursor().getType() != Cursor.WAIT_CURSOR) {
-//						setCursor(new Cursor(Cursor.WAIT_CURSOR));
-//					}
 				}
 			}
 			if (!m_settings.m_bAllowSingleChild && treeData.drawMode != TreeData.MODE_RIGHT) {
-				m_settings.m_metaDataTags = new ArrayList<String>();
-				m_settings.m_metaDataTypes = new ArrayList<MetaDataType>();
+				m_settings.m_metaDataTags = new ArrayList<>();
+				m_settings.m_metaDataTypes = new ArrayList<>();
 				collectMetaDataTags(treeData.m_trees[0]);
 				if (m_settings.m_metaDataTags.size() > 0) {
 					calcPositions();
@@ -755,10 +762,9 @@ public class DensiTree extends JPanel implements ComponentListener {
 					makeDirty();
 				}
 			}
-			treeData.m_bMetaDataReady = true;			
+			treeData.m_bMetaDataReady = true;
 			notifyChangeListeners();
-			m_jStatusBar.setText("Done parsing metadata");
-			
+			updateStatus("Done parsing metadata");
 			thread = null;
 		}
 
@@ -770,38 +776,27 @@ public class DensiTree extends JPanel implements ComponentListener {
 					parseMetaData(node.m_right);
 				}
 			}
-		};
-		
-	};
-	
-	
-	/**
-	 * read trees from file, and process them into a set of lines This may take
-	 * a while... sFile: name of Nexus or Newick tree list file or to read
-	 * 
-	 * @throws Exception
-	 **/
+		}
+	}
+
+	public void updateStatus(String msg) {
+		Platform.runLater(() -> m_jStatusBar.setText(msg));
+	}
+
 	@SuppressWarnings("deprecation")
 	public void init(String sFile) throws Exception {
-		if (m_Panel != null) {
-			setWaitCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-		}
+		setWaitCursor();
 		m_treeData2 = null;
-		if (m_jStatusBar != null) {
-			m_jStatusBar.setText("Initializing...");
-			m_jStatusBar.repaint();
-		}
+		updateStatus("Initializing...");
 		m_sFileName = sFile;
 		m_bInitializing = true;
 		m_viewMode = ViewMode.DRAW;
-		a_animateStart.setIcon("start");
 		m_settings.m_prevLineColorMode = null;
-		LineColorMode orgLineColorMode =  m_settings.m_lineColorMode;
+		LineColorMode orgLineColorMode = m_settings.m_lineColorMode;
 		m_settings.m_lineColorMode = LineColorMode.DEFAULT;
 		m_settings.m_prevLineWidthMode = null;
 		m_settings.m_lineWidthMode = LineWidthMode.DEFAULT;
-		
+
 		System.err.print("Initializing...");
 		m_iAnimateTree = 0;
 		m_fHeight = 0;
@@ -810,25 +805,22 @@ public class DensiTree extends JPanel implements ComponentListener {
 		m_fScale = 1;
 		m_fTreeScale = 1;
 		m_fTreeOffset = 0;
-		m_doActions = new Vector<DoAction>();
+		m_doActions = new Vector<>();
 		m_iUndo = 0;
 		m_settings.m_random = new Random();
 		m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
-
 		m_treeData.m_rootcanaltree = null;
-		
+
 		try {
 			if (thread != null) {
 				try {
 					thread.stop();
-				} catch (Exception e) {
-					// ignore
+				} catch (Exception ignored) {
 				}
 			}
-			/** contains strings with tree in Newick format **/
-			m_settings.m_sLabels = new Vector<String>();
-			m_settings.m_fLongitude = new Vector<Float>();
-			m_settings.m_fLatitude = new Vector<Float>();
+			m_settings.m_sLabels = new Vector<>();
+			m_settings.m_fLongitude = new Vector<>();
+			m_settings.m_fLatitude = new Vector<>();
 			m_settings.m_fMinLat = 360;
 			m_settings.m_fMinLong = 360;
 			m_settings.m_fMaxLat = 0;
@@ -836,46 +828,29 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_settings.m_nOrder = null;
 
 			m_treeData.loadFromFile(sFile, true);
-			
-			// initialise drawing order of x-axis according to most prevalent
-			// tree
+
 			Node tree = m_treeData.m_trees[0];
-			// over sized, too lazy to figure out exact number of labels
 			m_settings.m_nOrder = new int[m_settings.m_sLabels.size()];
 			m_settings.m_nRevOrder = new int[m_settings.m_sLabels.size()];
 			initOrder(tree, 0);
-			// sanity check
+
 			int nSum = 0;
 			for (int i = 0; i < m_settings.m_nOrder.length; i++) {
 				nSum += m_settings.m_nOrder[i];
 			}
 			if (nSum != m_settings.m_nNrOfLabels * (m_settings.m_nNrOfLabels - 1) / 2) {
-				JOptionPane.showMessageDialog(this,
-						"The tree set possibly contains non-binary trees. Expect that not all nodes are shown.");
+				showWarningAlert("The tree set possibly contains non-binary trees. Expect that not all nodes are shown.");
 			}
 
-//			new Thread() {
-//				public void run() {
-//					calcClades();
-//					m_bCladesReady = true;
-//					reshuffle((settings.m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
-//					calcPositions();
-//					makeDirty();
-//				};
-//			}.start();
-
-			//reshuffle((settings.m_bAllowSingleChild ? NodeOrderer.DEFAULT: NodeOrderer.OPTIMISE));
 			reshuffle(NodeOrderer.DEFAULT);
-			
-			// calculate y-position for tree set
 			calcPositions();
-			
-			m_treeData.m_bMetaDataReady = false;			
+
+			m_treeData.m_bMetaDataReady = false;
 			thread = new MetaDataThread(m_treeData, this);
 			thread.start();
-			
-			m_settings.m_metaDataTags = new ArrayList<String>();
-			m_settings.m_metaDataTypes = new ArrayList<MetaDataType>();
+
+			m_settings.m_metaDataTags = new ArrayList<>();
+			m_settings.m_metaDataTypes = new ArrayList<>();
 			collectMetaDataTags(m_treeData.m_trees[0]);
 			notifyChangeListeners();
 
@@ -887,21 +862,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 				calcColors(false);
 				makeDirty();
 			}
-
 		} catch (OutOfMemoryError e) {
 			clear();
-			JOptionPane.showMessageDialog(null, "Not enough memory is reserved for java to process this tree. "
+			showErrorAlert("Not enough memory is reserved for java to process this tree. "
 					+ "Try starting DensiTree with more memory\n\n(for example "
 					+ "use:\njava -Xmx3g DensiTree.jar\nfrom " + "the command line) where DensiTree is in the path\n"
 					+ "or subsample your tree set to create a smaller tree file.");
 			setDefaultCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			throw e;
 		} catch (Exception e) {
 			e.printStackTrace();
 			clear();
 			setDefaultCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			throw e;
 		}
 		m_bInitializing = false;
@@ -910,66 +882,66 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 
 		addAction(new DoAction());
-		if (frame != null) {
-			frame.setTitle(FRAME_TITLE + " " + sFile);
-		}
+		Platform.runLater(() -> {
+			if (stage != null) {
+				stage.setTitle(FRAME_TITLE + " " + sFile);
+			}
+		});
 		if (m_settings.m_sKMLFile != null) {
 			loadKML();
 		}
-		
+
 		if (m_sFileName2 != null && new File(m_sFileName2).exists()) {
 			doOpenMirror(m_sFileName2);
 		}
-		
-		System.err.println("Done");
-	} // init
 
-	
-	public float positionHeight(Node node, int fOffSet) {		
+		System.err.println("Done");
+	}
+
+	public float positionHeight(Node node, int fOffSet) {
 		return m_treeData.positionHeight(node, fOffSet);
 	}
-	
+
 	public void calcLines() {
 		m_treeData.calcLines();
 		if (m_treeData2 != null) {
 			m_treeData2.calcLines();
 		}
 	}
-	
+
 	public void calcColors(boolean forceRecalc) {
 		m_treeData.calcColors(forceRecalc);
 		if (m_treeData2 != null) {
 			m_treeData2.calcColors(forceRecalc);
 		}
 	}
-	
+
 	public void calcPositions() {
 		m_treeData.calcPositions();
 		if (m_treeData2 != null) {
 			m_treeData2.calcPositions();
 		}
 	}
-	
+
 	public void calcLineWidths(boolean forceRecalc) {
 		m_treeData.calcLineWidths(forceRecalc);
 		if (m_treeData2 != null) {
 			m_treeData2.calcLineWidths(forceRecalc);
 		}
 	}
-	
+
 	float positionRest(Node node) {
 		return m_treeData.positionRest(node);
 	}
-	
+
 	private void getPosition(Node node, float[] fPosX) {
-		m_treeData.getPosition(node, fPosX);						
-	}
-	
-	private void setPosition(Node node, float[] fPosX) {
-		m_treeData.setPosition(node, fPosX);			
+		m_treeData.getPosition(node, fPosX);
 	}
 
-	
+	private void setPosition(Node node, float[] fPosX) {
+		m_treeData.setPosition(node, fPosX);
+	}
+
 	void notifyChangeListeners() {
 		for (ChangeListener listener : m_changeListeners) {
 			listener.stateChanged(null);
@@ -985,7 +957,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		return false;
 	}
 
-	
 	private void collectMetaDataTags(Node node) {
 		Map<String, Object> metaDataMap = node.getMetaDataSet();
 		if (metaDataMap != null) {
@@ -997,7 +968,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 						m_settings.m_metaDataTypes.add(MetaDataType.NUMERIC);
 					} else {
 						String s = o.toString();
-						if (s.length() > 0 && s.charAt(0)=='{') {
+						if (s.length() > 0 && s.charAt(0) == '{') {
 							m_settings.m_metaDataTypes.add(MetaDataType.SET);
 						} else {
 							m_settings.m_metaDataTypes.add(MetaDataType.STRING);
@@ -1014,8 +985,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	
-
 	public void updateCladeModel() {
 		m_treeData.updateCladeModel();
 		if (m_treeData2 != null) {
@@ -1029,27 +998,25 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_treeData2.resetCladeSelection();
 		}
 	}
-	
+
 	public void calcCladeIDForNode(Node tree, Map<String, Integer> mapCladeToIndex) {
 		m_treeData.calcCladeIDForNode(tree, mapCladeToIndex);
 	}
-	
+
 	public void resetCladeNr(Node tree, Integer[] reverseindex) {
 		m_treeData.resetCladeNr(tree, reverseindex);
 	}
 
-	
-	
 	void calcColorPattern() {
 		m_settings.m_iColor = new int[m_settings.m_sLabels.size()];
 		Pattern pattern = Pattern.compile(".*" + m_settings.m_sColorPattern + ".*");
-		List<String> sPatterns = new ArrayList<String>();
+		List<String> sPatterns = new ArrayList<>();
 		for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
 			String sLabel = m_settings.m_sLabels.get(i);
 			Matcher matcher = pattern.matcher(sLabel);
 			if (matcher.find()) {
 				String sMatch = matcher.group(1);
-				if (sPatterns.indexOf(sMatch) < 0) {
+				if (!sPatterns.contains(sMatch)) {
 					sPatterns.add(sMatch);
 				}
 				m_settings.m_iColor[i] = sPatterns.indexOf(sMatch);
@@ -1059,15 +1026,14 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	void loadKML() {
 		String sFileName = m_settings.m_sKMLFile;
-		HashMap<String, Vector<Double>> mapLabel2X = new HashMap<String, Vector<Double>>();
-		HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<String, Vector<Double>>();
+		HashMap<String, Vector<Double>> mapLabel2X = new HashMap<>();
+		HashMap<String, Vector<Double>> mapLabel2Y = new HashMap<>();
 
-		// sanity check
 		if (!(new File(sFileName)).exists()) {
-			JOptionPane.showMessageDialog(this, "Tried to read goe info, but could not find file " + sFileName );
+			showWarningAlert("Tried to read geo info, but could not find file " + sFileName);
 			return;
 		}
-		
+
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(false);
@@ -1087,8 +1053,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			doc.normalize();
 
-			// grab styles out of the KML file
-			HashMap<String, Integer> mapStyleToColor = new HashMap<String, Integer>();
+			HashMap<String, Integer> mapStyleToColor = new HashMap<>();
 			org.w3c.dom.NodeList oStyles = doc.getElementsByTagName("Style");
 			for (int iNode = 0; iNode < oStyles.getLength(); iNode++) {
 				org.w3c.dom.Node oStyle = oStyles.item(iNode);
@@ -1098,48 +1063,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 				org.w3c.dom.Node oColor = (org.w3c.dom.Node) xpath.evaluate(expression, oStyles.item(iNode),
 						XPathConstants.NODE);
 				if (oColor != null) {
-					String sColor = oColor.getTextContent();
-					sColor = sColor.substring(2);
-					Integer nColor = Integer.parseInt(sColor, 16);
-					mapStyleToColor.put(sID, nColor);
+					String sColor = oColor.getTextContent().substring(2);
+					mapStyleToColor.put(sID, Integer.parseInt(sColor, 16));
 				}
 			}
 
-
-			// grab polygon info from placemarks
-			//List<Integer> iDistrictCenter = new ArrayList<Integer>();
 			org.w3c.dom.NodeList oPlacemarks = doc.getElementsByTagName("Placemark");
 			for (int iNode = 0; iNode < oPlacemarks.getLength(); iNode++) {
 				String sPlacemarkName = "";
-				Vector<Double> nX = new Vector<Double>();
-				Vector<Double> nY = new Vector<Double>();
+				Vector<Double> nX = new Vector<>();
+				Vector<Double> nY = new Vector<>();
 				org.w3c.dom.Node node = oPlacemarks.item(iNode);
 				org.w3c.dom.NodeList oChildren = node.getChildNodes();
-				// int color = 0x808080;
 				for (int iChild = 0; iChild < oChildren.getLength(); iChild++) {
 					org.w3c.dom.Node oChild = oChildren.item(iChild);
 					if (oChild.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
 						String sName = oChild.getNodeName();
 						if (sName.equals("name")) {
 							sPlacemarkName = oChild.getTextContent().trim();
-						} else if (sName.equals("Style")) {
-							String expression = ".//PolyStyle/color";
-							XPath xpath = XPathFactory.newInstance().newXPath();
-							org.w3c.dom.Node oColor = (org.w3c.dom.Node) xpath.evaluate(expression,
-									oStyles.item(iNode), XPathConstants.NODE);
-							if (oColor != null) {
-								String sColor = oColor.getTextContent();
-								sColor = sColor.substring(2);
-								// color = Integer.parseInt(sColor, 16);
-							}
-						} else if (sName.equals("styleUrl")) {
-							String sID = oChild.getTextContent();
-							sID = sID.substring(1);
-							if (mapStyleToColor.containsKey(sID)) {
-								// color = mapStyleToColor.get(sID);
-							}
-							// } else if (sName.equals("description")) {
-							// sDescription = oChild.getTextContent();
 						} else if (sName.equals("Polygon") || sName.equals("Point") || sName.equals("LineString")) {
 							XPath xpath = XPathFactory.newInstance().newXPath();
 							String expression = ".//coordinates";
@@ -1147,18 +1088,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 									XPathConstants.NODE);
 							String sCoord = oCoords.getTextContent();
 							String[] sCoords = sCoord.split("\\s+");
-							for (int i = 0; i < sCoords.length; i++) {
-								String sStr = sCoords[i];
-								String[] sStrs = sStr.split(",");
+							for (String str : sCoords) {
+								String[] sStrs = str.split(",");
 								if (sStrs.length > 1) {
-									// Point point = new Point();
-									nX.add(Double.parseDouble(sStrs[0]));// *
-																			// Parser.MAX_LATITUDE_INT_UNITS
-																			// /
-																			// 360));
-									nY.add(Double.parseDouble(sStrs[1]));// /180f)
-																			// *
-																			// Parser.MAX_LONGITUDE_INT_UNITS));
+									nX.add(Double.parseDouble(sStrs[0]));
+									nY.add(Double.parseDouble(sStrs[1]));
 								}
 							}
 						}
@@ -1167,60 +1101,47 @@ public class DensiTree extends JPanel implements ComponentListener {
 				if (nX.size() > 0) {
 					mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 					mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
-					sPlacemarkName = sPlacemarkName.replaceAll("-", "");
-					sPlacemarkName = sPlacemarkName.replaceAll("_", "");
+					sPlacemarkName = sPlacemarkName.replaceAll("[-_]", "");
 					if (!mapLabel2X.containsKey(sPlacemarkName)) {
 						mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 						mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
 					}
 				}
 			}
-
 		} catch (Exception e) {
-			// try to process as tab-delimited txt file
-			try {
+			try (BufferedReader fin = new BufferedReader(new FileReader(sFileName))) {
 				m_settings.m_fMinLat = 90;
 				m_settings.m_fMinLong = 180;
 				m_settings.m_fMaxLat = -90;
 				m_settings.m_fMaxLong = -180;
 
-				BufferedReader fin = new BufferedReader(new FileReader(sFileName));
-				String sStr = null;
-				// skip header line
-				sStr = fin.readLine();
-				while (fin.ready()) {
-					sStr = fin.readLine();
-					String [] sStrs = sStr.split("\\s+");
+				String sStr = fin.readLine();
+				while ((sStr = fin.readLine()) != null) {
+					String[] sStrs = sStr.split("\\s+");
 					if (sStrs.length >= 3) {
 						try {
 							String sPlacemarkName = sStrs[0];
-							Vector<Double> nX = new Vector<Double>();
-							Vector<Double> nY = new Vector<Double>();
+							Vector<Double> nX = new Vector<>();
+							Vector<Double> nY = new Vector<>();
 							nX.add(Double.parseDouble(sStrs[2]));
 							nY.add(Double.parseDouble(sStrs[1]));
 							mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 							mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
-							sPlacemarkName = sPlacemarkName.replaceAll("-", "");
-							sPlacemarkName = sPlacemarkName.replaceAll("_", "");
+							sPlacemarkName = sPlacemarkName.replaceAll("[-_]", "");
 							if (!mapLabel2X.containsKey(sPlacemarkName)) {
 								mapLabel2X.put(sPlacemarkName.toLowerCase(), nX);
 								mapLabel2Y.put(sPlacemarkName.toLowerCase(), nY);
 							}
-						} catch (Exception e2) {
-							// ignore parsing errors, etc.
+						} catch (Exception ignored) {
 						}
 					}
 				}
-				fin.close();
-			
-			
 			} catch (Exception e2) {
 				e2.printStackTrace();
 			}
 		}
 
 		try {
-			// grab Taxa From Objects
 			m_settings.m_fMinLat = 90;
 			m_settings.m_fMinLong = 180;
 			m_settings.m_fMaxLat = -90;
@@ -1234,15 +1155,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 					}
 					Vector<Double> nX = mapLabel2X.get(sTaxon);
 					Vector<Double> nY = mapLabel2Y.get(sTaxon);
-					double fX = 0;
-					double fY = 0;
-					for (Double f : nX) {
-						fX += f;
-					}
+					double fX = 0, fY = 0;
+					for (Double f : nX) fX += f;
 					fX /= nX.size();
-					for (Double f : nY) {
-						fY += f;
-					}
+					for (Double f : nY) fY += f;
 					fY /= nY.size();
 					while (m_settings.m_fLatitude.size() <= iLabel) {
 						m_settings.m_fLatitude.add(0f);
@@ -1255,8 +1171,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 					m_settings.m_fMinLong = Math.min(m_settings.m_fMinLong, (float) fX);
 					m_settings.m_fMaxLong = Math.max(m_settings.m_fMaxLong, (float) fX);
 				} else {
-					System.err.println("No geo info for " + sTaxon
-							+ " found (probably because taxon is missing or spelling error)");
 					while (m_settings.m_fLatitude.size() <= iLabel) {
 						m_settings.m_fLatitude.add(0f);
 						m_settings.m_fLongitude.add(0f);
@@ -1266,148 +1180,107 @@ public class DensiTree extends JPanel implements ComponentListener {
 				}
 			}
 			float fOffset = GEO_OFFSET;
-			m_settings.m_fMaxLong = m_settings.m_fMaxLong + fOffset;
-			m_settings.m_fMaxLat = m_settings.m_fMaxLat + fOffset;
-			m_settings.m_fMinLong = m_settings.m_fMinLong - fOffset;
-			m_settings.m_fMinLat = m_settings.m_fMinLat - fOffset;
-			
-			System.err.println("geo range (" +m_settings.m_fMinLat + "," + m_settings.m_fMinLong+ ")x(" + m_settings.m_fMaxLat+","+ m_settings.m_fMaxLong+")");
+			m_settings.m_fMaxLong += fOffset;
+			m_settings.m_fMaxLat += fOffset;
+			m_settings.m_fMinLong -= fOffset;
+			m_settings.m_fMinLat -= fOffset;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
-	} // loadKMLFile
+	}
 
-	/* remove all data from memory */
 	void clear() {
 		m_treeData.m_trees = new Node[0];
 		m_treeData.m_cTrees = new Node[0];
 		m_treeData.m_fLinesX = null;
 		m_treeData.m_fLinesY = null;
-		// m_fTLinesX = null;
-		// m_fTLinesY = null;
 		m_treeData.m_fCLinesX = null;
 		m_treeData.m_fCLinesY = null;
-		// m_fCTLinesX = null;
-		// m_fCTLinesY = null;
 		m_bInitializing = false;
-	} // clear
+	}
 
-	/**
-	 * try to reorder the leaf nodes so that the tree layout allows
-	 * investigation of some of the tree set features
-	 */
 	void reshuffle(int nMethod) {
-		int [] oldOrder = m_settings.m_nOrder.clone();
+		int[] oldOrder = m_settings.m_nOrder.clone();
 		m_settings.m_nShuffleMode = nMethod;
 		setWaitCursor();
-		
+
 		if (m_settings.m_sOrderFile != null) {
 			if (new File(m_settings.m_sOrderFile).exists()) {
 				nMethod = NodeOrderer.MANUAL;
 			} else {
-				JOptionPane.showMessageDialog(this, "Could not find file " + m_settings.m_sOrderFile + " for reading");
+				showWarningAlert("Could not find file " + m_settings.m_sOrderFile + " for reading");
 			}
 		}
 
-
-		//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		try {
 			switch (nMethod) {
-			case NodeOrderer.DEFAULT:
-				// use order of most frequently occurring tree
-				initOrder(m_treeData.m_trees[0], 0);
-				break;
-			case NodeOrderer.MANUAL: {
-				// use order given by user
-				StringBuilder buf = new StringBuilder();
-				for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
-					buf.append(m_settings.m_sLabels.elementAt(m_settings.m_nRevOrder[i]) + " ");
-				}
-				// remove trailing space
-				buf.deleteCharAt(buf.length()-1);				
-				
-				String[] sIndex;
-				if (m_settings.m_sOrderFile == null) {
-					String sOrder = JOptionPane.showInputDialog("New node order:", buf.toString());
-					if (sOrder == null) {
-						return;
+				case NodeOrderer.DEFAULT:
+					initOrder(m_treeData.m_trees[0], 0);
+					break;
+				case NodeOrderer.MANUAL: {
+					StringBuilder buf = new StringBuilder();
+					for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
+						buf.append(m_settings.m_sLabels.elementAt(m_settings.m_nRevOrder[i])).append(" ");
 					}
-					sIndex = sOrder.split(" ");
-				} else {
-					List<String> labels = new ArrayList<>();
-					try {
-				        BufferedReader fin = new BufferedReader(new FileReader(m_settings.m_sOrderFile));
-				        String str = null;
-				        while (fin.ready()) {
-				            str = fin.readLine();
-				            if (!str.startsWith("#") && str.trim().length() > 0) {
-				            	labels.add(str.trim());
-				            }
-				        }
-				        fin.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-						JOptionPane.showMessageDialog(this, "Something went wrong with file " + m_settings.m_sOrderFile + ": " + e.getMessage());
-						
-					}
-					if (labels.size() == 1) {
-						// all taxa on one line
-						sIndex = labels.get(0).split("\\s");
+					buf.deleteCharAt(buf.length() - 1);
+
+					String[] sIndex;
+					if (m_settings.m_sOrderFile == null) {
+						String sOrder = showInputDialog("New node order:", buf.toString());
+						if (sOrder == null) return;
+						sIndex = sOrder.split(" ");
 					} else {
-						// one line per taxon
-						sIndex = labels.toArray(new String[]{});
+						List<String> labels = new ArrayList<>();
+						try (BufferedReader fin = new BufferedReader(new FileReader(m_settings.m_sOrderFile))) {
+							String str;
+							while ((str = fin.readLine()) != null) {
+								if (!str.startsWith("#") && str.trim().length() > 0) {
+									labels.add(str.trim());
+								}
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+							showErrorAlert("Something went wrong with file " + m_settings.m_sOrderFile + ": " + e.getMessage());
+						}
+						sIndex = labels.size() == 1 ? labels.get(0).split("\\s") : labels.toArray(new String[0]);
 					}
-					//m_sOrderFile = null;
-				}
-				
-				if (sIndex.length != m_settings.m_nNrOfLabels) {
-					System.err.println("Number of labels/taxa " + sIndex.length + " differs from given labels " + m_settings.m_nNrOfLabels);
-					return;
-				}
-				int[] nOrder = new int[m_settings.m_nOrder.length];
-				int[] nRevOrder = new int[m_settings.m_nRevOrder.length];
-				for (int i = 0; i < sIndex.length; i++) {
-					int j = 0;
-					String sTarget = sIndex[i];
-					while ((j < m_settings.m_sLabels.size()) && !(m_settings.m_sLabels.elementAt(j).equals(sTarget))) {
-						j++;
-					}
-					if (j == m_settings.m_sLabels.size()) {
-						System.err.println("Label \"" + sTarget + "\" not found among labels");
+
+					if (sIndex.length != m_settings.m_nNrOfLabels) {
+						System.err.println("Number of labels/taxa " + sIndex.length + " differs from given labels " + m_settings.m_nNrOfLabels);
 						return;
 					}
-					nOrder[j] = i;
-					nRevOrder[i] = j;
+					int[] nOrder = new int[m_settings.m_nOrder.length];
+					int[] nRevOrder = new int[m_settings.m_nRevOrder.length];
+					for (int i = 0; i < sIndex.length; i++) {
+						int j = 0;
+						String sTarget = sIndex[i];
+						while ((j < m_settings.m_sLabels.size()) && !(m_settings.m_sLabels.elementAt(j).equals(sTarget))) {
+							j++;
+						}
+						if (j == m_settings.m_sLabels.size()) {
+							System.err.println("Label \"" + sTarget + "\" not found among labels");
+							return;
+						}
+						nOrder[j] = i;
+						nRevOrder[i] = j;
+					}
+					m_settings.m_nOrder = nOrder;
+					m_settings.m_nRevOrder = nRevOrder;
+					break;
 				}
-				m_settings.m_nOrder = nOrder;
-				m_settings.m_nRevOrder = nRevOrder;
-			}
-				break;
-			case NodeOrderer.META_ALL:
-				break;
-			case NodeOrderer.META_SUM:
-				break;
-			case NodeOrderer.META_AVERAGE:
-				break;
-			case NodeOrderer.GEOINFO:
-				break;
-			default:
-				// otherwise, use one of the distance based methods
-				NodeOrderer h = new NodeOrderer(nMethod);
-				int[] nOrder = h.calcOrder(m_settings.m_nNrOfLabels, m_treeData.m_trees, m_treeData.m_cTrees, m_treeData.m_rootcanaltree, m_treeData.m_fTreeWeight/*
-																						 * ,
-																						 * m_nOrder
-																						 */, m_treeData.m_clades, m_treeData.m_cladeWeight);
-				m_settings.m_nOrder = nOrder;
-				for (int i = 0; i < m_settings.m_nNrOfLabels; i++) {
-					m_settings.m_nRevOrder[m_settings.m_nOrder[i]] = i;
-				}
-				System.err.println();
-				for (int i = 0; i < m_settings.m_nNrOfLabels; i++) {
-					System.out.print(m_settings.m_sLabels.elementAt(m_settings.m_nRevOrder[i]) + " ");
-				}
-				System.out.println();
+				case NodeOrderer.META_ALL:
+				case NodeOrderer.META_SUM:
+				case NodeOrderer.META_AVERAGE:
+				case NodeOrderer.GEOINFO:
+					break;
+				default:
+					NodeOrderer h = new NodeOrderer(nMethod);
+					int[] nOrder = h.calcOrder(m_settings.m_nNrOfLabels, m_treeData.m_trees, m_treeData.m_cTrees, m_treeData.m_rootcanaltree, m_treeData.m_fTreeWeight, m_treeData.m_clades, m_treeData.m_cladeWeight);
+					m_settings.m_nOrder = nOrder;
+					for (int i = 0; i < m_settings.m_nNrOfLabels; i++) {
+						m_settings.m_nRevOrder[m_settings.m_nOrder[i]] = i;
+					}
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1423,124 +1296,84 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_settings.m_bShowBounds = true;
 			m_settings.m_pattern = Pattern.compile(m_settings.m_sPattern);
 			switch (nMethod) {
-			case NodeOrderer.META_ALL: {
-				double fMaxX = 0;
-				for (int i = 0; i < m_treeData.m_trees.length; i++) {
-					double fX = positionMetaAll(m_treeData.m_trees[i]);
-					fMaxX = Math.max(fMaxX, fX);
+				case NodeOrderer.META_ALL: {
+					double fMaxX = 0;
+					for (Node tree : m_treeData.m_trees) fMaxX = Math.max(fMaxX, positionMetaAll(tree));
+					for (Node cTree : m_treeData.m_cTrees) fMaxX = Math.max(fMaxX, positionMetaAll(cTree));
+					fMaxX = m_settings.m_nNrOfLabels / fMaxX;
+					for (Node tree : m_treeData.m_trees) scaleX(tree, fMaxX);
+					for (Node cTree : m_treeData.m_cTrees) scaleX(cTree, fMaxX);
+					calcLines();
+					break;
 				}
-				for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
-					double fX = positionMetaAll(m_treeData.m_cTrees[i]);
-					fMaxX = Math.max(fMaxX, fX);
-				}
-				fMaxX = m_settings.m_nNrOfLabels / fMaxX;
-				for (int i = 0; i < m_treeData.m_trees.length; i++) {
-					scaleX(m_treeData.m_trees[i], fMaxX);
-				}
-				for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
-					scaleX(m_treeData.m_cTrees[i], fMaxX);
-				}
-				calcLines();
-			}
-				break;
-			case NodeOrderer.META_SUM:
-			case NodeOrderer.META_AVERAGE: {
-				for (int i = 0; i < m_treeData.m_trees.length; i++) {
-					float[] fHeights = new float[m_settings.m_nNrOfLabels * 2 - 1];
-					float[] fMetas = new float[m_settings.m_nNrOfLabels * 2 - 1];
-					int[] nCounts = new int[m_settings.m_nNrOfLabels * 2 - 1];
-					collectHeights(m_treeData.m_trees[i], fHeights, 0);
-					Arrays.sort(fHeights);
-					m_treeData.collectMetaData(m_treeData.m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_treeData.m_fLinesX[i] = new float[nNodes * 2 + 2];
-					m_treeData.m_fLinesY[i] = new float[nNodes * 2 + 2];
-					for (int j = 0; j < fMetas.length - 1; j++) {
-						m_treeData.m_fLinesX[i][j * 2] = fMetas[j];
-						m_treeData.m_fLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
-						m_treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1];
-						m_treeData.m_fLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
-					}
-					if (nMethod == NodeOrderer.META_AVERAGE) {
+				case NodeOrderer.META_SUM:
+				case NodeOrderer.META_AVERAGE: {
+					for (int i = 0; i < m_treeData.m_trees.length; i++) {
+						float[] fHeights = new float[m_settings.m_nNrOfLabels * 2 - 1];
+						float[] fMetas = new float[m_settings.m_nNrOfLabels * 2 - 1];
+						int[] nCounts = new int[m_settings.m_nNrOfLabels * 2 - 1];
+						collectHeights(m_treeData.m_trees[i], fHeights, 0);
+						Arrays.sort(fHeights);
+						m_treeData.collectMetaData(m_treeData.m_trees[i], fHeights, 0.0f, 0, fMetas, nCounts);
+						m_treeData.m_fLinesX[i] = new float[nNodes * 2 + 2];
+						m_treeData.m_fLinesY[i] = new float[nNodes * 2 + 2];
 						for (int j = 0; j < fMetas.length - 1; j++) {
-							if (nCounts[j] > 0) {
-								m_treeData.m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
-							}
-							if (nCounts[j + 1] > 0) {
-								m_treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
+							m_treeData.m_fLinesX[i][j * 2] = fMetas[j];
+							m_treeData.m_fLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
+							m_treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1];
+							m_treeData.m_fLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
+						}
+						if (nMethod == NodeOrderer.META_AVERAGE) {
+							for (int j = 0; j < fMetas.length - 1; j++) {
+								if (nCounts[j] > 0) m_treeData.m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
+								if (nCounts[j + 1] > 0) m_treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
 							}
 						}
 					}
-				}
-				for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
-					float[] fHeights = new float[m_settings.m_nNrOfLabels * 2 - 1];
-					float[] fMetas = new float[m_settings.m_nNrOfLabels * 2 - 1];
-					int[] nCounts = new int[m_settings.m_nNrOfLabels * 2 - 1];
-					collectHeights(m_treeData.m_cTrees[i], fHeights, 0);
-					Arrays.sort(fHeights);
-					m_treeData.collectMetaData(m_treeData.m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
-					m_treeData.m_fCLinesX[i] = new float[nNodes * 2 + 2];
-					m_treeData.m_fCLinesY[i] = new float[nNodes * 2 + 2];
-					for (int j = 0; j < fMetas.length - 1; j++) {
-						m_treeData.m_fCLinesX[i][j * 2] = fMetas[j];
-						m_treeData.m_fCLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
-						m_treeData.m_fCLinesX[i][j * 2 + 1] = fMetas[j + 1];
-						m_treeData.m_fCLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
-					}
-					if (nMethod == NodeOrderer.META_AVERAGE) {
+					for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
+						float[] fHeights = new float[m_settings.m_nNrOfLabels * 2 - 1];
+						float[] fMetas = new float[m_settings.m_nNrOfLabels * 2 - 1];
+						int[] nCounts = new int[m_settings.m_nNrOfLabels * 2 - 1];
+						collectHeights(m_treeData.m_cTrees[i], fHeights, 0);
+						Arrays.sort(fHeights);
+						m_treeData.collectMetaData(m_treeData.m_cTrees[i], fHeights, 0.0f, 0, fMetas, nCounts);
+						m_treeData.m_fCLinesX[i] = new float[nNodes * 2 + 2];
+						m_treeData.m_fCLinesY[i] = new float[nNodes * 2 + 2];
 						for (int j = 0; j < fMetas.length - 1; j++) {
-							if (nCounts[j] > 0) {
-								m_treeData.m_fLinesX[i][j * 2] = fMetas[j] / nCounts[j];
-							}
-							if (nCounts[j + 1] > 0) {
-								m_treeData.m_fLinesX[i][j * 2 + 1] = fMetas[j + 1] / nCounts[j + 1];
-							}
+							m_treeData.m_fCLinesX[i][j * 2] = fMetas[j];
+							m_treeData.m_fCLinesY[i][j * 2] = (fHeights[j] - m_fTreeOffset) * m_fTreeScale;
+							m_treeData.m_fCLinesX[i][j * 2 + 1] = fMetas[j + 1];
+							m_treeData.m_fCLinesY[i][j * 2 + 1] = (fHeights[j + 1] - m_fTreeOffset) * m_fTreeScale;
 						}
 					}
-				}
-				// determine scale
-				float fMaxX = 0;
-				for (float[] fXs : m_treeData.m_fLinesX) {
-					for (float f : fXs) {
-						fMaxX = Math.max(f, fMaxX);
+					float fMaxX = 0;
+					for (float[] fXs : m_treeData.m_fLinesX) {
+						for (float f : fXs) fMaxX = Math.max(f, fMaxX);
 					}
-				}
-				for (float[] fXs : m_treeData.m_fCLinesX) {
-					for (float f : fXs) {
-						fMaxX = Math.max(f, fMaxX);
+					for (float[] fXs : m_treeData.m_fCLinesX) {
+						for (float f : fXs) fMaxX = Math.max(f, fMaxX);
 					}
-				}
-				float fScale = m_settings.m_nNrOfLabels / fMaxX;
-				for (float[] fXs : m_treeData.m_fCLinesX) {
-					for (int i = 0; i < fXs.length; i++) {
-						fXs[i] *= fScale;
+					float fScale = m_settings.m_nNrOfLabels / fMaxX;
+					for (float[] fXs : m_treeData.m_fCLinesX) {
+						for (int j = 0; j < fXs.length; j++) fXs[j] *= fScale;
 					}
-				}
-				for (float[] fXs : m_treeData.m_fLinesX) {
-					for (int i = 0; i < fXs.length; i++) {
-						fXs[i] *= fScale;
+					for (float[] fXs : m_treeData.m_fLinesX) {
+						for (int j = 0; j < fXs.length; j++) fXs[j] *= fScale;
 					}
+					break;
 				}
-			}
-				break;
 			}
 			if (orderChanged(oldOrder)) {
 				makeDirty();
 			}
-			// addAction(new DoAction());
 		}
-	} // reshuffle
+		setDefaultCursor();
+	}
 
-	/**
-	 * Reorder leafs by rotating around internal node associated with
-	 * iRotationPoint
-	 */
 	void rotateAround(int iRotationPoint) {
-
-		Vector<Integer> iLeafs = new Vector<Integer>();
+		Vector<Integer> iLeafs = new Vector<>();
 		getRotationLeafs(m_treeData.m_cTrees[0], -1, iLeafs, iRotationPoint);
 
-		System.err.println("Rotating " + iRotationPoint + " " + iLeafs);
-		// find rotation range
 		int iMin = m_settings.m_nOrder.length;
 		int iMax = 0;
 		for (Integer i : iLeafs) {
@@ -1562,10 +1395,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 		calcLines();
 		makeDirty();
 		addAction(new DoAction());
-	} // rotateAround
+	}
 
 	void moveRotationPoint(int iRotationPoint, float fdH) {
-		Vector<Integer> iLeafs = new Vector<Integer>();
+		Vector<Integer> iLeafs = new Vector<>();
 		getRotationLeafs(m_treeData.m_cTrees[0], -1, iLeafs, iRotationPoint);
 		boolean[] bSelection = m_treeData.m_bSelection;
 		m_treeData.m_bSelection = new boolean[m_settings.m_sLabels.size()];
@@ -1573,12 +1406,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			m_treeData.m_bSelection[i] = true;
 		}
 
-		for (int i = 0; i < m_treeData.m_trees.length; i++) {
-			moveInternalNode(fdH, m_treeData.m_trees[i], iLeafs.size());
-		}
-		for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
-			moveInternalNode(fdH, m_treeData.m_cTrees[i], iLeafs.size());
-		}
+		for (Node tree : m_treeData.m_trees) moveInternalNode(fdH, tree, iLeafs.size());
+		for (Node cTree : m_treeData.m_cTrees) moveInternalNode(fdH, cTree, iLeafs.size());
 		m_treeData.m_bSelection = bSelection;
 		calcLines();
 		makeDirty();
@@ -1598,19 +1427,13 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	/**
-	 * Determine set of leafs that are under rotation point iRotationPoint.
-	 * Results stored in iLeafs as node numbers.
-	 */
 	int getRotationLeafs(Node node, int iPos, Vector<Integer> iLeafs, int iRotationPoint) {
 		if (node.isLeaf()) {
 			iLeafs.add(node.getNr());
 		} else {
 			iPos = getRotationLeafs(node.m_left, iPos, iLeafs, iRotationPoint);
-			if (iPos == iRotationPoint) {
-				return iPos;
-			}
-			Vector<Integer> iLeafsR = new Vector<Integer>();
+			if (iPos == iRotationPoint) return iPos;
+			Vector<Integer> iLeafsR = new Vector<>();
 			if (node.m_right != null) {
 				iPos = getRotationLeafs(node.m_right, iPos, iLeafsR, iRotationPoint);
 				if (iPos == iRotationPoint) {
@@ -1623,7 +1446,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			iLeafs.addAll(iLeafsR);
 		}
 		return iPos;
-	} // getRotationLeafs
+	}
 
 	int getNrOfNodes(Node node) {
 		if (node.isLeaf()) {
@@ -1633,30 +1456,16 @@ public class DensiTree extends JPanel implements ComponentListener {
 			if (node.m_right != null) {
 				nNodes += getNrOfNodes(node.m_right);
 			} else {
-				// count one for the dummy node on the right
 				nNodes++;
 			}
 			return nNodes + 1;
 		}
 	}
 
+	public enum LineWidthMode {BY_METADATA_PATTERN, BY_METADATA_NUMBER, DEFAULT, BY_METADATA_TAG}
+	public enum LineColorMode {COLOR_BY_CLADE, BY_METADATA_PATTERN, DEFAULT, COLOR_BY_METADATA_TAG}
+	public enum MetaDataType {NUMERIC, STRING, SET}
 
-
-
-	public enum LineWidthMode {BY_METADATA_PATTERN, BY_METADATA_NUMBER, DEFAULT, BY_METADATA_TAG};
-
-	public enum LineColorMode {COLOR_BY_CLADE, BY_METADATA_PATTERN, DEFAULT, COLOR_BY_METADATA_TAG};
-	public enum MetaDataType {NUMERIC, STRING, SET};
-	
-
-
-
-
-
-
-	
-	
-	/** initialise order of leafs **/
 	int initOrder(Node node, int iNr) throws Exception {
 		if (node.isLeaf()) {
 			m_settings.m_nOrder[node.m_iLabel] = iNr;
@@ -1671,24 +1480,19 @@ public class DensiTree extends JPanel implements ComponentListener {
 		return iNr;
 	}
 
-
-	/** check the selection is empty, and ask user whether this is desirable **/
 	void checkSelection() {
 		m_treeData.checkSelection();
 	}
 
-	/** check at least one, but not all labels are selected **/
 	boolean moveSanityChek() {
 		int nSelected = m_treeData.selectionSize();
 		if (nSelected > 0 && nSelected < m_settings.m_nRevOrder.length - 1) {
 			return true;
 		}
-		JOptionPane.showMessageDialog(null, "To move labels, select at least one, but not all of the labels",
-				"Move error", JOptionPane.PLAIN_MESSAGE);
+		showErrorAlert("To move labels, select at least one, but not all of the labels");
 		return false;
 	}
 
-	/** move labels in selection down in ordering **/
 	void moveSelectedLabelsDown() {
 		for (int i = 1; i < m_settings.m_nRevOrder.length; i++) {
 			if (m_treeData.m_bSelection[m_settings.m_nRevOrder[i]] && !m_treeData.m_bSelection[m_settings.m_nRevOrder[i - 1]]) {
@@ -1704,7 +1508,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		addAction(new DoAction());
 	}
 
-	/** move labels in selection up in ordering **/
 	void moveSelectedLabelsUp() {
 		for (int i = m_settings.m_nRevOrder.length - 2; i >= 0; i--) {
 			if (m_treeData.m_bSelection[m_settings.m_nRevOrder[i]] && !m_treeData.m_bSelection[m_settings.m_nRevOrder[i + 1]]) {
@@ -1720,34 +1523,26 @@ public class DensiTree extends JPanel implements ComponentListener {
 		addAction(new DoAction());
 	}
 
-
-	/**
-	 * return meta data value of a node as defined by the pattern (m_sPattern &
-	 * m_pattern), or 1 if parsing fails.
-	 */
-	// int [] m_nCurrentPosition;
 	float getMetaData(Node node) {
 		try {
 			Matcher matcher = m_settings.m_pattern.matcher(node.getMetaData());
 			matcher.find();
 			int nGroup = 1;
-			int nGroups = matcher.groupCount();
-			if (nGroup > nGroups) {
+			if (nGroup > matcher.groupCount()) {
 				nGroup = 1;
 			}
 			return Float.parseFloat(matcher.group(nGroup));
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 		return 1f;
-	} // getMetaData
+	}
 
 	int getMetaDataCategory(Node node) {
 		try {
 			Matcher matcher = m_settings.m_pattern.matcher(node.getMetaData());
 			matcher.find();
 			int nGroup = 1;
-			int nGroups = matcher.groupCount();
-			if (nGroup > nGroups) {
+			if (nGroup > matcher.groupCount()) {
 				nGroup = 1;
 			}
 			String match = matcher.group(nGroup);
@@ -1755,17 +1550,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 				m_settings.m_colorMetaDataCategories.put(match, m_settings.m_colorMetaDataCategories.size());
 			}
 			return m_settings.m_colorMetaDataCategories.get(match);
-			
-//			if (!m_colorMetaDataCategories.contains(match)) {
-//				m_colorMetaDataCategories.add(match);
-//			}
-//			//System.err.println(node.m_sMetaData + ": " + match + " = " + m_metaDataCategories.indexOf(match));
-//			return m_colorMetaDataCategories.indexOf(match);
-		} catch (Exception e) {
-			//e.printStackTrace();
+		} catch (Exception ignored) {
 		}
 		return 0;
-	} // getMetaData
+	}
 
 	double positionMetaAll(Node node) {
 		node.m_fPosX = getMetaData(node);
@@ -1775,7 +1563,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			return Math.max(fX1, Math.max(fX2, node.m_fPosX));
 		}
 		return node.m_fPosX;
-	} // positionMetaAll
+	}
 
 	void scaleX(Node node, double fScale) {
 		node.m_fPosX = (float) (m_settings.m_sLabels.size() - node.m_fPosX * fScale);
@@ -1783,28 +1571,17 @@ public class DensiTree extends JPanel implements ComponentListener {
 			scaleX(node.m_left, fScale);
 			scaleX(node.m_right, fScale);
 		}
-	} // scaleX
+	}
 
 	int collectHeights(Node node, float[] fHeights, int iPos) {
-		fHeights[iPos++] = node.m_fPosY;// fLengthToRoot + node.m_fLength;
+		fHeights[iPos++] = node.m_fPosY;
 		if (!node.isLeaf()) {
 			iPos = collectHeights(node.m_left, fHeights, iPos);
 			iPos = collectHeights(node.m_right, fHeights, iPos);
 		}
 		return iPos;
-	} // collectHeights
+	}
 
-
-
-//	float height(Node node) {
-//		if (node.isLeaf()) {
-//			return node.m_fLength;
-//		} else {
-//			return node.m_fLength + Math.max(height(node.m_left), height(node.m_right));
-//		}
-//	}
-
-	/** move y-position of a tree with offset f **/
 	public void offsetHeight(Node node, float f) {
 		if (!node.isLeaf()) {
 			offsetHeight(node.m_left, f);
@@ -1815,8 +1592,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 		node.m_fPosY += f;
 	}
 
-	
-	/** draw only labels of a tree, not the branches **/
 	void drawLabels(Node node, Graphics2D g, TreeData treeData) {
 		if (m_settings.m_bHideLabels || treeData.reverse()) {
 			return;
@@ -1826,7 +1601,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			return;
 		}
 		if (Util.isAppleWithJava17() >= 1 && !isExporting()) {
-			g.setTransform(new AffineTransform(2,0,0,2,0,0));
+			g.setTransform(new AffineTransform(2, 0, 0, 2, 0, 0));
 		}
 		if (node.isLeaf()) {
 			if (treeData.m_bSelection[node.m_iLabel]) {
@@ -1840,8 +1615,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			if (m_treeDrawer.m_bRootAtTop) {
 				if (m_settings.m_bRotateTextWhenRootAtTop) {
-					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().getHeight() / 3;
-					int y = getPosY(((m_bAlignLabels ? m_fHeight:node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;
+					int x = (int) (node.m_fPosX * m_fScaleX) - g.getFontMetrics().getHeight() / 3;
+					int y = getPosY(((m_bAlignLabels ? m_fHeight : node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 2;
 					g.rotate(Math.PI / 2.0);
 					g.translate(y, -x);
 					g.drawString(m_settings.m_sLabels.elementAt(node.m_iLabel), 0, 0);
@@ -1855,9 +1630,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 					drawImage(g, x, y, node.m_iLabel);
 				} else {
 					String sLabel = m_settings.m_sLabels.elementAt(node.m_iLabel);
-					int x = (int) (node.m_fPosX * m_fScaleX /* m_fScale */) - g.getFontMetrics().stringWidth(sLabel)
-							/ 2;
-					int y = getPosY(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale)
+					int x = (int) (node.m_fPosX * m_fScaleX) - g.getFontMetrics().stringWidth(sLabel) / 2;
+					int y = getPosY(((m_bAlignLabels ? m_fHeight : node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale)
 							+ g.getFontMetrics().getHeight() + 2;
 					g.drawString(sLabel, x, y);
 					Rectangle r = m_bLabelRectangle[node.m_iLabel];
@@ -1868,12 +1642,12 @@ public class DensiTree extends JPanel implements ComponentListener {
 					drawImage(g, x, y, node.m_iLabel);
 				}
 			} else {
-				int y = (int) (node.m_fPosX * m_fScaleY/* m_fScale */) + g.getFontMetrics().getHeight() / 3;
-				int x = getPosX(((m_bAlignLabels ?m_fHeight:node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 1;
+				int y = (int) (node.m_fPosX * m_fScaleY) + g.getFontMetrics().getHeight() / 3;
+				int x = getPosX(((m_bAlignLabels ? m_fHeight : node.m_fPosY) + m_settings.m_fLabelIndent - m_fTreeOffset) * m_fTreeScale) + 1;
 				if (m_settings.m_bDrawReverse) {
 					g.scale(-1.0, 1.0);
 					String text = m_settings.m_sLabels.elementAt(node.m_iLabel);
-					g.drawString(text, -x-g.getFontMetrics().stringWidth(text), y);
+					g.drawString(text, -x - g.getFontMetrics().stringWidth(text), y);
 					g.scale(-1.0, 1.0);
 				} else {
 					switch (treeData.drawMode) {
@@ -1882,10 +1656,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 							break;
 						case TreeData.MODE_LEFT:
 							String text = m_settings.m_sLabels.elementAt(node.m_iLabel);
-							g.drawString(text, getWidth()/2 -g.getFontMetrics().stringWidth(text)/2, y);
+							g.drawString(text, (int) getWidth() / 2 - g.getFontMetrics().stringWidth(text) / 2, y);
 							break;
 						case TreeData.MODE_RIGHT:
-							// suppress label
+							break;
 					}
 				}
 				Rectangle r = m_bLabelRectangle[node.m_iLabel];
@@ -1894,9 +1668,6 @@ public class DensiTree extends JPanel implements ComponentListener {
 				r.height = 10;
 				r.width = m_settings.m_nLabelWidth;
 				drawImage(g, x, y, node.m_iLabel);
-				if (m_settings.m_fLabelIndent > 0 && x > m_bgImage.getWidth()) {
-					System.err.println("label outside image: try reducing the indent");
-				}
 			}
 		} else {
 			drawLabels(node.m_left, g, treeData);
@@ -1909,11 +1680,10 @@ public class DensiTree extends JPanel implements ComponentListener {
 	private void drawImage(Graphics g, int x, int y, int iLabel) {
 		if (m_settings.m_LabelImages != null && m_settings.m_LabelImages[iLabel] != null) {
 			BufferedImage img = m_settings.m_LabelImages[iLabel];
-			g.drawImage(img, x, y-m_settings.m_nImageSize, x+m_settings.m_nImageSize, y, 0, 0, img.getWidth(), img.getHeight(), null);
+			g.drawImage(img, x, y - m_settings.m_nImageSize, x + m_settings.m_nImageSize, y, 0, 0, img.getWidth(), img.getHeight(), null);
 		}
 	}
-	
-	/** draw lines from labels of a tree to corresponding geographic point **/
+
 	void drawGeo(Node node, Graphics g) {
 		if (node.isLeaf()) {
 			if (m_treeData.m_bSelection[node.m_iLabel]) {
@@ -1951,32 +1721,24 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	/**
-	 * convert height info in tree to y position on screen -- use when root at
-	 * top
-	 **/
 	int getPosY(float fHeight) {
 		if (m_settings.m_bUseLogScale) {
 			return (int) (m_fHeight / Math.log(m_fHeight + 1.0) * m_fScaleY * (Math.log(m_fHeight + 1.0) - Math.log(m_fHeight - fHeight + 1.0)));
 		}
 		return (int) (fHeight * m_fScaleY);
 	}
-	
+
 	float screenPosToHeight(int nX, int nY) {
 		if (m_settings.m_bUseLogScale) {
 			return Float.NaN;
 		}
 		if (m_treeDrawer.m_bRootAtTop) {
-			return  (m_fHeight - ((nY/ m_fScaleY) + m_fTreeOffset)) * m_fUserScale;
+			return (m_fHeight - ((nY / m_fScaleY) + m_fTreeOffset)) * m_fUserScale;
 		} else {
-			return  (m_fHeight - ((nX/ m_fScaleX) + m_fTreeOffset)) * m_fUserScale;
+			return (m_fHeight - ((nX / m_fScaleX) + m_fTreeOffset)) * m_fUserScale;
 		}
 	}
 
-	/**
-	 * convert height info in tree to x position on screen -- use when root not
-	 * at top
-	 **/
 	int getPosX(float fHeight) {
 		if (m_settings.m_bUseLogScale) {
 			return (int) ((m_fHeight / Math.log(m_fHeight + 1.0) * m_fScaleX * (Math.log(m_fHeight + 1.0) - Math
@@ -1985,1562 +1747,77 @@ public class DensiTree extends JPanel implements ComponentListener {
 		return (int) (fHeight * m_fScaleX);
 	}
 
-	/**
-	 * Fits the tree to the current screen size. Call this after window has been
-	 * created to get the entire tree to be in view upon launch.
-	 */
-	public void fitToScreen() {
-		if (m_settings.m_sLabels == null) {
-			// no trees loaded yet
-			return;
-		}
-		m_fScaleX = 10;
-		m_fScaleY = 10;
-		int nW = (int) (getWidth() / m_fScale) - 24;
-		int nH = (int) (getHeight() / m_fScale) - 24;
-		nW = getWidth();// - 24;
-		nH = getHeight() - 24;
-		if (m_treeDrawer.m_bRootAtTop) {
-			m_fScaleX = (nW + 0.0f) / m_settings.m_sLabels.size();
-			m_fScaleGX = (nW + 0.0f) / (m_settings.m_fMaxLong - m_settings.m_fMinLong);
-			if (m_fHeight > 0) {
-				if (m_settings.m_bRotateTextWhenRootAtTop) {
-					m_fScaleY = (nH - m_settings.m_nLabelWidth - 0.0f) / m_fHeight;
-					m_fScaleGY = (nH - m_settings.m_nLabelWidth - 0.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
-				} else {
-					m_fScaleY = (nH - 10.0f) / m_fHeight;
-					m_fScaleGY = (nH - 10.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
-				}
-			}
-		} else {
-			if (m_settings.m_sLabels != null && m_settings.m_sLabels.size() > 0) {
-				m_fScaleY = (nH + 0.0f) / m_settings.m_sLabels.size();
-				m_fScaleGY = (nH + 0.0f) / (m_settings.m_fMaxLat - m_settings.m_fMinLat);
-			}
-			if (m_fHeight > 0) {
-				m_fScaleX = (nW - m_settings.m_nLabelWidth + 0.0f) / m_fHeight;
-				m_fScaleGX = (nW - m_settings.m_nLabelWidth + 0.0f) / (m_settings.m_fMaxLong - m_settings.m_fMinLong);
-			}
-		}
-		m_Panel.setPreferredSize(new Dimension((int) (nW * m_fScale), (int) (nH * m_fScale)));
-		m_fScaleX *= m_fScale;
-		m_fScaleY *= m_fScale;
-		m_jScrollPane.revalidate();
-		
-		if (m_treeData2 != null) {
-			m_fScaleX /= 2.0;
-		}
-		makeDirty();
-		// System.err.println("Scale " + m_fScaleX + " " + m_fScaleY);
-	}
-
-	@Override
-	public void componentHidden(ComponentEvent e) {
-	}
-
-	@Override
-	public void componentMoved(ComponentEvent e) {
-	}
-
-	@Override
-	public void componentResized(ComponentEvent e) {
-		fitToScreen();
-		// makeDirty();
-	}
-
-	@Override
-	public void componentShown(ComponentEvent e) {
-	}
-
-	/** object that draws a single tree on an image **/
-	public TreeDrawer m_treeDrawer = new TreeDrawer();
-
-	
 	void selectMode(int nXmode) {
 		switch (nXmode) {
-		case 0: // default
-			m_settings.m_Xmode = 0;
-			m_settings.m_bUseAngleCorrection = false;
-			m_treeDrawer.m_bViewBlockTree = false;
-			m_viewClades.setEnabled(false);
-			m_viewEditTree.setEnabled(true);
-			break;
-		case 1: // star tree
-			m_settings.m_Xmode = 2;
-			m_settings.m_bUseAngleCorrection = false;
-			m_treeDrawer.m_bViewBlockTree = false;
-			m_viewClades.setEnabled(true);
-			m_viewEditTree.setEnabled(false);
-			break;
-		case 2: // centralised
-			m_settings.m_Xmode = 1;
-			m_settings.m_bUseAngleCorrection = false;
-			m_treeDrawer.m_bViewBlockTree = false;
-			m_viewClades.setEnabled(true);
-			m_viewEditTree.setEnabled(false);
-			break;
-		case 3: // centralised + angle corrected
-			m_settings.m_Xmode = 1;
-			m_settings.m_bUseAngleCorrection = true;
-			m_treeDrawer.m_bViewBlockTree = false;
-			m_viewClades.setEnabled(true);
-			m_viewEditTree.setEnabled(false);
-			break;
+			case 0:
+				m_settings.m_Xmode = 0;
+				m_settings.m_bUseAngleCorrection = false;
+				m_treeDrawer.m_bViewBlockTree = false;
+				m_viewClades.setDisable(true);
+				m_viewEditTree.setDisable(false);
+				break;
+			case 1:
+				m_settings.m_Xmode = 2;
+				m_settings.m_bUseAngleCorrection = false;
+				m_treeDrawer.m_bViewBlockTree = false;
+				m_viewClades.setDisable(false);
+				m_viewEditTree.setDisable(true);
+				break;
+			case 2:
+				m_settings.m_Xmode = 1;
+				m_settings.m_bUseAngleCorrection = false;
+				m_treeDrawer.m_bViewBlockTree = false;
+				m_viewClades.setDisable(false);
+				m_viewEditTree.setDisable(true);
+				break;
+			case 3:
+				m_settings.m_Xmode = 1;
+				m_settings.m_bUseAngleCorrection = true;
+				m_treeDrawer.m_bViewBlockTree = false;
+				m_viewClades.setDisable(false);
+				m_viewEditTree.setDisable(true);
+				break;
 		}
-//		Enumeration<AbstractButton> enumeration = m_modeGroup.getElements();
-//		for (int i = 0; i < nXmode; i++) {
-//			enumeration.nextElement();
-//		}
-//		m_modeGroup.setSelected(enumeration.nextElement().getModel(), true);
 
 		calcPositions();
 		calcLines();
 		makeDirty();
-		for (ChangeListener listener : m_changeListeners) {
-			listener.stateChanged(null);
-		}
+		notifyChangeListeners();
 	}
- 
-	
-	int m_nStyle = 0;
+
 	public void resetStyle() {
 		setStyle(m_nStyle);
 	}
-	
+
 	void setStyle(int nStyle) {
 		m_nStyle = nStyle;
 		BranchDrawer bd = null;
 		switch (nStyle) {
-		case 0:
-			if (m_settings.m_lineWidthMode != LineWidthMode.DEFAULT) {
-				bd = new TrapeziumBranchDrawer();
-			} else {
-				bd = new BranchDrawer();
-			}
-			m_treeDrawer.m_bViewBlockTree = false;
-			break;
-		case 1:
-			if (m_settings.m_lineWidthMode != LineWidthMode.DEFAULT) {
-				bd = new TrapeziumBranchDrawer();
-			} else {
-				bd = new BranchDrawer();
-			}
-			m_treeDrawer.m_bViewBlockTree = true;
-			break;
-		case 2:
-			//if (m_lineWidthMode == LineWidthMode.DEFAULT) {
+			case 0:
+				bd = (m_settings.m_lineWidthMode != LineWidthMode.DEFAULT) ? new TrapeziumBranchDrawer() : new BranchDrawer();
+				m_treeDrawer.m_bViewBlockTree = false;
+				break;
+			case 1:
+				bd = (m_settings.m_lineWidthMode != LineWidthMode.DEFAULT) ? new TrapeziumBranchDrawer() : new BranchDrawer();
+				m_treeDrawer.m_bViewBlockTree = true;
+				break;
+			case 2:
 				bd = new ArcBranchDrawer();
 				m_treeDrawer.m_bViewBlockTree = false;
-			//}
-			break;
-		// case 2: bd = new KoruBranchDrawer();break;
-		// case 3: bd = new TrapeziumBranchDrawer();break;
-		// case 3: bd = new BrownianBridgeBranchDrawer();break;
-		case 3:
-			//if (m_lineWidthMode == LineWidthMode.DEFAULT) {
+				break;
+			case 3:
 				bd = new SteepArcBranchDrawer();
 				m_treeDrawer.m_bViewBlockTree = false;
-			//}
-			break;
+				break;
 		}
 		if (bd != null) {
 			m_treeDrawer.setBranchDrawer(bd);
 			makeDirty();
 		}
 	}
-	
-	
-	
-	Icon getIcon(String sIcon) {
-		java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
-		if (tempURL != null) {
-			return new ImageIcon(tempURL);
-		}
-		return null;
-	}
 
-
-	/** this contains the TreeSetPanel */
-	JScrollPane m_jScrollPane;
-	/** panel for drawing the trees **/
-	public TreeSetPanel m_Panel = null;
-	/** panel to display pairwise clade set comparison **/
-	public CladeSetComparisonPanel m_cladeSetComparisonPanel = null;
-	/** the menu bar for this application. */
-	JMenuBar m_menuBar;
-	/** status bar at bottom of window */
-	final JLabel m_jStatusBar = new JLabel("Status bar");;
-	/** toolbar containing buttons at top of window */
-	final JToolBar m_jTbTools = new JToolBar();
-	final JPanel m_jTbTools2 = new JPanel();
-	final JToolBar m_jTbCladeTools = new JToolBar();
-	/** font for all text being printed (e.g. labels, height info) **/
-	public Font m_font = new Font("sansserif", Font.PLAIN, 12);
-	public boolean m_bAlignLabels = false;
-	
-	/** flag to indicate consensus trees should be shown **/
-	public boolean m_bViewCTrees = false;
-	/** flag to indicate all individual trees should be shown **/
-	public boolean m_bViewAllTrees = true;
-
-	public double m_fExponent = 1.0;
-
-
-
-	/**
-	 * flag to indicate animation should overwrite trees instead of clearing
-	 * screen every time
-	 **/
-	boolean m_bAnimateOverwrite = false;
-	/** tree currently being drawn **/
-	int m_iAnimateTree;
-	/** delay between drawing of two trees in animation **/
-	int m_nAnimationDelay = 100;
-	/** automatically refresh screen when settings are changed **/
-	boolean m_bAutoRefresh = true;
-	/** flag to indicate screen is out of sync with settings **/
-	boolean m_bIsDirty = true;
-
-	/**
-	 * mode for viewing DRAW = draw all trees ANIMATE = animate through trees
-	 * BROWSE = browse individual trees
-	 */
-	public enum ViewMode {
-		DRAW, ANIMATE, BROWSE
-	};
-
-	ViewMode m_viewMode = ViewMode.DRAW;
-
-	public void makeDirty() {
-		m_treeData.m_rotationPoints = null;
-		if (m_treeData2 != null) {
-			m_treeData2.m_rotationPoints = null;
-		}
-		if (m_bAutoRefresh) {
-			m_Panel.clearImage();
-		} else {
-			m_bIsDirty = true;
-		}
-		repaint();
-		
-		m_cladeSetComparisonPanel.repaint();
-	}
-
-	public JMenuBar getMenuBar() {
-		return m_menuBar;
-	}
-
-	/**
-	 * Base class used for defining actions with a name, tool tip text, possibly
-	 * an icon and accelerator key.
-	 * */
-	class MyAction extends AbstractAction {
-		/** for serialization */
-		private static final long serialVersionUID = -2038911111935517L;
-
-		   public MyAction(String sName, String sToolTipText, String sIcon, int acceleratorKey) {
-		        super(sName);
-			    KeyStroke acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-			    if ((acceleratorKey & InputEvent.ALT_DOWN_MASK) > 0) {
-				    acceleratorKeystroke = KeyStroke.getKeyStroke(acceleratorKey - InputEvent.ALT_DOWN_MASK, InputEvent.ALT_DOWN_MASK);
-			    }
-		        // setToolTipText(sToolTipText);
-		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
-		        putValue(Action.LONG_DESCRIPTION, sToolTipText);
-		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
-		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
-		        }
-		        putValue(Action.MNEMONIC_KEY, Integer.valueOf(sName.charAt(0)));
-		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
-		        //if (true || !viz.util.Util.isMac()) {
-			        if (tempURL != null) {
-			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
-			        } else {
-			            putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-			        }
-		        //}
-		    } // c'tor
-
-//		    public MyAction(String sName, String sToolTipText, String sIcon, String sAcceleratorKey) {
-//		        this(sName, sToolTipText, sIcon, KeyStroke.getKeyStroke(sAcceleratorKey));
-//		    } // c'tor
-
-		    public MyAction(String sName, String sToolTipText, String sIcon, KeyStroke acceleratorKeystroke) {
-		        super(sName);
-		        // setToolTipText(sToolTipText);
-		        putValue(Action.SHORT_DESCRIPTION, sToolTipText);
-		        putValue(Action.LONG_DESCRIPTION, sToolTipText);
-		        if (acceleratorKeystroke != null && acceleratorKeystroke.getKeyCode() >= 0) {
-		            putValue(Action.ACCELERATOR_KEY, acceleratorKeystroke);
-		        }
-		        putValue(Action.MNEMONIC_KEY, Integer.valueOf(sName.charAt(0)));
-		        java.net.URL tempURL = ClassLoader.getSystemResource("viz/icons/" + sIcon + ".png");
-		        if (!viz.util.Util.isMac()) {
-			        if (tempURL != null) {
-			            putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
-			        } else {
-			            putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-			        }
-		        }
-		    } // c'tor
-		
-
-		void setIcon(String sIcon) {
-			java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
-			if (tempURL != null) {
-				putValue(Action.SMALL_ICON, new ImageIcon(tempURL));
-			} else {
-				putValue(Action.SMALL_ICON, new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-			}
-		}
-
-		/**
-		 * Place holder. Should be implemented by derived classes. (non-Javadoc)
-		 */
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-		}
-	} // class MyAction
-
-	/** base class for actions that allow customisation of a color **/
-	class ColorAction extends MyAction {
-		private static final long serialVersionUID = 1L;
-		int m_iColor;
-
-		public ColorAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey, int iColor) {
-			super(sName, sToolTipText, sIcon, nAcceleratorKey);
-			m_iColor = iColor;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			Color newColor = JColorChooser.showDialog(m_Panel, getName(), m_settings.m_color[m_iColor]);
-			if (newColor != null) {
-				m_settings.m_color[m_iColor] = newColor;
-				makeDirty();
-			}
-			repaint();
-		}
-	} // class ColorAction
-
-	class ShuffleAction extends MyAction {
-		private static final long serialVersionUID = 1L;
-		int m_nMode;
-
-		public ShuffleAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey, int nMode) {
-			super(sName, sToolTipText, sIcon, nAcceleratorKey);
-			m_nMode = nMode;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			setWaitCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			reshuffle(m_nMode);
-			setDefaultCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-		}
-	}; // class ActionReshuffle
-
-	/** base class dealing with update of internal state **/
-	class SettingAction extends MyAction {
-		private static final long serialVersionUID = 1L;
-		String m_sName;
-
-		public SettingAction(String sName, String sToolTipText, String sIcon, int nAcceleratorKey) {
-			super(sName, sToolTipText, sIcon, nAcceleratorKey);
-			m_sName = sName;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (m_sName.equals("Jitter+")) {
-				m_settings.m_nJitter++;
-				if (m_settings.m_nJitter >= 0) {
-					makeDirty();
-				}
-			}
-			if (m_sName.equals("Jitter-")) {
-				m_settings.m_nJitter--;
-				if (m_settings.m_nJitter >= 0) {
-					makeDirty();
-				}
-			}
-			if (m_sName.equals("Intensity+")) {
-				m_settings.m_fTreeIntensity *= 1.1;
-				makeDirty();
-			}
-			if (m_sName.equals("Intensity-")) {
-				m_settings.m_fTreeIntensity /= 1.1;
-				makeDirty();
-			}
-			if (m_sName.equals("Consensus Intensity+")) {
-				m_settings.m_fCTreeIntensity *= 1.1;
-				makeDirty();
-			}
-			if (m_sName.equals("Consensus Intensity-")) {
-				m_settings.m_fCTreeIntensity /= 1.1;
-				makeDirty();
-			}
-			if (m_sName.equals("Consensus Tree Width+")) {
-				m_settings.m_nCTreeWidth++;
-				makeDirty();
-			}
-			if (m_sName.equals("Consensus Tree Width-")) {
-				m_settings.m_nCTreeWidth--;
-				if (m_settings.m_nCTreeWidth <= 1) {
-					m_settings.m_nCTreeWidth = 1;
-				}
-				makeDirty();
-			}
-			if (m_sName.equals("Tree Width+")) {
-				m_settings.m_nTreeWidth++;
-				makeDirty();
-			}
-			if (m_sName.equals("Tree Width-")) {
-				m_settings.m_nTreeWidth--;
-				if (m_settings.m_nTreeWidth <= 1) {
-					m_settings.m_nTreeWidth = 1;
-				}
-				makeDirty();
-			}
-			if (m_sName.equals("Drawing Threads+")) {
-				m_Panel.stopDrawThreads();
-				m_Panel.m_nDrawThreads++;
-				m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
-			}
-			if (m_sName.equals("Drawing Threads-")) {
-				if (m_Panel.m_nDrawThreads > 1) {
-					m_Panel.stopDrawThreads();
-					m_Panel.m_nDrawThreads--;
-					m_Panel.m_drawThread = new Thread[2][m_Panel.m_nDrawThreads];
-				}
-			}
-			if (m_sName.equals("Animation Speed-")) {
-				m_nAnimationDelay += 1 + m_nAnimationDelay / 10;
-			}
-			if (m_sName.equals("Animation Speed+")) {
-				if (m_nAnimationDelay > 0) {
-					m_nAnimationDelay -= 1 + m_nAnimationDelay / 10;
-				}
-			}
-			if (m_sName.equals("Angle Correction+")) {
-				m_settings.m_fAngleCorrectionThresHold *= 1.1;
-				if (m_settings.m_fAngleCorrectionThresHold > 0.999) {
-					m_settings.m_fAngleCorrectionThresHold = 0.999;
-				}
-				System.err.println("Angle Correction ThresHold = " + m_settings.m_fAngleCorrectionThresHold);
-				calcPositions();
-				calcLines();
-				makeDirty();
-			}
-			if (m_sName.equals("Angle Correction-")) {
-				m_settings.m_fAngleCorrectionThresHold /= 1.1;
-				System.err.println("Angle Correction ThresHold = " + m_settings.m_fAngleCorrectionThresHold);
-				calcPositions();
-				calcLines();
-				makeDirty();
-			}
-			repaint();
-			System.err.print(getStatus());
-		} // actionPerformed
-	} // class SettingAction
-
-	/** actions triggered by GUI events */
-	public Action a_quit = new MyAction("Exit", "Exit Program", "exit", -1) {
-		private static final long serialVersionUID = -10;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			System.exit(0);
-		}
-	}; // class ActionQuit
-
-	Action a_paste = new MyAction("Paste", "Paste tree(s) from clipboard", "paste", KeyEvent.VK_V) {
-		private static final long serialVersionUID = -10;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			Transferable contents = clipboard.getContents(null);
-			boolean hasTransferableText = (contents != null) && contents.isDataFlavorSupported(DataFlavor.stringFlavor);
-			if (hasTransferableText) {
-				try {
-					String sResult = (String) contents.getTransferData(DataFlavor.stringFlavor);
-					String sFileName = "tmp.clipboard";
-					PrintStream out = new PrintStream(sFileName);
-					out.print(sResult);
-					out.close();
-
-					init(sFileName);
-					calcLines();
-					m_jStatusBar.setText("Loaded from clipboard");
-					fitToScreen();
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(null, "Error pasting from clipboard: " + e.getMessage(),
-							"File paste error", JOptionPane.PLAIN_MESSAGE);
-				}
-			}
-		}
-	}; // class ActionPaste
-
-	abstract class MyFileFilter extends FileFilter {
-		@Override
-		public boolean accept(File f) {
-			return f.isDirectory() || f.getName().toLowerCase().endsWith(getExtention());
-		}
-
-		abstract public String getExtention();
-	}
-
-	Action a_export = new MyAction("Export", "Export DensiTree", "export", -1) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".bmp";
-				}
-
-				@Override
-				public String getDescription() {
-					return "Bitmap files (*.bmp)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".jpg";
-				}
-
-				@Override
-				public String getDescription() {
-					return "JPEG bitmap files (*.jpg)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".png";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PNG bitmap files (*.png)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".pdf";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PDF files (*.pdf)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				public String getExtention() {
-					return ".svg";
-				}
-
-				public String getDescription() {
-					return "Standard Vector Graphics files";
-				}
-			});
-			fc.setDialogTitle("Export DensiTree As");			
-			int rval = fc.showSaveDialog(m_Panel);
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				// System.out.println("Saving to file \""+
-				// f.getAbsoluteFile().toString()+"\"");
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				if (sFileName != null && !sFileName.equals("")) {
-					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".pdf")
-							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
-						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
-					}
-
-                    if (sFileName.toLowerCase().endsWith(".pdf")) {
-                    	exportPDF(sFileName, m_Panel);
-                        repaint();
-                    	return;
-                    } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".bmp")) {
-						BufferedImage bi;
-						Graphics g;
-						bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-						g = bi.getGraphics();
-						g.setPaintMode();
-						g.setColor(getBackground());
-						g.fillRect(0, 0, m_Panel.getWidth(), m_Panel.getHeight());
-						m_Panel.printAll(g);
-						try {
-							if (sFileName.toLowerCase().endsWith(".png")) {
-								ImageIO.write(bi, "png", new File(sFileName));
-							} else if (sFileName.toLowerCase().endsWith(".jpg")) {
-								ImageIO.write(bi, "jpg", new File(sFileName));
-							} else if (sFileName.toLowerCase().endsWith(".bmp")) {
-								ImageIO.write(bi, "bmp", new File(sFileName));
-							}
-						} catch (Exception e) {
-							JOptionPane.showMessageDialog(null,
-									sFileName + " was not written properly: " + e.getMessage());
-							e.printStackTrace();
-						}
-						return;
-					}
-					if (sFileName.toLowerCase().endsWith(".svg")) {
-						m_Panel.toSVG(sFileName, m_Panel.m_image1);
-						return;
-					}
-					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
-							+ " not recognized as png,bmp,jpg or svg file");
-				}
-			}
-		}
-	}; // class ActionExport
-	
-	void exportPDF(String sFileName, JComponent panel) {
-		isExporting = true;
-		try {
-			com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
-			PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
-			doc.setPageSize(new com.itextpdf.text.Rectangle(m_Panel.getWidth(), m_Panel.getHeight()));
-			doc.open();
-			PdfContentByte cb = writer.getDirectContent();
-			Graphics2D g = new PdfGraphics2D(cb, panel.getWidth(), panel.getHeight());
-			 
-			//BufferedImage bi;
-			//bi = new BufferedImage(m_Panel.getWidth(), m_Panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-			//g = bi.getGraphics();
-			g.setPaintMode();
-			g.setColor(getBackground());
-			g.fillRect(0, 0, panel.getWidth(), panel.getHeight());
-			panel.paint(g);
-			//m_Panel.printAll(g);
-		
-			g.dispose();
-			doc.close();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(panel, "Export may have failed: " + e.getMessage());
-		}
-		isExporting = false;
-	}
-
-	
-	Action a_exportCladeComparison = new MyAction("Export comparison", "Export clade comparison panel", "exportcc", -1) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (m_treeData2 == null || !m_cladeSetComparisonPanel.isVisible()) {
-				JOptionPane.showMessageDialog(m_Panel, "Load mirror tree set and open clade set comparison panel before exporting");
-				return;
-			}
-			
-			
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".bmp";
-				}
-
-				@Override
-				public String getDescription() {
-					return "Bitmap files (*.bmp)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".jpg";
-				}
-
-				@Override
-				public String getDescription() {
-					return "JPEG bitmap files (*.jpg)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".png";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PNG bitmap files (*.png)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".pdf";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PDF files (*.pdf)";
-				}
-			});
-			fc.setDialogTitle("Export Clade Comparison As");			
-			int rval = fc.showSaveDialog(m_Panel);
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				// System.out.println("Saving to file \""+
-				// f.getAbsoluteFile().toString()+"\"");
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				if (sFileName != null && !sFileName.equals("")) {
-					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".pdf")
-							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
-						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
-					}
-
-                    if (sFileName.toLowerCase().endsWith(".pdf")) {
-                    	exportPDF(sFileName, m_cladeSetComparisonPanel);
-                        repaint();
-                    	return;
-                    } else 	if (sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".bmp")) {
-						BufferedImage bi;
-						Graphics g;
-						bi = new BufferedImage(m_cladeSetComparisonPanel.getWidth(), m_cladeSetComparisonPanel.getHeight(), BufferedImage.TYPE_INT_RGB);
-						g = bi.getGraphics();
-						g.setPaintMode();
-						g.setColor(getBackground());
-						g.fillRect(0, 0, m_Panel.getWidth(), m_cladeSetComparisonPanel.getHeight());
-						m_cladeSetComparisonPanel.printAll(g);
-						try {
-							if (sFileName.toLowerCase().endsWith(".png")) {
-								ImageIO.write(bi, "png", new File(sFileName));
-							} else if (sFileName.toLowerCase().endsWith(".jpg")) {
-								ImageIO.write(bi, "jpg", new File(sFileName));
-							} else if (sFileName.toLowerCase().endsWith(".bmp")) {
-								ImageIO.write(bi, "bmp", new File(sFileName));
-							}
-						} catch (Exception e) {
-							JOptionPane.showMessageDialog(null,
-									sFileName + " was not written properly: " + e.getMessage());
-							e.printStackTrace();
-						}
-						return;
-					}
-//					if (sFileName.toLowerCase().endsWith(".svg")) {
-//						m_Panel.toSVG(sFileName, m_Panel.m_image1);
-//						return;
-//					}
-					JOptionPane.showMessageDialog(null, "Extention of file " + sFileName
-							+ " not recognized as png,bmp,jpg or pdf file");
-				}
-			}
-		}
-	}; // class ActionExport
-
-
-	Action a_print = new MyAction("Print", "Print Graph", "print", KeyEvent.VK_P) {
-		private static final long serialVersionUID = -20389001859354L;
-
-		// boolean m_bIsPrinting = false;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			PrinterJob printJob = PrinterJob.getPrinterJob();
-			printJob.setPrintable(m_Panel);
-			if (printJob.printDialog())
-				try {
-					// m_bIsPrinting = true;
-					printJob.print();
-					// m_bIsPrinting = false;
-				} catch (PrinterException pe) {
-					// m_bIsPrinting = false;
-				}
-		} // actionPerformed
-	}; // class ActionPrint
-
-	Action a_new = new MyAction("New", "New instance of DensiTree", "new", KeyEvent.VK_N) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			startNew(new String[]{});
-		}
-	};
-
-	Action a_load = new MyAction("Load", "Load tree set", "open", KeyEvent.VK_O) {
-		private static final long serialVersionUID = -2038911085935515L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Tree Set", true, new File(m_settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree","nwk","txt");
-			if (files != null && files.length > 0) {
-				doOpen(files[0].getPath());
-			}
-		}
-	}; // class ActionLoad
-
-	public void doOpen(String sFileName) {
-		if (sFileName.lastIndexOf('/') > 0) {
-			m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-		}
-		try {
-			//m_sKMLFile = null;
-			init(sFileName);
-			m_treeData.drawMode = TreeData.MODE_CENTRE;
-			m_treeData2 = null;
-			calcLines();
-		} catch (Exception e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-					JOptionPane.PLAIN_MESSAGE);
-			return;
-		}
-		m_jStatusBar.setText("Loaded " + sFileName);
-		fitToScreen();
-	}
-	
-	Action a_loadMirror = new MyAction("Load mirror set", "Load mirror tree set", "open", -1) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			File [] files = Util.getFile("Load Mirror Tree Set", true, new File(m_settings.m_sDir), false, "Nexus trees files", "trees","tre","nex","t","tree");
-			if (files != null && files.length > 0) {
-				doOpenMirror(files[0].getPath());
-			}
-		}
-	}; // class ActionLoadMirror
-	
-	public void doOpenMirror(String sFileName) {
-		if (sFileName.lastIndexOf('/') > 0) {
-			m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-		}
-		try {
-			while (thread != null) {
-				try {
-					new Thread().sleep(100);
-				} catch (Exception e) {
-					// ignore
-				}
-			}
-
-			m_treeData2 = new TreeData(this, this.m_settings);
-			if (!m_treeData2.loadFromFile(sFileName, false)) {
-				m_treeData2 = null;
-				return;
-			}
-			m_sFileName2 = sFileName;
-			m_treeData.drawMode = TreeData.MODE_LEFT;
-			m_treeData2.drawMode = TreeData.MODE_RIGHT;
-
-			thread = new MetaDataThread(m_treeData2, this);
-			thread.start();
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-					JOptionPane.PLAIN_MESSAGE);
-			return;
-		}
-		m_jStatusBar.setText("Loaded " + sFileName);
-		fitToScreen();
-	}
-
-	public Action a_loadkml = new MyAction("Load locations", "Load geographic locations of taxa", "geo", -1) {
-		private static final long serialVersionUID = -1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".kml") || name.endsWith(".kmz")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "KML file with taxon locations";
-				}
-			});
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".txt") || name.endsWith(".dat")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "text file with taxon locations, tab delimited";
-				}
-			});
-
-			fc.setDialogTitle("Load Geographic Locations");
-			int rval = fc.showOpenDialog(m_Panel);
-
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				m_settings.m_sKMLFile = sFileName;
-				loadKML();
-				m_jStatusBar.setText("Loaded " + sFileName);
-				fitToScreen();
-				// makeDirty();
-			}
-		}
-	}; // class ActionLoadKML
-
-	Action a_saveas = new MyAction("Save as", "Save as", "save", KeyEvent.VK_S) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".trees")) {
-						return true;
-					}
-					if (name.endsWith(".tre")) {
-						return true;
-					}
-					if (name.endsWith(".nex")) {
-						return true;
-					}
-					if (name.endsWith(".t")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "Nexus trees files";
-				}
-			});
-
-			fc.setDialogTitle("Save Graph");
-			int rval = fc.showSaveDialog(m_Panel);
-
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				try {
-					FileWriter outfile = new FileWriter(sFileName);
-					StringBuffer buf = new StringBuffer();
-					buf.append("#NEXUS\n");
-					buf.append("Begin trees\n");
-					buf.append("\tTranslate\n");
-					for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
-						buf.append("\t\t" + i + " " + m_settings.m_sLabels.get(i));
-						if (i < m_settings.m_sLabels.size() - 1) {
-							buf.append(",");
-						}
-						buf.append("\n");
-					}
-					buf.append(";\n");
-					outfile.write(buf.toString());
-					for (int i = 0; i < m_treeData.m_trees.length; i++) {
-						outfile.write("tree STATE_" + i + " = " + m_treeData.m_trees[i].toString() + ";\n");
-						System.out.println(m_treeData.m_trees[i].toString(m_settings.m_sLabels, false));
-					}
-					outfile.write("End;\n");
-					outfile.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(null, "Error writing file: " + e.getMessage(), "File save error",
-							JOptionPane.PLAIN_MESSAGE);
-					return;
-				}
-				m_jStatusBar.setText("Saved " + sFileName);
-				fitToScreen();
-			}
-		}
-	}; // class ActionSaveAs
-
-	public void loadImages() {
-		JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-		fc.setDialogTitle("Load Image Map (text file mapping taxon names on image files)");
-		int rval = fc.showOpenDialog(m_Panel);
-
-		if (rval == JFileChooser.APPROVE_OPTION) {
-			String sFileName = fc.getSelectedFile().toString();
-			if (sFileName.lastIndexOf('/') > 0) {
-				m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-			}
-			try {
-				m_settings.m_LabelImages = new BufferedImage[m_settings.m_sLabels.size()];
-		        BufferedReader fin = new BufferedReader(new FileReader(sFileName));
-		        //StringBuffer buf = new StringBuffer();
-		        String sStr = null;
-		        // eat up the header
-	            fin.readLine();
-		        while (fin.ready()) {
-		            sStr = fin.readLine();
-			            if (!sStr.trim().equals("")) {
-			            String [] sStrs = sStr.split("\\s+");
-			            if (sStrs.length != 2) {
-			            	JOptionPane.showMessageDialog(m_Panel, "Found \"" + sStr + "\" but expected only two words on a line");
-			            	m_settings.m_LabelImages = null;
-			            	fin.close();
-			            	return;
-			            }
-			            String sLabel = sStrs[0].toLowerCase();
-			            String imageFile = sStrs[1];
-			            int k = 0;
-			            while (k < m_settings.m_sLabels.size() && !m_settings.m_sLabels.get(k).toLowerCase().equals(sLabel)) {
-			            	k++;
-			            }
-			            if (k == m_settings.m_sLabels.size()) {
-			            	JOptionPane.showMessageDialog(m_Panel, "Taxon \"" + sLabel + "\" could not be found");
-			            	m_settings.m_LabelImages = null;
-			            	fin.close();
-			            	return;
-			            }
-			            System.err.println("Loading " + imageFile);
-			            File file = new File(imageFile);
-			            if (file.exists()) {
-			            	m_settings.m_LabelImages[k] = ImageIO.read(file);
-			            } else {
-			            	System.err.println("File " + imageFile + " does not exist");
-			            }
-		            }
-		        }
-		        fin.close();
-				
-			} catch (OutOfMemoryError e) {
-				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-						JOptionPane.PLAIN_MESSAGE);
-				m_settings.m_LabelImages = null;
-				return;
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-						JOptionPane.PLAIN_MESSAGE);
-				m_settings.m_LabelImages = null;
-				return;
-			}
-			makeDirty();
-		}
-		
-	}
-
-	Action a_loadimage = new MyAction("Background image ", "Load background image", "bgimage", -1) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".gif")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "Image files";
-				}
-			});
-
-			fc.setDialogTitle("Load Background Image");
-			int rval = fc.showOpenDialog(m_Panel);
-
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				String sFileName = fc.getSelectedFile().toString();
-				if (sFileName.lastIndexOf('/') > 0) {
-					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
-				}
-				try {
-					loadBGImage(sFileName);
-				} catch (OutOfMemoryError e) {
-					JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-							JOptionPane.PLAIN_MESSAGE);
-					return;
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(null, "Error loading file: " + e.getMessage(), "File load error",
-							JOptionPane.PLAIN_MESSAGE);
-					return;
-				}
-				makeDirty();
-			}
-		}
-	}; // class ActionLoadImage
-
-	void loadBGImage(String sFileName) throws Exception {
-		m_bgImage = ImageIO.read(new File(sFileName));
-		try {
-			Pattern pattern = Pattern
-					.compile(".*\\(([0-9\\.Ee-]+),([0-9\\.Ee-]+)\\)x\\(([0-9\\.Ee-]+),([0-9\\.Ee-]+)\\).*");
-			Matcher matcher = pattern.matcher(sFileName);
-			matcher.find();
-			m_fBGImageBox[1] = Float.parseFloat(matcher.group(1));
-			m_fBGImageBox[0] = Float.parseFloat(matcher.group(2));
-			m_fBGImageBox[3] = Float.parseFloat(matcher.group(3));
-			m_fBGImageBox[2] = Float.parseFloat(matcher.group(4));
-		} catch (Exception e) {
-			final double[] fBGImageBox = { -180, -90, 180, 90 };
-			m_fBGImageBox = fBGImageBox;
-		}
-	} // loadBGImage
-
-	Action a_viewClades = new MyAction("View clades", "List clades and their densities", "viewclades", -1) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JDialog dlg = new JDialog();
-			dlg.setModal(true);
-			dlg.setSize(400, 400);
-			setWaitCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			StringBuilder b = new StringBuilder();
-			for (String s : m_treeData.cladesToString()) {
-				b.append(s);
-			}
-			setDefaultCursor();
-			//m_Panel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			JTextArea textArea = new JTextArea(b.toString());
-			JScrollPane scrollPane = new JScrollPane(textArea);
-			dlg.add(scrollPane);
-			dlg.setTitle("Clades and their probabilities");
-			dlg.setVisible(true);
-		}
-	}; // ActionViewClades
-
-	Action a_help = new MyAction("Help", "DensiTree - Tree Set Visualization Help", "help", -1) {
-		private static final long serialVersionUID = -20389110859354L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			String sStatus = getStatus();
-			String sCmdLineOptions = "\n\nTo start with the same settings, use the following command:\njava -jar DensiTree.jar -c "
-					+ m_settings.m_fCTreeIntensity
-					+ " -i "
-					+ m_settings.m_fTreeIntensity
-					+ " -j "
-					+ m_settings.m_nJitter
-					+ " -w "
-					+ m_settings.m_nCTreeWidth
-					+ " -v " + m_settings.m_nTreeWidth + " -f " + m_nAnimationDelay + " -t " + m_Panel.m_nDrawThreads + " -b " + m_nBurnIn;
-			System.out.println(sCmdLineOptions);
-			JOptionPane.showMessageDialog(null, banner() + sStatus + sCmdLineOptions, "Help Message",
-					JOptionPane.PLAIN_MESSAGE);
-		}
-	}; // class ActionHelp
-
-	public Action a_about = new MyAction("About", "Help about", "about", -1) {
-		private static final long serialVersionUID = -20389110859353L;
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (JOptionPane.showOptionDialog(null, banner() +
-					"Citation:\n" + CITATION,
-					"About Message", JOptionPane.YES_NO_OPTION,
-					JOptionPane.PLAIN_MESSAGE, getIcon("DensiTree"), new String[]{"Copy citation to clipboard","Close"},"Close") == 0) {
-			    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(CITATION), null);			
-			}
-		}
-	}; // class ActionAbout
-
-	Action a_labelwidth = new MyAction("Label width", "Label width when root at left", "labelwidth", -1) {
-		private static final long serialVersionUID = -2L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			String sLabeWidth = JOptionPane.showInputDialog("Labe Width:", m_settings.m_nLabelWidth + "");
-			if (sLabeWidth != null) {
-				try {
-					m_settings.m_nLabelWidth = Integer.parseInt(sLabeWidth);
-				} catch (Exception e) {
-				}
-				fitToScreen();
-			}
-		}
-	}; // class ActionLabelWidth
-
-	Action a_burnin = new MyAction("Burn in", "Burn in", "burnin", -1) {
-		private static final long serialVersionUID = -2L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			String sBurnIn = JOptionPane.showInputDialog("Burn in:", m_nBurnIn + "");
-			if (sBurnIn != null) {
-				try {
-					m_nBurnIn = Integer.parseInt(sBurnIn);
-					init(m_sFileName);
-					calcLines();
-					fitToScreen();
-				} catch (Exception e) {
-				}
-			}
-		}
-	}; // class ActionBurnin
-
-	Action a_geolinewidth = new MyAction("Geo line width", "Geographical line width", "geolinewidth", -1) {
-		private static final long serialVersionUID = -2L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			String sGeoWidth = JOptionPane.showInputDialog("Geographical line width:", m_settings.m_nGeoWidth + "");
-			if (sGeoWidth != null) {
-				try {
-					m_settings.m_nGeoWidth = Integer.parseInt(sGeoWidth);
-					m_Panel.clearImage();
-					repaint();
-				} catch (Exception e) {
-				}
-			}
-		}
-	}; // class ActionGeoWidth
-
-	Action a_viewstatusbar = new MyAction("View statusbar", "View statusbar", "statusbar", -1) {
-		private static final long serialVersionUID = -20389330812354L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_jStatusBar.setVisible(!m_jStatusBar.isVisible());
-		} // actionPerformed
-	}; // class ActionViewStatusbar
-
-	Action a_viewtoolbar = new MyAction("View toolbar", "View toolbar", "toolbar", -1) {
-		private static final long serialVersionUID = -20389110812354L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_jTbTools.setVisible(!m_jTbTools.isVisible());
-		} // actionPerformed
-	}; // class ActionViewToolbar
-
-	Action a_viewtoolbar2 = new MyAction("View Sidebar", "View Sidebar", "sidebar", -1) {
-		private static final long serialVersionUID = -20389110812354L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_jTbTools2.setVisible(!m_jTbTools2.isVisible());
-		} // actionPerformed
-	}; // class ActionViewToolbar
-
-	Action a_viewcladetoolbar = new MyAction("View clade toolbar", "View clade toolbar", "cladetoolbar", -1) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_jTbCladeTools.setVisible(!m_jTbCladeTools.isVisible());
-			if (m_jTbCladeTools.isVisible()) {
-				JSplitPane pane = (JSplitPane) m_Panel.getParent().getParent().getParent().getParent().getParent();
-				// int loc = pane.getDividerLocation();
-				// Set a proportional location
-				pane.setDividerLocation(0.8);
-			}
-			
-		} // actionPerformed
-	}; // class ActionViewToolbar
-
-	Action a_viewCladeComparison = new MyAction("View clade comparison", "View pairwise clade comparison", "cladecomparison", -1) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_cladeSetComparisonPanel.setVisible(!m_cladeSetComparisonPanel.isVisible());
-				if (m_cladeSetComparisonPanel.isVisible()) {
-					Container c = m_cladeSetComparisonPanel.getParent();
-					if (c instanceof JSplitPane) {
-						((JSplitPane)c).setDividerLocation(0.3);
-					}
-				}
-		} // actionPerformed
-	}; // class ActionViewCladeComparison
-
-	
-	Action a_zoomin = new MyAction("Zoom in", "Zoom in", "zoomin", KeyEvent.VK_EQUALS) {
-		private static final long serialVersionUID = -2038911085935515L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_fScale *= 1.2;
-			a_zoomout.setEnabled(true);
-			fitToScreen();
-			m_jStatusBar.setText("Zooming in");
-		}
-	}; // class ActionZoomIn
-
-	Action a_zoomout = new MyAction("Zoom out", "Zoom out", "zoomout", KeyEvent.VK_MINUS) {
-		private static final long serialVersionUID = -203891108593551L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_fScale /= 1.2;
-			if (m_fScale <= 1.000001) {
-				m_fScale = 1.0f;
-				a_zoomout.setEnabled(false);
-			}
-			fitToScreen();
-			m_jStatusBar.setText("Zooming out");
-		}
-	}; // class ActionZoomOut
-
-	Action a_zoomintree = new MyAction("Zoom in height", "Zoom in tree height", "zoominh", KeyEvent.VK_X) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_fTreeScale *= 1.2;
-			m_fTreeOffset = m_fHeight - m_fHeight / m_fTreeScale;
-			a_zoomouttree.setEnabled(true);
-			calcLines();
-			m_Panel.clearImage();
-			makeDirty();
-			m_jStatusBar.setText("Zooming in tree height");
-		}
-	}; // class ActionZoomInTree
-
-	Action a_zoomouttree = new MyAction("Zoom out height", "Zoom out tree height", "zoomouth", KeyEvent.VK_X | KeyEvent.ALT_DOWN_MASK) {
-		private static final long serialVersionUID = -1;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_fTreeScale /= 1.2;
-			if (m_fTreeScale <= 1.000001) {
-				m_fTreeScale = 1.0f;
-				a_zoomouttree.setEnabled(false);
-			}
-			m_fTreeOffset = m_fHeight - m_fHeight / m_fTreeScale;
-			calcLines();
-			m_Panel.clearImage();
-			makeDirty();
-			m_jStatusBar.setText("Zooming out tree height");
-		}
-	}; // class ActionZoomOutTree
-
-	MyAction a_animateStart = new MyAction("Start", "Start Animation", "start", KeyEvent.VK_D|KeyEvent.ALT_DOWN_MASK) {
-		private static final long serialVersionUID = -1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (m_viewMode == ViewMode.ANIMATE) {
-				m_viewMode = ViewMode.BROWSE;
-				a_animateStart.setIcon("start");
-			} else {
-				if (m_viewMode != ViewMode.BROWSE) {
-					m_iAnimateTree = 0;
-				}
-				m_viewMode = ViewMode.ANIMATE;
-				a_animateStart.setIcon("stop");
-			}
-			m_Panel.repaint();
-		}
-	}; // class ActionAnimateStart
-
-	Action a_drawtreeset = new MyAction("Draw Tree Set", "Draw Tree Set", "redraw", KeyEvent.VK_R) {
-		private static final long serialVersionUID = -4L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			setWaitCursor();
-			System.err.println("MODS=" + ae.getModifiers());
-			if (ae.getModifiers() == 18) {
-				// when menu item is selected & ctrl key is pressed
-				System.err.println("start recording: results in /tmp");
-				m_settings.m_nFrameNr = 0;
-				m_settings.m_bRecord = true;
-			}
-			m_viewMode = ViewMode.DRAW;
-			a_animateStart.setIcon("start");
-			if (m_bIsDirty) {
-				System.err.println("calclines");
-				calcLines();
-			}
-			m_Panel.clearImage();
-			repaint();
-			System.gc();
-		} // actionPerformed
-	}; // class ActionDrawTreeSet
-
-	Action a_selectAll = new MyAction("Select All", "Select All", "selectall", KeyEvent.VK_A) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			for (int i = 0; i < m_treeData.m_bSelection.length; i++) {
-				m_treeData.m_bSelection[i] = true;
-				// m_bSelection[i] = m_fLatitude.get(i)==0 &&
-				// m_fLongitude.get(i)==0;
-			}
-			if (m_treeData2 != null) {
-				for (int i = 0; i < m_treeData2.m_bSelection.length; i++) {
-					m_treeData2.m_bSelection[i] = true;
-				}
-			}
-			repaint();
-		} // actionPerformed
-	};// class ActionSelectAll
-	Action a_unselectAll = new MyAction("Unselect All", "Unselect All", "unselectall", KeyEvent.VK_U) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			for (int i = 0; i < m_treeData.m_bSelection.length; i++) {
-				m_treeData.m_bSelection[i] = false;
-			}
-			repaint();
-		} // actionPerformed
-	};// class ActionUnSelectAll
-	Action a_del = new MyAction("Delete", "Delete selected", "del", -1) { //KeyEvent.VK_DELETE) {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			int nDeleted = 0;
-			for (int i = m_treeData.m_bSelection.length - 1; i >= 0 && m_settings.m_nNrOfLabels > 2; i--) {
-				if (m_treeData.m_bSelection[i]) {
-					// delete node with nr i
-					for (int j = 0; j < m_treeData.m_trees.length; j++) {
-						m_treeData.m_trees[j] = deleteLeaf(m_treeData.m_trees[j], i);
-						renumber(m_treeData.m_trees[j], i);
-						m_treeData.m_trees[j].labelInternalNodes(m_settings.m_nNrOfLabels - 1);
-					}
-					for (int j = 0; j < m_treeData.m_cTrees.length; j++) {
-						m_treeData.m_cTrees[j] = deleteLeaf(m_treeData.m_cTrees[j], i);
-						renumber(m_treeData.m_cTrees[j], i);
-						m_treeData.m_cTrees[j].labelInternalNodes(m_settings.m_nNrOfLabels - 1);
-					}
-					m_settings.m_sLabels.remove(i);
-					m_settings.m_nNrOfLabels--;
-					if (m_settings.m_fLongitude != null && m_settings.m_fLongitude.size() > i) {
-						m_settings.m_fLongitude.remove(i);
-						m_settings.m_fLatitude.remove(i);
-					}
-					int[] nOrder = new int[m_settings.m_nOrder.length - 1];
-					int[] nRevOrder = new int[m_settings.m_nRevOrder.length - 1];
-					int k = 0;
-					for (int j = 0; j < nOrder.length; j++) {
-						if (m_settings.m_nOrder[k] == i) {
-							k++;
-						}
-						nOrder[j] = (m_settings.m_nOrder[k] < i ? m_settings.m_nOrder[k] : m_settings.m_nOrder[k] - 1);
-						k++;
-					}
-					k = 0;
-					for (int j = 0; j < nRevOrder.length; j++) {
-						if (m_settings.m_nRevOrder[k] == i) {
-							k++;
-						}
-						nRevOrder[j] = (m_settings.m_nRevOrder[k] < i ? m_settings.m_nRevOrder[k] : m_settings.m_nRevOrder[k] - 1);
-						k++;
-					}
-					m_settings.m_nOrder = nOrder;
-					m_settings.m_nRevOrder = nRevOrder;
-					nDeleted++;
-				}
-			}
-			System.err.println("ORDER:" + Arrays.toString(m_settings.m_nOrder));
-			System.err.println("REVOR:" + Arrays.toString(m_settings.m_nRevOrder));
-			m_treeData.m_bSelection = new boolean[m_treeData.m_bSelection.length - nDeleted];
-			for (int i = 0; i < m_treeData.m_bSelection.length; i++) {
-				m_treeData.m_bSelection[i] = true;
-			}
-			fitToScreen();
-			calcPositions();
-			calcLines();
-			m_Panel.clearImage();
-			repaint();
-		} // actionPerformed
-	};// class ActionDel
-
-	void renumber(Node node, int iNodeNr) {
-		if (node.isLeaf()) {
-			if (node.getNr() > iNodeNr) {
-				node.m_iLabel--;
-			}
-		} else {
-			renumber(node.m_left, iNodeNr);
-			renumber(node.m_right, iNodeNr);
-		}
-	}
-
-	Node deleteLeaf(Node node, int iNodeNr) {
-		if (node.isLeaf()) {
-			if (node.getNr() == iNodeNr) {
-				Node parent = node.getParent();
-				Node sibling = (parent.m_left == node ? parent.m_right : parent.m_left);
-				if (parent.isRoot()) {
-					// replace root by node's sibling
-					sibling.m_Parent = null;
-					return sibling;
-				}
-				// parent is not root. Link grandparent to sibling
-				Node grandparent = parent.getParent();
-				if (grandparent.m_left == parent) {
-					grandparent.m_left = sibling;
-				} else {
-					grandparent.m_right = sibling;
-				}
-				sibling.m_Parent = grandparent;
-				sibling.m_fLength += parent.m_fLength;
-			}
-		} else {
-			Node node2 = deleteLeaf(node.m_left, iNodeNr);
-			if (node2.isRoot()) {
-				return node2;
-			}
-			node2 = deleteLeaf(node.m_right, iNodeNr);
-			if (node2.isRoot()) {
-				return node2;
-			}
-		}
-		return node;
-	} // deleteLeaf
-
-	/** index to current action on undo-stack **/
 	int m_iUndo = 0;
-	Vector<DoAction> m_doActions = new Vector<DoAction>();
+	Vector<DoAction> m_doActions = new Vector<>();
 
 	class DoAction {
 		int[] m_nOrder2;
@@ -3554,23 +1831,21 @@ public class DensiTree extends JPanel implements ComponentListener {
 			getPosition(m_treeData.m_trees[0], m_fPosX);
 		}
 
-
 		void doThisAction() {
 			m_settings.m_nOrder = m_nOrder2.clone();
 			m_settings.m_nRevOrder = m_nRevOrder2.clone();
-			for (int i = 0; i < m_treeData.m_trees.length; i++) {
-				setPosition(m_treeData.m_trees[i], m_fPosX);
-				positionRest(m_treeData.m_trees[i]);
+			for (Node tree : m_treeData.m_trees) {
+				setPosition(tree, m_fPosX);
+				positionRest(tree);
 			}
-			for (int i = 0; i < m_treeData.m_cTrees.length; i++) {
-				setPosition(m_treeData.m_cTrees[i], m_fPosX);
-				positionRest(m_treeData.m_cTrees[i]);
+			for (Node cTree : m_treeData.m_cTrees) {
+				setPosition(cTree, m_fPosX);
+				positionRest(cTree);
 			}
 			calcLines();
 			makeDirty();
-		} // do
-
-	} // class DoAction
+		}
+	}
 
 	void addAction(DoAction action) {
 		while (m_iUndo < m_doActions.size()) {
@@ -3578,486 +1853,237 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 		m_doActions.add(action);
 		m_iUndo++;
-	} // addAction
+	}
 
-	Action a_undo = new MyAction("Undo", "Undo", "udno", KeyEvent.VK_Z) {
-		private static final long serialVersionUID = -4L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (m_iUndo > 0) {
-				m_iUndo--;
-				m_doActions.elementAt(m_iUndo - 1).doThisAction();
-				repaint();
-			}
-		} // actionPerformed
-	}; // class ActionUndo
-	Action a_redo = new MyAction("Redo", "Redo", "reno", KeyEvent.VK_Y) {
-		private static final long serialVersionUID = -4L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (m_iUndo < m_doActions.size()) {
-				m_iUndo++;
-				m_doActions.elementAt(m_iUndo - 1).doThisAction();
-				repaint();
-			}
-		} // actionPerformed
-	}; // class ActionRedo
-
-	Action a_moveup = new MyAction("Move labels up", "Move selected labels up", "moveup", KeyEvent.VK_M) {
-		private static final long serialVersionUID = -4L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (!moveSanityChek()) {
-				return;
-			}
-			moveSelectedLabelsUp();
-			calcLines();
-			m_Panel.clearImage();
-			repaint();
-		} // actionPerformed
-	}; // class ActionMoveUp
-
-	Action a_movedown = new MyAction("Move labels down", "Move selected labels down", "movedown", KeyEvent.VK_M | KeyEvent.ALT_DOWN_MASK) {
-		private static final long serialVersionUID = -4L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			if (!moveSanityChek()) {
-				return;
-			}
-			moveSelectedLabelsDown();
-			calcLines();
-			m_Panel.clearImage();
-			repaint();
-		} // actionPerformed
-	}; // class ActionMoveDown
-
-	Action a_browsefirst = new MyAction("Browse First", "Browse First", "browsefirst", -1) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_viewMode = ViewMode.BROWSE;
-			a_animateStart.setIcon("start");
-			m_iAnimateTree = 0;
-			repaint();
-		} // actionPerformed
-	}; // class ActionBrowseFirst
-
-	Action a_browseprev = new MyAction("Browse Prev", "Browse Prev", "browseprev", KeyEvent.VK_P|KeyEvent.ALT_DOWN_MASK) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_viewMode = ViewMode.BROWSE;
-			a_animateStart.setIcon("start");
-			m_iAnimateTree--;
-			if (m_iAnimateTree < 0) {
-				m_iAnimateTree = 0;
-			}
-			repaint();
-		} // actionPerformed
-	}; // class ActionBrowsePrev
-
-	Action a_browsenext = new MyAction("Browse Next", "Browse Next", "browsenext", KeyEvent.VK_N|KeyEvent.ALT_DOWN_MASK) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_viewMode = ViewMode.BROWSE;
-			a_animateStart.setIcon("start");
-			m_iAnimateTree++;
-			if (m_iAnimateTree == m_treeData.m_nTopologies) {
-				m_iAnimateTree = m_treeData.m_nTopologies - 1;
-			}
-			repaint();
-		} // actionPerformed
-	}; // class ActionBrowseNext
-
-	Action a_browselast = new MyAction("Browse Last", "Browse Last", "browselast", -1) {
-		private static final long serialVersionUID = 5L;
-
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			m_viewMode = ViewMode.BROWSE;
-			a_animateStart.setIcon("start");
-			m_iAnimateTree = m_treeData.m_nTopologies - 1;
-			repaint();
-		} // actionPerformed
-	}; // class ActionBrowse
-
-	Action a_setfont = new MyAction("Set Font", "Set Font", "font", -1) {
-		private static final long serialVersionUID = 5L;
-
-		// @SuppressWarnings("deprecation")
-		@Override
-		public void actionPerformed(ActionEvent ae) {
-			JFontChooser fontChooser = new JFontChooser();
-			// fontChooser.setFont(m_font);
-			int result = fontChooser.showDialog(null);
-			if (result == JFontChooser.OK_OPTION) {
-				m_font = fontChooser.getSelectedFont();
-				repaint();
-			}
-		} // actionPerformed
-	}; // class SetFont
-
-	SettingAction a_animationSpeedUp = new SettingAction("Animation Speed+", "Increase Animation Speed", "aspeedup",
-			KeyEvent.VK_F);
-	SettingAction a_animationSpeedDown = new SettingAction("Animation Speed-", "Decrease Animation Speed",
-			"aspeeddown", KeyEvent.VK_F | KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_treeWidthUp = new SettingAction("Tree Width+", "Increase Width of Trees", "treewidthup", KeyEvent.VK_V);
-	SettingAction a_treeWidthDown = new SettingAction("Tree Width-", "Decrease Width of Trees", "treewidthdown", KeyEvent.VK_V | KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_cTreeWidthUp = new SettingAction("Consensus Tree Width+", "Increase Width of Consensus Trees",
-			"ctreewidthup", KeyEvent.VK_W);
-	SettingAction a_cTreeWidthDown = new SettingAction("Consensus Tree Width-", "Decrease Width of Consensus Trees",
-			"ctreewidthdown", KeyEvent.VK_W | KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_intensityUp = new SettingAction("Intensity+", "Increase Intensity of Trees", "intensityup",
-			KeyEvent.VK_I);
-	SettingAction a_intensityDown = new SettingAction("Intensity-", "Decrease Intensity of Trees", "intensitydown", KeyEvent.VK_I| KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_cIntensityUp = new SettingAction("Consensus Intensity+", "Increase Intensity of Consensus Trees",
-			"cintensityup", KeyEvent.VK_C);
-	SettingAction a_cIntensityDown = new SettingAction("Consensus Intensity-", "Decrease Intensity of Consensus Trees",
-			"cintensitydown", KeyEvent.VK_C | KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_jitterUp = new SettingAction("Jitter+", "Increase Jitter on x-coordinate of Trees", "jitterup",
-			KeyEvent.VK_J);
-	SettingAction a_jitterDown = new SettingAction("Jitter-", "Decrease Jitter on x-coordinate of Trees", "jitterdown",
-			KeyEvent.VK_J| KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_threadsUp = new SettingAction("Drawing Threads+", "Increase number of Drawing Threads",
-			"threadsup", KeyEvent.VK_T);
-	SettingAction a_threadsDown = new SettingAction("Drawing Threads-", "Decrease number of Drawing Threads",
-			"threadsdown", KeyEvent.VK_T| KeyEvent.ALT_DOWN_MASK);
-	SettingAction a_angleThresholdUp = new SettingAction("Angle Correction+",
-			"Increase Threshold for angle correction", "angleup", KeyEvent.VK_N);
-	SettingAction a_a_angleThresholdDown = new SettingAction("Angle Correction-",
-			"Decrease Threshold for angle correction", "angledpown", KeyEvent.VK_N| KeyEvent.ALT_DOWN_MASK);
-
-
-	public JCheckBoxMenuItem m_viewEditTree;
-	public JCheckBoxMenuItem m_viewClades; 
-
-	
-	
-	
-	void makeToolbar(JToolBar m_jTbTools) {
-		m_jTbTools.setFloatable(false);
-		m_jTbTools.add(a_load);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_drawtreeset);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_browsefirst);
-		m_jTbTools.add(a_browseprev);
-		m_jTbTools.add(a_animateStart);
-		m_jTbTools.add(a_browsenext);
-		m_jTbTools.add(a_browselast);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_intensityUp);
-		m_jTbTools.add(a_intensityDown);
-		m_jTbTools.add(a_cIntensityUp);
-		m_jTbTools.add(a_cIntensityDown);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_treeWidthUp);
-		m_jTbTools.add(a_treeWidthDown);
-		m_jTbTools.add(a_cTreeWidthUp);
-		m_jTbTools.add(a_cTreeWidthDown);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_animationSpeedDown);
-		m_jTbTools.add(a_animationSpeedUp);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_jitterUp);
-		m_jTbTools.add(a_jitterDown);
-		m_jTbTools.addSeparator(new Dimension(2, 2));
-		m_jTbTools.add(a_help);
-
-	
-		// Create an action with an icon
-		Action action = new AbstractAction("Button Label", getIcon("modedefault")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(0);
-			}
-		};
-
-
-		Action action3 = new AbstractAction("", getIcon("modestar")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(1);
-			}
-		};
-
-		Action action4 = new AbstractAction("", getIcon("modecentralised")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(2);
-			}
-		};
-
-		Action action5 = new AbstractAction("", getIcon("modeanglecorrected")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				selectMode(3);
-			}
-		};
-		
-		if (viz.util.Util.isMac()) {
-			B = 10;
-		}
-		
-		Action action6 = new AbstractAction("", getIcon("stylestraight")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(0);
-			}
-		};
-		Action action7 = new AbstractAction("", getIcon("styleblock")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(1);
-			}
-		};
-		Action action8 = new AbstractAction("", getIcon("stylearced")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(2);
-			}
-		};
-		Action action9 = new AbstractAction("", getIcon("stylesteep")) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setStyle(3);
-			}
-		};
-
-		
-		// 1. Create the JFXPanel to embed JavaFX components inside Swing
-		JFXPanel toolPanel = new JFXPanel();
-
-		// 2. Initialize JavaFX UI on the JavaFX Application Thread
+	public void setCladeComparisonVisible(boolean visible) {
 		Platform.runLater(() -> {
-			TilePane typePanel = new TilePane();
-			typePanel.setPrefColumns(2); // Fixes the grid to 2 columns
-			typePanel.setPadding(new Insets(3, B, 5, B));
-			typePanel.setHgap(4);
-			typePanel.setVgap(4);
-
-			typePanel.getChildren().addAll(
-			    createToolBarButton(action),
-			    createToolBarButton(action3),
-			    createToolBarButton(action4),
-			    createToolBarButton(action5)
-			);
-
-			TilePane stylePanel = new TilePane();
-			stylePanel.setPrefColumns(2); // Fixes the grid to 2 columns
-			stylePanel.setPadding(new Insets(3, B, 5, B));
-			stylePanel.setHgap(4);
-			stylePanel.setVgap(4);
-
-			stylePanel.getChildren().addAll(
-			    createToolBarButton(action6),
-			    createToolBarButton(action7),
-			    createToolBarButton(action8),
-			    createToolBarButton(action9)
-			);
-
-		    VBox vbox = new VBox(2);
-		    vbox.setPadding(new Insets(5));
-		    vbox.setFillWidth(true);
-
-		    // Add all ExpandablePanels with their respective JavaFX child panels
-		    vbox.getChildren().addAll(
-		        new ExpandablePanel("Type", typePanel, true),
-		        new ExpandablePanel("Style", stylePanel, true),
-		        new ExpandablePanel("Show", new ShowPanel(this)),
-		        new ExpandablePanel("Grid", new GridPanel(this)),
-		        new ExpandablePanel("Label", new LabelPanel(this)),
-		        new ExpandablePanel("Geography", new GeoPanel(this)),
-		        new ExpandablePanel("Line Width", new LineWidthPanel(this)),
-		        new ExpandablePanel("Line Color", new ColorPanel(this)),
-		        new ExpandablePanel("Burn in", new BurninPanel(this)),
-		        new ExpandablePanel("Rogues", new RoguePanel(this)),
-		        new ExpandablePanel("Clades", new CladePanel(this))
-		    );
-
-		    // Wrap in a ScrollPane so the tool panel scrolls cleanly if the window is resized
-		    ScrollPane scrollPane = new ScrollPane(vbox);
-		    scrollPane.setFitToWidth(true);
-		    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-		    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-		    // Set the JavaFX Scene on the JFXPanel
-		    toolPanel.setScene(new Scene(scrollPane));
+			if (visible) {
+				if (!m_centerSplitPane.getItems().contains(m_cladeComparisonSwingNode)) {
+					m_centerSplitPane.getItems().add(0, m_cladeComparisonSwingNode);
+					m_centerSplitPane.setDividerPositions(0.4);
+				}
+			} else {
+				m_centerSplitPane.getItems().remove(m_cladeComparisonSwingNode);
+			}
 		});
-		m_jTbTools2.add(toolPanel);
+		SwingUtilities.invokeLater(() -> m_cladeSetComparisonPanel.setVisible(visible));
+	}
 
+	public void setCladeToolsVisible(boolean visible) {
+		Platform.runLater(() -> {
+			if (visible) {
+				if (!m_mainSplitPane.getItems().contains(m_cladeToolsPane)) {
+					m_mainSplitPane.getItems().add(m_cladeToolsPane);
+					m_mainSplitPane.setDividerPositions(0.8);
+				}
+			} else {
+				m_mainSplitPane.getItems().remove(m_cladeToolsPane);
+			}
+		});
+	}
 
-		
-		m_treeData.m_cladelist = new ListView<String>(m_treeData.m_cladelistmodel);
-		m_treeData.m_cladelist.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		//m_treeData.m_cladelist = new JList<String>(m_treeData.m_cladelistmodel);
-		m_treeData.m_cladelist.getSelectionModel().selectedItemProperty().addListener(e -> {
-//				(new ListSelectionListener() {
-//			@Override
-//			public void valueChanged(ListSelectionEvent e) {
-				if (m_treeData.m_bAllowCladeSelection) {
-	 				m_treeData.getCladeSelection().clear();
-	 				if (m_treeData2!=null) {
-		 				m_treeData2.getCladeSelection().clear();
-	 				}
-					for (int i : m_treeData.m_cladelist.getSelectionModel().getSelectedIndices()) {
-						if (m_treeData.m_cladeWeight.get(i) > 0.01 && ((m_settings.m_Xmode == 1 && m_treeData.m_clades.get(i).length > 1) || (m_settings.m_Xmode == 2 && m_treeData.m_clades.get(i).length == 1))) {
-							addCladeToSelection(i, false);
-							//removeCladeFromselection(i, false);
-						}
-					}
-					resetCladeSelection();
-					System.err.println(m_treeData.m_cladelist.getSelectionModel().getSelectedItems());
-					System.err.println(m_treeData.m_cladelist.getSelectionModel().getSelectedItems().size() + " items selected");
+	Button createToolbarButton(String iconName, String tooltipText, Runnable action) {
+		Button btn = new Button();
+		btn.setPadding(new Insets(2));
+		btn.setFocusTraversable(false);
+		ImageView iv = getFxIconView(iconName);
+		if (iv != null) btn.setGraphic(iv);
+		if (tooltipText != null) btn.setTooltip(new Tooltip(tooltipText));
+		btn.setOnAction(e -> action.run());
+		return btn;
+	}
+
+	void makeToolbar() {
+		m_tbTools.getItems().addAll(
+				createToolbarButton("open", "Load tree set", () -> doOpenAction()),
+				new Separator(),
+				createToolbarButton("redraw", "Draw Tree Set", () -> {
+					m_viewMode = ViewMode.DRAW;
+					if (m_bIsDirty) calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
 					repaint();
-					if (m_cladeSetComparisonPanel != null) {
-						m_cladeSetComparisonPanel.repaint();
+				}),
+				new Separator(),
+				createToolbarButton("browsefirst", "Browse First", () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = 0;
+					repaint();
+				}),
+				createToolbarButton("browseprev", "Browse Prev", () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = Math.max(0, m_iAnimateTree - 1);
+					repaint();
+				}),
+				createToolbarButton("start", "Start Animation", () -> {
+					if (m_viewMode == ViewMode.ANIMATE) {
+						m_viewMode = ViewMode.BROWSE;
+					} else {
+						if (m_viewMode != ViewMode.BROWSE) m_iAnimateTree = 0;
+						m_viewMode = ViewMode.ANIMATE;
+					}
+					repaint();
+				}),
+				createToolbarButton("browsenext", "Browse Next", () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = Math.min(m_treeData.m_nTopologies - 1, m_iAnimateTree + 1);
+					repaint();
+				}),
+				createToolbarButton("browselast", "Browse Last", () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = m_treeData.m_nTopologies - 1;
+					repaint();
+				}),
+				new Separator(),
+				createToolbarButton("intensityup", "Increase Tree Intensity", () -> {
+					m_settings.m_fTreeIntensity *= 1.1;
+					makeDirty();
+				}),
+				createToolbarButton("intensitydown", "Decrease Tree Intensity", () -> {
+					m_settings.m_fTreeIntensity /= 1.1;
+					makeDirty();
+				}),
+				createToolbarButton("cintensityup", "Increase Consensus Tree Intensity", () -> {
+					m_settings.m_fCTreeIntensity *= 1.1;
+					makeDirty();
+				}),
+				createToolbarButton("cintensitydown", "Decrease Consensus Tree Intensity", () -> {
+					m_settings.m_fCTreeIntensity /= 1.1;
+					makeDirty();
+				}),
+				new Separator(),
+				createToolbarButton("treewidthup", "Increase Tree Width", () -> {
+					m_settings.m_nTreeWidth++;
+					makeDirty();
+				}),
+				createToolbarButton("treewidthdown", "Decrease Tree Width", () -> {
+					m_settings.m_nTreeWidth = Math.max(1, m_settings.m_nTreeWidth - 1);
+					makeDirty();
+				}),
+				createToolbarButton("ctreewidthup", "Increase Consensus Tree Width", () -> {
+					m_settings.m_nCTreeWidth++;
+					makeDirty();
+				}),
+				createToolbarButton("ctreewidthdown", "Decrease Consensus Tree Width", () -> {
+					m_settings.m_nCTreeWidth = Math.max(1, m_settings.m_nCTreeWidth - 1);
+					makeDirty();
+				}),
+				new Separator(),
+				createToolbarButton("aspeeddown", "Decrease Animation Speed", () -> m_nAnimationDelay += 1 + m_nAnimationDelay / 10),
+				createToolbarButton("aspeedup", "Increase Animation Speed", () -> {
+					if (m_nAnimationDelay > 0) m_nAnimationDelay -= 1 + m_nAnimationDelay / 10;
+				}),
+				new Separator(),
+				createToolbarButton("jitterup", "Increase Jitter", () -> {
+					m_settings.m_nJitter++;
+					makeDirty();
+				}),
+				createToolbarButton("jitterdown", "Decrease Jitter", () -> {
+					m_settings.m_nJitter = Math.max(0, m_settings.m_nJitter - 1);
+					makeDirty();
+				}),
+				new Separator(),
+				createToolbarButton("help", "Help", () -> showHelpDialog())
+		);
+
+		TilePane typePanel = new TilePane();
+		typePanel.setPrefColumns(2);
+		typePanel.setPadding(new Insets(3, B, 5, B));
+		typePanel.setHgap(4);
+		typePanel.setVgap(4);
+		typePanel.getChildren().addAll(
+				createToolbarButton("modedefault", "Default Mode", () -> selectMode(0)),
+				createToolbarButton("modestar", "Star Mode", () -> selectMode(1)),
+				createToolbarButton("modecentralised", "Centralised Mode", () -> selectMode(2)),
+				createToolbarButton("modeanglecorrected", "Angle Corrected Mode", () -> selectMode(3))
+		);
+
+		TilePane stylePanel = new TilePane();
+		stylePanel.setPrefColumns(2);
+		stylePanel.setPadding(new Insets(3, B, 5, B));
+		stylePanel.setHgap(4);
+		stylePanel.setVgap(4);
+		stylePanel.getChildren().addAll(
+				createToolbarButton("stylestraight", "Straight Style", () -> setStyle(0)),
+				createToolbarButton("styleblock", "Block Style", () -> setStyle(1)),
+				createToolbarButton("stylearced", "Arc Style", () -> setStyle(2)),
+				createToolbarButton("stylesteep", "Steep Arc Style", () -> setStyle(3))
+		);
+
+		VBox sidebarVBox = new VBox(2);
+		sidebarVBox.setPadding(new Insets(5));
+		sidebarVBox.setFillWidth(true);
+		sidebarVBox.getChildren().addAll(
+				new ExpandablePanel("Type", typePanel, true),
+				new ExpandablePanel("Style", stylePanel, true),
+				new ExpandablePanel("Show", new ShowPanel(this)),
+				new ExpandablePanel("Grid", new GridPanel(this)),
+				new ExpandablePanel("Label", new LabelPanel(this)),
+				new ExpandablePanel("Geography", new GeoPanel(this)),
+				new ExpandablePanel("Line Width", new LineWidthPanel(this)),
+				new ExpandablePanel("Line Color", new ColorPanel(this)),
+				new ExpandablePanel("Burn in", new BurninPanel(this)),
+				new ExpandablePanel("Rogues", new RoguePanel(this)),
+				new ExpandablePanel("Clades", new CladePanel(this))
+		);
+
+		ScrollPane sidebarScroll = new ScrollPane(sidebarVBox);
+		sidebarScroll.setFitToWidth(true);
+		sidebarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		m_tbTools2.getChildren().add(sidebarScroll);
+
+		m_treeData.m_cladelist = new ListView<>(m_treeData.m_cladelistmodel);
+		m_treeData.m_cladelist.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		m_treeData.m_cladelist.getSelectionModel().selectedItemProperty().addListener(e -> {
+			if (m_treeData.m_bAllowCladeSelection) {
+				m_treeData.getCladeSelection().clear();
+				if (m_treeData2 != null) {
+					m_treeData2.getCladeSelection().clear();
+				}
+				for (int i : m_treeData.m_cladelist.getSelectionModel().getSelectedIndices()) {
+					if (m_treeData.m_cladeWeight.get(i) > 0.01 && ((m_settings.m_Xmode == 1 && m_treeData.m_clades.get(i).length > 1) || (m_settings.m_Xmode == 2 && m_treeData.m_clades.get(i).length == 1))) {
+						addCladeToSelection(i, false);
 					}
 				}
-//			}
-
+				resetCladeSelection();
+				repaint();
+			}
 		});
-		
-		JFXPanel listPanel = new JFXPanel();
 
-		Platform.runLater(() -> {
-//		    // Wrap in a ScrollPane so the tool panel scrolls cleanly if the window is resized
-//		    ScrollPane scrollPane = new ScrollPane(m_treeData.m_cladelist);
-//		    scrollPane.setFitToWidth(true);
-//		    listPanel.setScene(new Scene(scrollPane));
-		    listPanel.setScene(new Scene(m_treeData.m_cladelist));
-		});
-		
-		
-		//JScrollPane scrollingList = new JScrollPane(m_treeData.m_cladelist);
-		//scrollingList.setPreferredSize(new Dimension(1200,600));
-		//scrollingList.setMinimumSize(scrollingList.getPreferredSize());
-		m_jTbCladeTools.setLayout(new BorderLayout());
-		m_jTbCladeTools.add(listPanel, BorderLayout.CENTER);
-		m_jTbCladeTools.setFloatable(false);
-		m_jTbCladeTools.setVisible(false);
-	} // makeToolbar
+		m_cladeToolsPane.setCenter(m_treeData.m_cladelist);
+	}
 
-	
-	public  void removeCladeFromselection(int i, boolean reverse) {
+	public void removeCladeFromselection(int i, boolean reverse) {
 		if (!reverse) {
 			m_treeData.getCladeSelection().remove(i);
-			
-			int [] clade = m_treeData.m_clades.get(i);
+			int[] clade = m_treeData.m_clades.get(i);
 			int j = findClade(m_treeData2, clade);
-			if (j >= 0) {
-				m_treeData2.getCladeSelection().remove(j);
-			}
-
+			if (j >= 0) m_treeData2.getCladeSelection().remove(j);
 		} else {
 			m_treeData2.getCladeSelection().remove(i);
-			
-			int [] clade2 = m_treeData2.m_clades.get(i);
+			int[] clade2 = m_treeData2.m_clades.get(i);
 			int j = findClade(m_treeData, clade2);
-			if (j >= 0) {
-				m_treeData.getCladeSelection().remove(j);
-			}
+			if (j >= 0) m_treeData.getCladeSelection().remove(j);
 		}
 	}
 
-	public  void addCladeToSelection(int i, boolean reverse) {
+	public void addCladeToSelection(int i, boolean reverse) {
 		if (!reverse) {
-			this.m_treeData.getCladeSelection().add(i);
-			
-
-			int [] clade = m_treeData.m_clades.get(i);
+			m_treeData.getCladeSelection().add(i);
+			int[] clade = m_treeData.m_clades.get(i);
 			int j = findClade(m_treeData2, clade);
-			if (j >= 0) {
-				m_treeData2.getCladeSelection().add(j);
-			}
+			if (j >= 0) m_treeData2.getCladeSelection().add(j);
 		} else {
-			this.m_treeData2.getCladeSelection().add(i);
-			int [] clade2 = m_treeData2.m_clades.get(i);
+			m_treeData2.getCladeSelection().add(i);
+			int[] clade2 = m_treeData2.m_clades.get(i);
 			int j = findClade(m_treeData, clade2);
-			
-
-			if (j >= 0) {
-				m_treeData.getCladeSelection().add(j);
-			}
-			
-//			System.out.print("selected2: ");
-//			for (int j : treeData2.m_clades.get(i)) {
-//				System.out.println(settings.m_sLabels.get(j) + " ");
-//			}
-//			System.out.println();
-//
-//			
-//			String clade = Arrays.toString(treeData2.m_clades.get(i));
-//			Integer j = m_cladeToIDMap.get(clade);
-//			
-//			System.out.print("selected3: ");
-//			for (int k : treeData.m_clades.get(j)) {
-//				System.out.println(settings.m_sLabels.get(k) + " ");
-//			}
-//			System.out.println();
-//
-//			
-//			if (j != null) {
-//				treeData.getCladeSelection().add(j);
-//			}
+			if (j >= 0) m_treeData.getCladeSelection().add(j);
 		}
 	}
-	
-	
-	private int findClade(TreeData treeData, int[] clade2) {
-		if (treeData == null) {
-			return -1;
-		}
-		for (int j = 0; j < treeData.m_clades.size(); j++) {
-			int [] clade1 = treeData.m_clades.get(j);
+
+	private int findClade(TreeData data, int[] clade2) {
+		if (data == null) return -1;
+		for (int j = 0; j < data.m_clades.size(); j++) {
+			int[] clade1 = data.m_clades.get(j);
 			if (clade1.length == clade2.length) {
 				boolean matches = true;
 				for (int k = 0; k < clade1.length; k++) {
@@ -4066,365 +2092,648 @@ public class DensiTree extends JPanel implements ComponentListener {
 						break;
 					}
 				}
-				if (matches) {
-					return j;
-				}
+				if (matches) return j;
 			}
 		}
 		return -1;
 	}
-	
-//	private JButton createToolBarButton(Action action) {
-//		// Add a button to the toolbar; remove the label and margin before adding
-//		JButton c1 = new JButton(action);
-//		c1.setText(null);
-//		c1.setMargin(new Insets(0, 0, 0, 0));
-//		return c1;
-//	}
-	
-	private javafx.scene.control.Button createToolBarButton(Action action) {
-	    javafx.scene.control.Button button = new javafx.scene.control.Button();
-	    button.setPadding(new Insets(2)); // Compact padding for toolbars (replaces setMargin)
-	    button.setFocusTraversable(false);
 
-	    if (action != null) {
-	        // 1. Convert Swing Icon to JavaFX Graphic
-	        Object iconObj = action.getValue(Action.SMALL_ICON);
-	        if (iconObj instanceof Icon icon) {
-	            BufferedImage bImg = new BufferedImage(
-	                icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB
-	            );
-	            Graphics2D g2 = bImg.createGraphics();
-	            icon.paintIcon(null, g2, 0, 0);
-	            g2.dispose();
-
-	            button.setGraphic(new ImageView(javafx.embed.swing.SwingFXUtils.toFXImage(bImg, null)));
-	        }
-
-	        // 2. Set Tooltip from Action.SHORT_DESCRIPTION
-	        Object tip = action.getValue(Action.SHORT_DESCRIPTION);
-	        if (tip != null) {
-	            button.setTooltip(new Tooltip(tip.toString()));
-	        }
-
-	        // 3. Forward click to Swing Action
-	        button.setOnAction(e -> {
-	            action.actionPerformed(new java.awt.event.ActionEvent(
-	                button, 
-	                java.awt.event.ActionEvent.ACTION_PERFORMED, 
-	                (String) action.getValue(Action.ACTION_COMMAND_KEY)
-	            ));
-	        });
-
-	        // 4. Enabled / Disabled state
-	        button.setDisable(!action.isEnabled());
-	    }
-
-	    return button;
+	MenuItem createMenuItem(String text, String iconName, KeyCombination accelerator, Runnable action) {
+		MenuItem item = new MenuItem(text);
+		if (iconName != null) item.setGraphic(getFxIconView(iconName));
+		if (accelerator != null) item.setAccelerator(accelerator);
+		item.setOnAction(e -> action.run());
+		return item;
 	}
-	
-	void setIcon(JCheckBoxMenuItem item, String sIcon) {
-		java.net.URL tempURL = ClassLoader.getSystemResource(ICONPATH + sIcon + ".png");
-		if (tempURL != null) {
-			item.setIcon(new ImageIcon(tempURL));
-		} else {
-			item.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		}
-	} // setIcon
 
-	protected void makeMenuBar(JMenuBar m_menuBar) {
-		JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic('F');
-		// ----------------------------------------------------------------------
-		// File menu */
-		m_menuBar.add(fileMenu);
-		fileMenu.add(a_new);
-		fileMenu.add(a_load);
-		fileMenu.add(a_loadMirror);
-		fileMenu.add(a_saveas);
-		fileMenu.add(a_loadimage);
+	MenuBar makeMenuBar() {
+		MenuBar mb = new MenuBar();
 
-		fileMenu.addSeparator();
-		fileMenu.add(a_print);
-		fileMenu.add(a_export);
-		fileMenu.add(a_exportCladeComparison);
-		if (!viz.util.Util.isMac()) {
-			fileMenu.addSeparator();
-			fileMenu.add(a_quit);
-		}
+		Menu fileMenu = new Menu("File");
+		fileMenu.getItems().addAll(
+				createMenuItem("New", "new", new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), () -> startNew(new String[0])),
+				createMenuItem("Load", "open", new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), () -> doOpenAction()),
+				createMenuItem("Load mirror set", "open", null, () -> doOpenMirrorAction()),
+				createMenuItem("Save as", "save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> doSaveAsAction()),
+				createMenuItem("Background image", "bgimage", null, () -> doLoadBgImageAction()),
+				new SeparatorMenuItem(),
+				createMenuItem("Print", "print", new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN), () -> doPrintAction()),
+				createMenuItem("Export", "export", null, () -> doExportAction(m_Panel, "Export DensiTree As")),
+				createMenuItem("Export comparison", "exportcc", null, () -> doExportAction(m_cladeSetComparisonPanel, "Export Clade Comparison As")),
+				new SeparatorMenuItem(),
+				createMenuItem("Exit", "exit", null, () -> System.exit(0))
+		);
 
-		// ----------------------------------------------------------------------
-		// Edit menu */
-		JMenu editMenu = new JMenu("Edit");
-		editMenu.setMnemonic('E');
-		m_menuBar.add(editMenu);
-		editMenu.add(a_undo);
-		editMenu.add(a_redo);
-		editMenu.add(a_selectAll);
-		editMenu.add(a_unselectAll);
-		editMenu.add(a_del);
-		editMenu.add(a_paste);
-		editMenu.add(a_moveup);
-		editMenu.add(a_movedown);
+		Menu editMenu = new Menu("Edit");
+		editMenu.getItems().addAll(
+				createMenuItem("Undo", "udno", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), () -> {
+					if (m_iUndo > 0) {
+						m_iUndo--;
+						m_doActions.elementAt(m_iUndo - 1).doThisAction();
+						repaint();
+					}
+				}),
+				createMenuItem("Redo", "reno", new KeyCodeCombination(KeyCode.Y, KeyCombination.SHORTCUT_DOWN), () -> {
+					if (m_iUndo < m_doActions.size()) {
+						m_iUndo++;
+						m_doActions.elementAt(m_iUndo - 1).doThisAction();
+						repaint();
+					}
+				}),
+				createMenuItem("Select All", "selectall", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), () -> {
+					for (int i = 0; i < m_treeData.m_bSelection.length; i++) m_treeData.m_bSelection[i] = true;
+					if (m_treeData2 != null) {
+						for (int i = 0; i < m_treeData2.m_bSelection.length; i++) m_treeData2.m_bSelection[i] = true;
+					}
+					repaint();
+				}),
+				createMenuItem("Unselect All", "unselectall", new KeyCodeCombination(KeyCode.U, KeyCombination.SHORTCUT_DOWN), () -> {
+					for (int i = 0; i < m_treeData.m_bSelection.length; i++) m_treeData.m_bSelection[i] = false;
+					repaint();
+				}),
+				createMenuItem("Delete", "del", null, () -> deleteSelected()),
+				createMenuItem("Paste", "paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), () -> pasteFromClipboard()),
+				createMenuItem("Move labels up", "moveup", new KeyCodeCombination(KeyCode.M, KeyCombination.SHORTCUT_DOWN), () -> {
+					if (!moveSanityChek()) return;
+					moveSelectedLabelsUp();
+					calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+					repaint();
+				}),
+				createMenuItem("Move labels down", "movedown", new KeyCodeCombination(KeyCode.M, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), () -> {
+					if (!moveSanityChek()) return;
+					moveSelectedLabelsDown();
+					calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+					repaint();
+				})
+		);
 
-		m_viewEditTree = new JCheckBoxMenuItem("Show Edit Tree", m_settings.m_bViewEditTree);
-		m_viewEditTree.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		m_viewEditTree.addActionListener(ae -> {
-				boolean bPrev = m_settings.m_bViewEditTree;
-				m_settings.m_bViewEditTree = m_viewEditTree.getState();
-				if (bPrev != m_settings.m_bViewEditTree) {
-					makeDirty();
-				}
-			});
-		editMenu.add(m_viewEditTree);
+		m_viewEditTree = new CheckMenuItem("Show Edit Tree");
+		m_viewEditTree.setSelected(m_settings.m_bViewEditTree);
+		m_viewEditTree.setOnAction(e -> {
+			m_settings.m_bViewEditTree = m_viewEditTree.isSelected();
+			makeDirty();
+		});
 
-		m_viewClades = new JCheckBoxMenuItem("Show Clades", m_settings.m_bViewClades);
-		m_viewClades.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		m_viewClades.addActionListener(ae-> {
-				boolean bPrev = m_settings.m_bViewClades;
-				m_settings.m_bViewClades = m_viewClades.getState();
-				if (bPrev != m_settings.m_bViewClades) {
-					makeDirty();
-				}
-			});
-		m_viewClades.setEnabled(false);
-		editMenu.add(m_viewClades);
+		m_viewClades = new CheckMenuItem("Show Clades");
+		m_viewClades.setSelected(m_settings.m_bViewClades);
+		m_viewClades.setDisable(true);
+		m_viewClades.setOnAction(e -> {
+			m_settings.m_bViewClades = m_viewClades.isSelected();
+			makeDirty();
+		});
 
-		JMenu shuffleMenu = new JMenu("Shuffle");
-		shuffleMenu.setIcon(new ImageIcon(new BufferedImage(20, 20, BufferedImage.TYPE_4BYTE_ABGR)));
-		shuffleMenu
-				.add(new ShuffleAction("Most Frequent", "Use most frequent tree order", "", -1, NodeOrderer.DEFAULT));
-		shuffleMenu.add(new ShuffleAction("SPQ", "Order by optimising SPQ trees", "", KeyEvent.VK_Q|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.SPQ));
-		shuffleMenu.add(new ShuffleAction("Closest Outside First", "Order closest to outside leaf first", "", KeyEvent.VK_S|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.CLOSEST_OUTSIDE_FIRST));
-		shuffleMenu.add(new ShuffleAction("Optimised root canal tree",
-				"Use root canal tree, then optimise", "", KeyEvent.VK_O|InputEvent.ALT_DOWN_MASK, NodeOrderer.OPTIMISE));
-		shuffleMenu.add(new ShuffleAction("Sorted root canal tree",
-				"Sort by root canal tree length", "", KeyEvent.VK_R|InputEvent.ALT_DOWN_MASK, NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH));
-		shuffleMenu.add(new ShuffleAction("Closest First", "Order closest leaf first", "", KeyEvent.VK_1|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.CLOSEST_FIRST));
-		shuffleMenu.add(new ShuffleAction("Single link", "Single link hierarchical clusterer", "", KeyEvent.VK_2|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.SINGLE));
-		shuffleMenu.add(new ShuffleAction("Complete link", "Complete link hierarchical clusterer", "", KeyEvent.VK_3|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.COMPLETE));
-		shuffleMenu.add(new ShuffleAction("Average link", "Average link hierarchical clusterer", "", KeyEvent.VK_4|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.AVERAGE));
-		shuffleMenu.add(new ShuffleAction("Mean link", "Mean link hierarchical clusterer", "", KeyEvent.VK_5|InputEvent.ALT_DOWN_MASK, NodeOrderer.MEAN));
-		shuffleMenu.add(new ShuffleAction("Adjusted complete link", "Adjusted complete link hierarchical clusterer",
-				"", KeyEvent.VK_6|InputEvent.ALT_DOWN_MASK, NodeOrderer.ADJCOMLPETE));
-		// RRB: not for public release
-		shuffleMenu.addSeparator();
-		shuffleMenu.add(new ShuffleAction("Manual", "Manual", "", -1, NodeOrderer.MANUAL));
-		shuffleMenu.add(new ShuffleAction("By Geography", "By Geography", "", -1, NodeOrderer.GEOINFO));
-		shuffleMenu.add(new ShuffleAction("By meta data, all", "By meta data, show all paths", "", KeyEvent.VK_7|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.META_ALL));
-		shuffleMenu.add(new ShuffleAction("By meta data, sum", "By meta data, sum over paths", "", KeyEvent.VK_8|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.META_SUM));
-		shuffleMenu.add(new ShuffleAction("By meta data, mean", "By meta data, average over paths", "", KeyEvent.VK_9|InputEvent.ALT_DOWN_MASK,
-				NodeOrderer.META_AVERAGE));
+		editMenu.getItems().addAll(m_viewEditTree, m_viewClades);
 
-		editMenu.addSeparator();
-		editMenu.add(shuffleMenu);
+		Menu shuffleMenu = new Menu("Shuffle");
+		shuffleMenu.getItems().addAll(
+				createMenuItem("Most Frequent", null, null, () -> reshuffle(NodeOrderer.DEFAULT)),
+				createMenuItem("SPQ", null, new KeyCodeCombination(KeyCode.Q, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.SPQ)),
+				createMenuItem("Closest Outside First", null, new KeyCodeCombination(KeyCode.S, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.CLOSEST_OUTSIDE_FIRST)),
+				createMenuItem("Optimised root canal tree", null, new KeyCodeCombination(KeyCode.O, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.OPTIMISE)),
+				createMenuItem("Sorted root canal tree", null, new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.SORT_BY_ROOT_CANAL_LENGTH)),
+				createMenuItem("Closest First", null, new KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.CLOSEST_FIRST)),
+				createMenuItem("Single link", null, new KeyCodeCombination(KeyCode.DIGIT2, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.SINGLE)),
+				createMenuItem("Complete link", null, new KeyCodeCombination(KeyCode.DIGIT3, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.COMPLETE)),
+				createMenuItem("Average link", null, new KeyCodeCombination(KeyCode.DIGIT4, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.AVERAGE)),
+				createMenuItem("Mean link", null, new KeyCodeCombination(KeyCode.DIGIT5, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.MEAN)),
+				createMenuItem("Adjusted complete link", null, new KeyCodeCombination(KeyCode.DIGIT6, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.ADJCOMLPETE)),
+				new SeparatorMenuItem(),
+				createMenuItem("Manual", null, null, () -> reshuffle(NodeOrderer.MANUAL)),
+				createMenuItem("By Geography", null, null, () -> reshuffle(NodeOrderer.GEOINFO)),
+				createMenuItem("By meta data, all", null, new KeyCodeCombination(KeyCode.DIGIT7, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.META_ALL)),
+				createMenuItem("By meta data, sum", null, new KeyCodeCombination(KeyCode.DIGIT8, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.META_SUM)),
+				createMenuItem("By meta data, mean", null, new KeyCodeCombination(KeyCode.DIGIT9, KeyCombination.ALT_DOWN), () -> reshuffle(NodeOrderer.META_AVERAGE))
+		);
 
-		// ----------------------------------------------------------------------
-		// Draw all menu */
-		JMenu drawallMenu = new JMenu("Draw All");
-		drawallMenu.setMnemonic('D');
-		m_menuBar.add(drawallMenu);
-		final JCheckBoxMenuItem autoRefresh = new JCheckBoxMenuItem("Automatically refresh", m_bAutoRefresh);
-		autoRefresh.addActionListener(ae-> {
-				m_bAutoRefresh = autoRefresh.getState();
-				if (m_bAutoRefresh && m_bIsDirty) {
+		editMenu.getItems().addAll(new SeparatorMenuItem(), shuffleMenu);
+
+		Menu drawallMenu = new Menu("Draw All");
+		CheckMenuItem autoRefreshItem = new CheckMenuItem("Automatically refresh");
+		autoRefreshItem.setSelected(m_bAutoRefresh);
+		autoRefreshItem.setOnAction(e -> {
+			m_bAutoRefresh = autoRefreshItem.isSelected();
+			if (m_bAutoRefresh && m_bIsDirty) fitToScreen();
+		});
+		drawallMenu.getItems().addAll(autoRefreshItem,
+				createMenuItem("Draw Tree Set", "redraw", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> {
+					m_viewMode = ViewMode.DRAW;
+					if (m_bIsDirty) calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+					repaint();
+				})
+		);
+
+		Menu browseMenu = new Menu("Browse");
+		browseMenu.getItems().addAll(
+				createMenuItem("Browse First", "browsefirst", null, () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = 0;
+					repaint();
+				}),
+				createMenuItem("Browse Prev", "browseprev", new KeyCodeCombination(KeyCode.P, KeyCombination.ALT_DOWN), () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = Math.max(0, m_iAnimateTree - 1);
+					repaint();
+				}),
+				createMenuItem("Start", "start", new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN), () -> {
+					if (m_viewMode == ViewMode.ANIMATE) {
+						m_viewMode = ViewMode.BROWSE;
+					} else {
+						if (m_viewMode != ViewMode.BROWSE) m_iAnimateTree = 0;
+						m_viewMode = ViewMode.ANIMATE;
+					}
+					repaint();
+				}),
+				createMenuItem("Browse Next", "browsenext", new KeyCodeCombination(KeyCode.N, KeyCombination.ALT_DOWN), () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = Math.min(m_treeData.m_nTopologies - 1, m_iAnimateTree + 1);
+					repaint();
+				}),
+				createMenuItem("Browse Last", "browselast", null, () -> {
+					m_viewMode = ViewMode.BROWSE;
+					m_iAnimateTree = m_treeData.m_nTopologies - 1;
+					repaint();
+				}),
+				new SeparatorMenuItem()
+		);
+		CheckMenuItem animateOverwriteItem = new CheckMenuItem("Over write");
+		animateOverwriteItem.setSelected(m_bAnimateOverwrite);
+		animateOverwriteItem.setOnAction(e -> m_bAnimateOverwrite = animateOverwriteItem.isSelected());
+		browseMenu.getItems().add(animateOverwriteItem);
+
+		Menu windowMenu = new Menu("Window");
+		CheckMenuItem viewStatusbarItem = new CheckMenuItem("View statusbar");
+		viewStatusbarItem.setSelected(true);
+		viewStatusbarItem.setOnAction(e -> m_jStatusBar.setVisible(viewStatusbarItem.isSelected()));
+
+		CheckMenuItem viewToolbarItem = new CheckMenuItem("View toolbar");
+		viewToolbarItem.setSelected(true);
+		viewToolbarItem.setOnAction(e -> m_tbTools.setVisible(viewToolbarItem.isSelected()));
+
+		CheckMenuItem viewSidebarItem = new CheckMenuItem("View Sidebar");
+		viewSidebarItem.setSelected(true);
+		viewSidebarItem.setOnAction(e -> m_tbTools2.setVisible(viewSidebarItem.isSelected()));
+
+		CheckMenuItem viewCladeToolbarItem = new CheckMenuItem("View clade toolbar");
+		viewCladeToolbarItem.setSelected(false);
+		viewCladeToolbarItem.setOnAction(e -> setCladeToolsVisible(viewCladeToolbarItem.isSelected()));
+
+		CheckMenuItem viewComparisonItem = new CheckMenuItem("View clade comparison");
+		viewComparisonItem.setSelected(false);
+		viewComparisonItem.setOnAction(e -> setCladeComparisonVisible(viewComparisonItem.isSelected()));
+
+		windowMenu.getItems().addAll(
+				viewStatusbarItem, viewToolbarItem, viewSidebarItem, viewCladeToolbarItem, viewComparisonItem,
+				new SeparatorMenuItem(),
+				createMenuItem("Zoom in", "zoomin", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), () -> {
+					m_fScale *= 1.2;
 					fitToScreen();
-					// makeDirty();
-				}
-			});
-		drawallMenu.add(autoRefresh);
-		drawallMenu.add(a_drawtreeset);
+					updateStatus("Zooming in");
+				}),
+				createMenuItem("Zoom out", "zoomout", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), () -> {
+					m_fScale /= 1.2;
+					if (m_fScale <= 1.000001) m_fScale = 1.0f;
+					fitToScreen();
+					updateStatus("Zooming out");
+				}),
+				createMenuItem("Zoom in height", "zoominh", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), () -> {
+					m_fTreeScale *= 1.2;
+					m_fTreeOffset = m_fHeight - m_fHeight / m_fTreeScale;
+					calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+					makeDirty();
+					updateStatus("Zooming in tree height");
+				}),
+				createMenuItem("Zoom out height", "zoomouth", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), () -> {
+					m_fTreeScale /= 1.2;
+					if (m_fTreeScale <= 1.000001) m_fTreeScale = 1.0f;
+					m_fTreeOffset = m_fHeight - m_fHeight / m_fTreeScale;
+					calcLines();
+					SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+					makeDirty();
+					updateStatus("Zooming out tree height");
+				})
+		);
 
-		// ----------------------------------------------------------------------
-		// Browse menu */
-		JMenu browseMenu = new JMenu("Browse");
-		browseMenu.setMnemonic('B');
-		m_menuBar.add(browseMenu);
-		browseMenu.add(a_browsefirst);
-		browseMenu.add(a_browseprev);
-		browseMenu.add(a_animateStart);
-		browseMenu.add(a_browsenext);
-		browseMenu.add(a_browselast);
-		browseMenu.addSeparator();
-		final JCheckBoxMenuItem animateOverWrite = new JCheckBoxMenuItem("Over write", m_bAnimateOverwrite);
-		animateOverWrite.addActionListener(ae-> {
-				m_bAnimateOverwrite = animateOverWrite.getState();
-			});
-		browseMenu.add(animateOverWrite);
+		Menu helpMenu = new Menu("Help");
+		helpMenu.getItems().addAll(
+				createMenuItem("Help", "help", null, () -> showHelpDialog()),
+				createMenuItem("View clades", "viewclades", null, () -> showCladesDialog()),
+				createMenuItem("About", "about", null, () -> showAboutDialog())
+		);
 
-		// ----------------------------------------------------------------------
-		// Settings menu */
-		JMenu settingsMenu = new JMenu("Settings");
-		settingsMenu.setMnemonic('S');
-		m_menuBar.add(settingsMenu);
+		mb.getMenus().addAll(fileMenu, editMenu, drawallMenu, browseMenu, windowMenu, helpMenu);
+		return mb;
+	}
 
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_intensityUp);
-		settingsMenu.add(a_intensityDown);
-		settingsMenu.add(a_cIntensityUp);
-		settingsMenu.add(a_cIntensityDown);
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_treeWidthUp);
-		settingsMenu.add(a_treeWidthDown);
-		settingsMenu.add(a_cTreeWidthUp);
-		settingsMenu.add(a_cTreeWidthDown);
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_animationSpeedDown);
-		settingsMenu.add(a_animationSpeedUp);
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_jitterUp);
-		settingsMenu.add(a_jitterDown);
-		settingsMenu.addSeparator();
-		settingsMenu.add(a_threadsUp);
-		settingsMenu.add(a_threadsDown);
-
-
-		// ----------------------------------------------------------------------
-		// Window menu */
-		JMenu windowMenu = new JMenu("Window");
-		windowMenu.setMnemonic('W');
-		m_menuBar.add(windowMenu);
-		windowMenu.add(a_viewstatusbar);
-		windowMenu.add(a_viewtoolbar);
-		windowMenu.add(a_viewtoolbar2);
-		windowMenu.add(a_viewcladetoolbar);
-		windowMenu.add(a_viewCladeComparison);
-		windowMenu.addSeparator();
-		windowMenu.add(a_zoomin);
-		windowMenu.add(a_zoomout);
-		windowMenu.add(a_zoomintree);
-		windowMenu.add(a_zoomouttree);
-
-		// ----------------------------------------------------------------------
-		// Help menu */
-		JMenu helpMenu = new JMenu("Help");
-		helpMenu.setMnemonic('H');
-		m_menuBar.add(helpMenu);
-		helpMenu.add(a_help);
-		helpMenu.add(a_viewClades);
-		if (!Util.isMac()) {
-			helpMenu.add(a_about);
+	void doOpenAction() {
+		FileChooser fc = new FileChooser();
+		fc.setTitle("Load Tree Set");
+		if (m_settings.m_sDir != null && new File(m_settings.m_sDir).exists()) {
+			fc.setInitialDirectory(new File(m_settings.m_sDir));
 		}
-	} // makeMenuBar
-	
+		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Nexus / Tree Files", "*.trees", "*.tre", "*.nex", "*.t", "*.tree", "*.nwk", "*.txt"));
+		File file = fc.showOpenDialog(stage);
+		if (file != null) doOpen(file.getPath());
+	}
 
-	public static DensiTree startNew(String [] args) {
+	public void doOpen(String sFileName) {
+		if (sFileName.lastIndexOf('/') > 0) m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+		try {
+			init(sFileName);
+			m_treeData.drawMode = TreeData.MODE_CENTRE;
+			m_treeData2 = null;
+			calcLines();
+		} catch (Exception e) {
+			e.printStackTrace();
+			showErrorAlert("Error loading file: " + e.getMessage());
+			return;
+		}
+		updateStatus("Loaded " + sFileName);
+		fitToScreen();
+	}
 
-		final DensiTree a = new DensiTree(new String[]{});
-		
-		if (viz.util.Util.isMac()) {
-			try {
-				// call viz.maconly.OSXAdapter.registerMacOSXApplication(a);
-				// through reflection
-			//	Class<?> osx = Class.forName("viz.maconly.OSXAdapter");
-	        //    Method method = osx.getMethod("registerMacOSXApplication", DensiTree.class);
-	        //    method.invoke(null, a);
-	            URL url = ClassLoader.getSystemResource("viz/icons/" + "DensiTree.png");
-	            Icon icon = new ImageIcon(url);
-				jam.framework.Application application = new jam.framework.Application(null, "DensiTree", "about" , icon) {
-					
-					@Override
-					public void initialize() {
-					}
-					
-					@Override
-					protected JFrame getDefaultFrame() {
-						return null;
-					}
-					
-					@Override
-					public void doQuit() {
-						a.a_quit.actionPerformed(null);
-					}
-					
-					@Override
-					public void doAbout() {
-						a.a_about.actionPerformed(null);
-					}
-										
-					@Override
-					public DocumentFrame doOpenFile(File file) {
-						return null;
-					}
-					
-					@Override
-					public DocumentFrame doNew() {
-						return null;
-					}
-				};
-                if (Util.getMajorJavaVersion() >= 9) {
-                	Util.macOSXRegistration(application);
-                } else {
-    				jam.mac.Utils.macOSXRegistration(application);
-                }
+	void doOpenMirrorAction() {
+		FileChooser fc = new FileChooser();
+		fc.setTitle("Load Mirror Tree Set");
+		if (m_settings.m_sDir != null && new File(m_settings.m_sDir).exists()) {
+			fc.setInitialDirectory(new File(m_settings.m_sDir));
+		}
+		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Nexus Trees Files", "*.trees", "*.tre", "*.nex", "*.t", "*.tree"));
+		File file = fc.showOpenDialog(stage);
+		if (file != null) doOpenMirror(file.getPath());
+	}
 
-			} catch (Throwable e) {
-				// ignore
+	public void doOpenMirror(String sFileName) {
+		if (sFileName.lastIndexOf('/') > 0) m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
+		try {
+			while (thread != null) Thread.sleep(100);
+
+			m_treeData2 = new TreeData(this, this.m_settings);
+			if (!m_treeData2.loadFromFile(sFileName, false)) {
+				m_treeData2 = null;
+				return;
+			}
+			m_sFileName2 = sFileName;
+			m_treeData.drawMode = TreeData.MODE_LEFT;
+			m_treeData2.drawMode = TreeData.MODE_RIGHT;
+
+			thread = new MetaDataThread(m_treeData2, this);
+			thread.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+			showErrorAlert("Error loading file: " + e.getMessage());
+			return;
+		}
+		updateStatus("Loaded " + sFileName);
+		fitToScreen();
+	}
+
+	void doSaveAsAction() {
+		FileChooser fc = new FileChooser();
+		fc.setTitle("Save Graph");
+		if (m_settings.m_sDir != null && new File(m_settings.m_sDir).exists()) {
+			fc.setInitialDirectory(new File(m_settings.m_sDir));
+		}
+		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Nexus Trees Files", "*.trees", "*.tre", "*.nex", "*.t"));
+		File file = fc.showSaveDialog(stage);
+		if (file != null) {
+			String sFileName = file.getAbsolutePath();
+			try (FileWriter outfile = new FileWriter(sFileName)) {
+				StringBuilder buf = new StringBuilder();
+				buf.append("#NEXUS\nBegin trees\n\tTranslate\n");
+				for (int i = 0; i < m_settings.m_sLabels.size(); i++) {
+					buf.append("\t\t").append(i).append(" ").append(m_settings.m_sLabels.get(i));
+					if (i < m_settings.m_sLabels.size() - 1) buf.append(",");
+					buf.append("\n");
+				}
+				buf.append(";\n");
+				outfile.write(buf.toString());
+				for (int i = 0; i < m_treeData.m_trees.length; i++) {
+					outfile.write("tree STATE_" + i + " = " + m_treeData.m_trees[i].toString() + ";\n");
+				}
+				outfile.write("End;\n");
+				updateStatus("Saved " + sFileName);
+			} catch (Exception e) {
+				e.printStackTrace();
+				showErrorAlert("Error writing file: " + e.getMessage());
 			}
 		}
-		
-		JFrame f;
-		f = new JFrame(FRAME_TITLE);
-		a.frame = f;
-		f.setVisible(true);
-		a.parseArgs(args);
-		JMenuBar menuBar = a.getMenuBar();
-		f.setJMenuBar(menuBar);
-		f.add(a.m_jTbTools, BorderLayout.NORTH);
-		f.add(a.m_jTbTools2, BorderLayout.EAST);
-		
-		
-		JSplitPane splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, a.m_cladeSetComparisonPanel, a);
-		splitPane2.setDividerLocation(0.4);
+	}
 
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane2, a.m_jTbCladeTools);
-		splitPane.setDividerLocation(0.9);
-
-//		JSplitPane splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, a.m_jTbTools2, splitPane);
-		
-		f.add(splitPane, BorderLayout.CENTER);
-		f.add(a.m_jStatusBar, BorderLayout.SOUTH);
-		f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		Dimension dim = a.getSize();
-		f.setSize(dim.width + 31, dim.height + 40 + 84);
-		f.setLocation(DensiTree.instances * 10 , DensiTree.instances * 10);
-		
-		
-		//f.add(a.m_cladeSetComparisonPanel, BorderLayout.WEST);
-
-		
-		a.fitToScreen();
-		java.net.URL tempURL = ClassLoader.getSystemResource(DensiTree.ICONPATH + "DensiTree.png");
-		try {
-			f.setIconImage(ImageIO.read(tempURL));
-		} catch (Exception e) {
-			// ignore
+	void doLoadBgImageAction() {
+		FileChooser fc = new FileChooser();
+		fc.setTitle("Load Background Image");
+		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png", "*.gif"));
+		File file = fc.showOpenDialog(stage);
+		if (file != null) {
+			try {
+				loadBGImage(file.getAbsolutePath());
+				makeDirty();
+			} catch (Exception e) {
+				showErrorAlert("Error loading file: " + e.getMessage());
+			}
 		}
-		a.m_Panel.setFocusable(true);
-		return a;
-		// a.fitToScreen();
-	} // startNew
+	}
 
-	List<ChangeListener> m_changeListeners = new ArrayList<ChangeListener>();
+	void loadBGImage(String sFileName) throws Exception {
+		m_bgImage = ImageIO.read(new File(sFileName));
+		try {
+			Pattern pattern = Pattern.compile(".*\\(([0-9\\.Ee-]+),([0-9\\.Ee-]+)\\)x\\(([0-9\\.Ee-]+),([0-9\\.Ee-]+)\\).*");
+			Matcher matcher = pattern.matcher(sFileName);
+			matcher.find();
+			m_fBGImageBox[1] = Float.parseFloat(matcher.group(1));
+			m_fBGImageBox[0] = Float.parseFloat(matcher.group(2));
+			m_fBGImageBox[3] = Float.parseFloat(matcher.group(3));
+			m_fBGImageBox[2] = Float.parseFloat(matcher.group(4));
+		} catch (Exception e) {
+			m_fBGImageBox = new double[]{-180, -90, 180, 90};
+		}
+	}
 
+	void doExportAction(JComponent componentToExport, String title) {
+		if (componentToExport == m_cladeSetComparisonPanel && (m_treeData2 == null || !m_cladeSetComparisonPanel.isVisible())) {
+			showWarningAlert("Load mirror tree set and open clade set comparison panel before exporting");
+			return;
+		}
+
+		FileChooser fc = new FileChooser();
+		fc.setTitle(title);
+		fc.getExtensionFilters().addAll(
+				new FileChooser.ExtensionFilter("PNG Bitmap Files (*.png)", "*.png"),
+				new FileChooser.ExtensionFilter("JPEG Bitmap Files (*.jpg)", "*.jpg"),
+				new FileChooser.ExtensionFilter("Bitmap Files (*.bmp)", "*.bmp"),
+				new FileChooser.ExtensionFilter("PDF Files (*.pdf)", "*.pdf")
+		);
+		File file = fc.showSaveDialog(stage);
+		if (file != null) {
+			String sFileName = file.getAbsolutePath();
+			if (sFileName.toLowerCase().endsWith(".pdf")) {
+				exportPDF(sFileName, componentToExport);
+			} else {
+				BufferedImage bi = new BufferedImage(componentToExport.getWidth(), componentToExport.getHeight(), BufferedImage.TYPE_INT_RGB);
+				Graphics g = bi.getGraphics();
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, componentToExport.getWidth(), componentToExport.getHeight());
+				componentToExport.printAll(g);
+				try {
+					String ext = sFileName.substring(sFileName.lastIndexOf('.') + 1);
+					ImageIO.write(bi, ext, new File(sFileName));
+				} catch (Exception e) {
+					showErrorAlert(sFileName + " was not written properly: " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	void exportPDF(String sFileName, JComponent panel) {
+		isExporting = true;
+		try {
+			com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+			PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(sFileName));
+			doc.setPageSize(new com.itextpdf.text.Rectangle(panel.getWidth(), panel.getHeight()));
+			doc.open();
+			PdfContentByte cb = writer.getDirectContent();
+			Graphics2D g = new PdfGraphics2D(cb, panel.getWidth(), panel.getHeight());
+			g.setPaintMode();
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, panel.getWidth(), panel.getHeight());
+			panel.paint(g);
+			g.dispose();
+			doc.close();
+		} catch (Exception e) {
+			showErrorAlert("Export may have failed: " + e.getMessage());
+		}
+		isExporting = false;
+	}
+
+	void doPrintAction() {
+		PrinterJob printJob = PrinterJob.getPrinterJob();
+		printJob.setPrintable(m_Panel);
+		if (printJob.printDialog()) {
+			try {
+				printJob.print();
+			} catch (PrinterException ignored) {
+			}
+		}
+	}
+
+	void deleteSelected() {
+		int nDeleted = 0;
+		for (int i = m_treeData.m_bSelection.length - 1; i >= 0 && m_settings.m_nNrOfLabels > 2; i--) {
+			if (m_treeData.m_bSelection[i]) {
+				for (int j = 0; j < m_treeData.m_trees.length; j++) {
+					m_treeData.m_trees[j] = deleteLeaf(m_treeData.m_trees[j], i);
+					renumber(m_treeData.m_trees[j], i);
+					m_treeData.m_trees[j].labelInternalNodes(m_settings.m_nNrOfLabels - 1);
+				}
+				for (int j = 0; j < m_treeData.m_cTrees.length; j++) {
+					m_treeData.m_cTrees[j] = deleteLeaf(m_treeData.m_cTrees[j], i);
+					renumber(m_treeData.m_cTrees[j], i);
+					m_treeData.m_cTrees[j].labelInternalNodes(m_settings.m_nNrOfLabels - 1);
+				}
+				m_settings.m_sLabels.remove(i);
+				m_settings.m_nNrOfLabels--;
+				if (m_settings.m_fLongitude != null && m_settings.m_fLongitude.size() > i) {
+					m_settings.m_fLongitude.remove(i);
+					m_settings.m_fLatitude.remove(i);
+				}
+				int[] nOrder = new int[m_settings.m_nOrder.length - 1];
+				int[] nRevOrder = new int[m_settings.m_nRevOrder.length - 1];
+				int k = 0;
+				for (int j = 0; j < nOrder.length; j++) {
+					if (m_settings.m_nOrder[k] == i) k++;
+					nOrder[j] = (m_settings.m_nOrder[k] < i ? m_settings.m_nOrder[k] : m_settings.m_nOrder[k] - 1);
+					k++;
+				}
+				k = 0;
+				for (int j = 0; j < nRevOrder.length; j++) {
+					if (m_settings.m_nRevOrder[k] == i) k++;
+					nRevOrder[j] = (m_settings.m_nRevOrder[k] < i ? m_settings.m_nRevOrder[k] : m_settings.m_nRevOrder[k] - 1);
+					k++;
+				}
+				m_settings.m_nOrder = nOrder;
+				m_settings.m_nRevOrder = nRevOrder;
+				nDeleted++;
+			}
+		}
+		m_treeData.m_bSelection = new boolean[m_treeData.m_bSelection.length - nDeleted];
+		Arrays.fill(m_treeData.m_bSelection, true);
+		fitToScreen();
+		calcPositions();
+		calcLines();
+		SwingUtilities.invokeLater(() -> m_Panel.clearImage());
+		repaint();
+	}
+
+	void renumber(Node node, int iNodeNr) {
+		if (node.isLeaf()) {
+			if (node.getNr() > iNodeNr) node.m_iLabel--;
+		} else {
+			renumber(node.m_left, iNodeNr);
+			renumber(node.m_right, iNodeNr);
+		}
+	}
+
+	Node deleteLeaf(Node node, int iNodeNr) {
+		if (node.isLeaf()) {
+			if (node.getNr() == iNodeNr) {
+				Node parent = node.getParent();
+				Node sibling = (parent.m_left == node ? parent.m_right : parent.m_left);
+				if (parent.isRoot()) {
+					sibling.m_Parent = null;
+					return sibling;
+				}
+				Node grandparent = parent.getParent();
+				if (grandparent.m_left == parent) {
+					grandparent.m_left = sibling;
+				} else {
+					grandparent.m_right = sibling;
+				}
+				sibling.m_Parent = grandparent;
+				sibling.m_fLength += parent.m_fLength;
+			}
+		} else {
+			Node node2 = deleteLeaf(node.m_left, iNodeNr);
+			if (node2.isRoot()) return node2;
+			node2 = deleteLeaf(node.m_right, iNodeNr);
+			if (node2.isRoot()) return node2;
+		}
+		return node;
+	}
+
+	void pasteFromClipboard() {
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable contents = clipboard.getContents(null);
+		if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+			try {
+				String sResult = (String) contents.getTransferData(DataFlavor.stringFlavor);
+				String sFileName = "tmp.clipboard";
+				try (PrintStream out = new PrintStream(sFileName)) {
+					out.print(sResult);
+				}
+				init(sFileName);
+				calcLines();
+				updateStatus("Loaded from clipboard");
+				fitToScreen();
+			} catch (Exception e) {
+				showErrorAlert("Error pasting from clipboard: " + e.getMessage());
+			}
+		}
+	}
+
+	void showHelpDialog() {
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle("Help Message");
+		alert.setHeaderText("DensiTree Help");
+		alert.setContentText(banner() + getStatus());
+		alert.showAndWait();
+	}
+
+	void showCladesDialog() {
+		Dialog<Void> dlg = new Dialog<>();
+		dlg.setTitle("Clades and their probabilities");
+		StringBuilder b = new StringBuilder();
+		for (String s : m_treeData.cladesToString()) b.append(s);
+		TextArea ta = new TextArea(b.toString());
+		ta.setEditable(false);
+		dlg.getDialogPane().setContent(ta);
+		dlg.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+		dlg.showAndWait();
+	}
+
+	void showAboutDialog() {
+		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+		alert.setTitle("About Message");
+		alert.setHeaderText("DensiTree");
+		alert.setContentText(banner() + "Citation:\n" + CITATION);
+		ButtonType btnCopy = new ButtonType("Copy citation to clipboard");
+		alert.getButtonTypes().setAll(btnCopy, ButtonType.CLOSE);
+		alert.showAndWait().ifPresent(type -> {
+			if (type == btnCopy) {
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(CITATION), null);
+			}
+		});
+	}
+
+	void showErrorAlert(String msg) {
+		Platform.runLater(() -> {
+			Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+			alert.showAndWait();
+		});
+	}
+
+	void showWarningAlert(String msg) {
+		Platform.runLater(() -> {
+			Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+			alert.showAndWait();
+		});
+	}
+
+	String showInputDialog(String title, String defaultValue) {
+		TextInputDialog dlg = new TextInputDialog(defaultValue);
+		dlg.setHeaderText(title);
+		Optional<String> res = dlg.showAndWait();
+		return res.orElse(null);
+	}
+
+	List<ChangeListener> m_changeListeners = new ArrayList<>();
 	public void addChangeListener(ChangeListener changeListener) {
 		m_changeListeners.add(changeListener);
 	}
 
-	/**
-	 * Main method
-	 */
-	public static void main(String[] args) {
-		viz.util.Util.loadUIManager();
-		startNew(args);
+	public static DensiTree startNew(String[] args) {
+		Stage stage = new Stage();
+		DensiTree dt = new DensiTree(args);
+		dt.stage = stage;
+		Scene scene = new Scene(dt, 1000, 800);
+		stage.setScene(scene);
+		stage.setTitle(FRAME_TITLE);
+		Image icon = getFxIcon("DensiTree");
+		if (icon != null) stage.getIcons().add(icon);
+		stage.show();
+		dt.fitToScreen();
+		return dt;
+	}
+
+	public static class DensiTreeApp extends Application {
+		@Override
+		public void start(Stage primaryStage) {
+			List<String> rawArgs = getParameters().getRaw();
+			DensiTree dt = new DensiTree(rawArgs.toArray(new String[0]));
+			dt.stage = primaryStage;
+			Scene scene = new Scene(dt, 1000, 800);
+			primaryStage.setScene(scene);
+			primaryStage.setTitle(FRAME_TITLE);
+			Image icon = getFxIcon("DensiTree");
+			if (icon != null) primaryStage.getIcons().add(icon);
+			primaryStage.show();
+			dt.fitToScreen();
+		}
 	}
 	
-} // class DensiTree
+	public void loadImages() {
+		
+	}
+
+	public static void main(String[] args) {
+		Application.launch(DensiTreeApp.class, args);
+	}
+
+	// TODO: implement following items
+	public JButton a_undo = new JButton();
+	public JButton a_redo = new JButton();
+	public JButton a_loadMirror = new JButton();
+	public JButton a_exportCladeComparison = new JButton();
+	
+
+	public void setEnabledLoadKML(boolean c) {
+		// TODO Auto-generated method stub
+	}
+
+	public void loadKMLLocations() {
+		// TODO Auto-generated method stub
+	}
+}

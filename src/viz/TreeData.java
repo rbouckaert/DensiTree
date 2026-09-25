@@ -1601,7 +1601,7 @@ public class TreeData {
 			m_dt.m_optTree = m_trees[m_dt.m_iOptTree - m_dt.m_nBurnIn];
 		}
 
-		m_dt.a_loadkml.setEnabled(true);
+		m_dt.setEnabledLoadKML(true);
 		float fOffset = DensiTree.GEO_OFFSET;
 		settings.m_fMaxLong = parser.m_fMaxLong + fOffset;
 		settings.m_fMaxLat = parser.m_fMaxLat + fOffset;

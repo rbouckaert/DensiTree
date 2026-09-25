@@ -111,7 +111,7 @@ public class CladeDrawer {
 			//g.drawImage(m_dt.m_rotate, x - w / 2, y - h / 2, x + h / 2, y + w / 2, 0, 0, h, w, null);
 			if (bUpdatePoints) {
 				if (treeData.reverse()) {
-					treeData.m_rotationPoints[i] = new RotationPoint(m_dt.getWidth() - x, y);
+					treeData.m_rotationPoints[i] = new RotationPoint((int)m_dt.getWidth() - x, y);
 				} else {
 					treeData.m_rotationPoints[i] = new RotationPoint(x, y);
 				}

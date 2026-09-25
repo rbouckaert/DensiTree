@@ -12,15 +12,15 @@ import org.fest.swing.image.ScreenshotTaker;
 import org.junit.Test;
 
 import viz.DensiTree;
-import viz.panel.BurninPanel;
-import viz.panel.CladePanel;
-import viz.panel.ColorPanel;
-import viz.panel.ExpandablePanel;
-import viz.panel.GeoPanel;
-import viz.panel.GridPanel;
-import viz.panel.LabelPanel;
-import viz.panel.LineWidthPanel;
-import viz.panel.ShowPanel;
+import viz.fxpanel.BurninPanel;
+import viz.fxpanel.CladePanel;
+import viz.fxpanel.ColorPanel;
+import viz.fxpanel.ExpandablePanel;
+import viz.fxpanel.GeoPanel;
+import viz.fxpanel.GridPanel;
+import viz.fxpanel.LabelPanel;
+import viz.fxpanel.LineWidthPanel;
+import viz.fxpanel.ShowPanel;
 import viz.util.Util;
 
 public class DocumentationCreator extends DensiTreeBase {
