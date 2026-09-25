@@ -571,7 +571,7 @@ public class Node {
 	} // labelInternalNodes
 
 	/** create deep copy **/
-	Node copy() {
+	public Node copy() {
 		Node node = new Node();
 		node.m_fLength = m_fLength;
 		node.m_fPosX = m_fPosX;

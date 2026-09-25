@@ -1,10 +1,10 @@
 package viz;
 
 /** Each clade has a list of pairs of child clades **/
-class ChildClade {
-	int m_iLeft;
-	int m_iRight;
-	double m_fWeight;
+public class ChildClade {
+	public int m_iLeft;
+	public int m_iRight;
+	public double m_fWeight;
 
 	@Override
 	public String toString() {

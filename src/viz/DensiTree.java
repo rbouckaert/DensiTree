@@ -41,7 +41,9 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -122,18 +124,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 	
 	
 	/** used for finding clade from treeData in clade set of treeData2 **/
-	int [] m_mirrorCladeToIDMap = null, m_cladeToIDMap = null;
+	public int [] m_mirrorCladeToIDMap = null, m_cladeToIDMap = null;
 //	Map<String,Integer> m_mirrorCladeToIDMap = null;
 //	/** used for finding clade from treeData2 in clade set of treeData **/ 
 //	Map<String,Integer> m_cladeToIDMap = null;
 
 	
-	static float GEO_OFFSET = 3.0f;
+	static public float GEO_OFFSET = 3.0f;
 	
 	/** flag for testing summary tree optimisation **/
 	public String m_sOptFile = null;
 	/** number of tree in tree set to use as root canal tree **/
-	int m_iOptTree = -1;
+	public int m_iOptTree = -1;
 	public Node m_optTree = null;
 	/** user specified newick tree used for initialising the root canal tree -- lengths will be optimised **/ 
 	public String m_sOptTree = null;
@@ -167,8 +169,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public float m_fUserScale = 1.0f;
 
 	/** determines which part of the tree-set is shown wrt maximum tree height **/
-	float m_fTreeOffset = 0;
-	float m_fTreeScale = 1;
+	public float m_fTreeOffset = 0;
+	public float m_fTreeScale = 1;
 
 	public GridDrawer m_gridDrawer;
 	public CladeDrawer m_cladeDrawer;
@@ -182,11 +184,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 
 	/** rectangles with on screen coordinates of labels **/
-	Rectangle[] m_bLabelRectangle;
+	public Rectangle[] m_bLabelRectangle;
 	/** rectangles with geographic locations on screen **/
-	Rectangle[] m_bGeoRectangle;
+	public Rectangle[] m_bGeoRectangle;
 	/** selection rectangle drawn through dragging with left mouse button */
-	Rectangle m_nSelectedRect = null;
+	public Rectangle m_nSelectedRect = null;
 
 	/**
 	 * burn in = nr of trees ignored at the start of tree file, can be set by
@@ -197,7 +199,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	public boolean m_bBurnInIsPercentage = true;
 
 	/** mean cumulative width, calculated from trees **/
-	double m_w = 0;
+	public double m_w = 0;
 
 	public static int HEIGHTCOLOR = 6,
 		CONSCOLOR = 4,
@@ -1021,7 +1023,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	void resetCladeSelection() {
+	public void resetCladeSelection() {
 		m_treeData.resetCladeSelection();
 		if (m_treeData2 != null) {
 			m_treeData2.resetCladeSelection();
@@ -2181,7 +2183,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 	/** flag to indicate all individual trees should be shown **/
 	public boolean m_bViewAllTrees = true;
 
-	double m_fExponent = 1.0;
+	public double m_fExponent = 1.0;
 
 
 
@@ -3932,43 +3934,60 @@ public class DensiTree extends JPanel implements ComponentListener {
 		});
 		m_jTbTools2.add(toolPanel);
 
-		m_treeData.m_cladelist = new JList<String>(m_treeData.m_cladelistmodel);
-		m_treeData.m_cladelist.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
+
+		
+		m_treeData.m_cladelist = new ListView<String>(m_treeData.m_cladelistmodel);
+		m_treeData.m_cladelist.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		//m_treeData.m_cladelist = new JList<String>(m_treeData.m_cladelistmodel);
+		m_treeData.m_cladelist.getSelectionModel().selectedItemProperty().addListener(e -> {
+//				(new ListSelectionListener() {
+//			@Override
+//			public void valueChanged(ListSelectionEvent e) {
 				if (m_treeData.m_bAllowCladeSelection) {
 	 				m_treeData.getCladeSelection().clear();
 	 				if (m_treeData2!=null) {
 		 				m_treeData2.getCladeSelection().clear();
 	 				}
-					for (int i : m_treeData.m_cladelist.getSelectedIndices()) {
+					for (int i : m_treeData.m_cladelist.getSelectionModel().getSelectedIndices()) {
 						if (m_treeData.m_cladeWeight.get(i) > 0.01 && ((m_settings.m_Xmode == 1 && m_treeData.m_clades.get(i).length > 1) || (m_settings.m_Xmode == 2 && m_treeData.m_clades.get(i).length == 1))) {
 							addCladeToSelection(i, false);
 							//removeCladeFromselection(i, false);
 						}
 					}
 					resetCladeSelection();
-					System.err.println(m_treeData.m_cladelist.getSelectedValuesList());
-					System.err.println(m_treeData.m_cladelist.getSelectedValuesList().size() + " items selected");
+					System.err.println(m_treeData.m_cladelist.getSelectionModel().getSelectedItems());
+					System.err.println(m_treeData.m_cladelist.getSelectionModel().getSelectedItems().size() + " items selected");
 					repaint();
 					if (m_cladeSetComparisonPanel != null) {
 						m_cladeSetComparisonPanel.repaint();
 					}
 				}
-			}
+//			}
 
 		});
-		JScrollPane scrollingList = new JScrollPane(m_treeData.m_cladelist);
+		
+		JFXPanel listPanel = new JFXPanel();
+
+		Platform.runLater(() -> {
+//		    // Wrap in a ScrollPane so the tool panel scrolls cleanly if the window is resized
+//		    ScrollPane scrollPane = new ScrollPane(m_treeData.m_cladelist);
+//		    scrollPane.setFitToWidth(true);
+//		    listPanel.setScene(new Scene(scrollPane));
+		    listPanel.setScene(new Scene(m_treeData.m_cladelist));
+		});
+		
+		
+		//JScrollPane scrollingList = new JScrollPane(m_treeData.m_cladelist);
 		//scrollingList.setPreferredSize(new Dimension(1200,600));
 		//scrollingList.setMinimumSize(scrollingList.getPreferredSize());
 		m_jTbCladeTools.setLayout(new BorderLayout());
-		m_jTbCladeTools.add(scrollingList, BorderLayout.CENTER);
+		m_jTbCladeTools.add(listPanel, BorderLayout.CENTER);
 		m_jTbCladeTools.setFloatable(false);
 		m_jTbCladeTools.setVisible(false);
 	} // makeToolbar
 
 	
-	protected void removeCladeFromselection(int i, boolean reverse) {
+	public  void removeCladeFromselection(int i, boolean reverse) {
 		if (!reverse) {
 			m_treeData.getCladeSelection().remove(i);
 			
@@ -3989,7 +4008,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		}
 	}
 
-	protected void addCladeToSelection(int i, boolean reverse) {
+	public  void addCladeToSelection(int i, boolean reverse) {
 		if (!reverse) {
 			this.m_treeData.getCladeSelection().add(i);
 			

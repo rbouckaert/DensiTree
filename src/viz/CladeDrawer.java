@@ -1,5 +1,6 @@
 package viz;
 
+
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,7 +11,6 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.text.DecimalFormat;
 import java.util.Set;
-
 
 public class CladeDrawer {
 	DensiTree m_dt;
@@ -35,7 +35,7 @@ public class CladeDrawer {
 	}
 	
 	/** show all clades **/
-	void viewClades(Graphics g, TreeData treeData) {
+	public void viewClades(Graphics g, TreeData treeData) {
 		boolean reverseText = treeData.reverse();
 		float fScaleX = m_dt.m_fScaleX;
 		float fScaleY = m_dt.m_fScaleY;

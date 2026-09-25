@@ -42,13 +42,13 @@ public class TreeFileParser {
 	Vector<Float> m_fLongitude;
 	Vector<Float> m_fLatitude;
 	/** extreme values for position information **/
-	float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
+	public float m_fMaxLong, m_fMaxLat, m_fMinLong, m_fMinLat;
 	/** nr of labels in dataset **/
-	int m_nNrOfLabels;
+	public int m_nNrOfLabels;
 	/** maps taxon number in mirror set to taxon number in original set **/
 	int [] m_iLabelMap;
 	/** burn in = nr of trees ignored at the start of tree file, can be set by command line option **/
-	int m_nBurnIn = 0, m_nThin = 1;
+	public int m_nBurnIn = 0, m_nThin = 1;
 	boolean m_bBurnInIsPercentage = true;
 	//DensiTree m_densiTree;
 	/** for memory saving, set to true **/

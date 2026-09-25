@@ -15,9 +15,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ListView;
 
 import viz.DensiTree.LineWidthMode;
 import viz.DensiTree.MetaDataType;
@@ -28,18 +31,18 @@ import viz.ccd.Tree;
 import viz.process.BranchLengthOptimiser;
 
 public class TreeData {
-	Settings settings;
+	public Settings settings;
 	public DensiTree m_dt;
 	
-	TreeData(DensiTree dt, Settings settings) {
+	public TreeData(DensiTree dt, Settings settings) {
 		m_dt = dt;
 		this.settings = settings;
 	}
 
-	final static int MODE_LEFT = 0;
-	final static int MODE_RIGHT = 2;
-	final static int MODE_CENTRE = 3;
-	int drawMode = MODE_CENTRE;
+	public final static int MODE_LEFT = 0;
+	public final static int MODE_RIGHT = 2;
+	public final static int MODE_CENTRE = 3;
+	public int drawMode = MODE_CENTRE;
 	
 	/** same trees, but represented as Node data structure **/
 	public Node[] m_trees;
@@ -50,7 +53,7 @@ public class TreeData {
 	public List<Node> m_summaryTree = new ArrayList<Node>();
 
 	
-	RotationPoint[] m_rotationPoints = null;
+	public RotationPoint[] m_rotationPoints = null;
 
 	/**
 	 * Trees represented as lines for drawing block trees Units are tree lengths
@@ -58,8 +61,8 @@ public class TreeData {
 	 * ((x1,y1)(x1,y2)(x3,y2),(x3,y3)) and are concatenated in a long array. The
 	 * final pair contains the line to the root.
 	 * **/
-	float[][] m_fLinesX;
-	float[][] m_fLinesY;
+	public float[][] m_fLinesX;
+	public float[][] m_fLinesY;
 	/**
 	 * Width of individual lines, determined by some info in the metadata (if
 	 * any) If specified, this only applies to block trees.
@@ -72,8 +75,8 @@ public class TreeData {
 	public float[][] m_fCLineWidth;
 	public float[][] m_fTopCLineWidth;
 	
-	float[][] m_fRLinesX;
-	float[][] m_fRLinesY;
+	public float[][] m_fRLinesX;
+	public float[][] m_fRLinesY;
 	public int[][] m_nRLineColor;
 	public float[][] m_fRLineWidth;
 	public float[][] m_fRTopLineWidth;
@@ -83,44 +86,44 @@ public class TreeData {
 	
 
 	/** Topology number of the tree, in order of appearance in tree set **/
-	int[] m_nTopology;
+	public int[] m_nTopology;
 	/**
 	 * Topology number for particular tree in order of popularity (most popular
 	 * = 0, next most popular = 1, etc.) Useful for coloring trees.
 	 **/
-	int[] m_nTopologyByPopularity;
+	public int[] m_nTopologyByPopularity;
 	/** nr of distinct topologies **/
-	int m_nTopologies;
+	public int m_nTopologies;
 	/**
 	 * relative weight of tree topology measured by its frequency of appearance
 	 * in the set. Adds to unity.
 	 */
-	float[] m_fTreeWeight;
+	public float[] m_fTreeWeight;
 	/** as m_trees, but for consensus trees **/
-	Node[] m_cTrees;
+	public Node[] m_cTrees;
 	/** as m_nLines, but for consensus trees **/
-	float[][] m_fCLinesX;
-	float[][] m_fCLinesY;
+	public float[][] m_fCLinesX;
+	public float[][] m_fCLinesY;
 	/** as m_nTLines, but for consensus trees **/
 	// float[][] m_fCTLinesX;
 	// float[][] m_fCTLinesY;	
 
 
-	boolean m_bCladesReady;
+	public boolean m_bCladesReady;
 	public boolean m_bMetaDataReady;
 	/** represent clade as arrays of leaf indices **/
-	List<int[]> m_clades;
+	public List<int[]> m_clades;
 	/** proportion of trees containing the clade **/
-	List<Double> m_cladeWeight;
+	public List<Double> m_cladeWeight;
 	/** average height of a clade **/
-	List<Double> m_cladeHeight;
-	List<Double> m_cladeHeight95HPDup;
-	List<Double> m_cladeHeight95HPDdown;
+	public List<Double> m_cladeHeight;
+	public List<Double> m_cladeHeight95HPDup;
+	public List<Double> m_cladeHeight95HPDdown;
 	public List<List<Double>> m_cladeHeightSetBottom;
 	public List<List<Double>> m_cladeHeightSetTop;
 	/** UI component for manipulating clade selection **/
-	JList<String> m_cladelist;
-	DefaultListModel<String> m_cladelistmodel = new DefaultListModel<String>();
+	public ListView<String> m_cladelist;
+	public ObservableList<String> m_cladelistmodel = FXCollections.observableArrayList();
 
 	public Map<String, Integer> mapCladeToIndex;
 	public Integer [] reverseindex;
@@ -133,11 +136,11 @@ public class TreeData {
 	}; 
 	
 	/** represent clade as arrays of leaf indices **/
-	Map<Integer, Double> m_cladePairs;
+	public Map<Integer, Double> m_cladePairs;
 	
-	List<List<ChildClade>> m_cladeChildren;
+	public List<List<ChildClade>> m_cladeChildren;
 	/** X-position of the clade **/
-	float[] m_cladePosition;
+	public float[] m_cladePosition;
 	
 	
 	/** flags whether a leaf node is selected **/
@@ -145,7 +148,7 @@ public class TreeData {
 	/** flag to indicate the selection was changed but image was not updated yet **/
 	public boolean m_bSelectionChanged;
 
-	boolean m_bAllowCladeSelection = true;
+	public boolean m_bAllowCladeSelection = true;
 	private Set<Integer> m_cladeSelection = new HashSet<Integer>();
 	public Set<Integer> getCladeSelection() {return m_cladeSelection;}
 	
@@ -231,7 +234,7 @@ public class TreeData {
 	 * Position leafs in a tree so that x-coordinate of the leafs is fixed for
 	 * all trees in the set
 	 * **/
-	void positionLeafs(Node node) {
+	public void positionLeafs(Node node) {
 		if (node.isLeaf()) {
 			node.m_fPosX = settings.m_nOrder[node.m_iLabel] + 0.5f;
 			if (m_cladePosition != null) {
@@ -250,7 +253,7 @@ public class TreeData {
 	 * Position leafs in a tree so that x-coordinate of the leafs coincides with
 	 * the geographical position associated with the node
 	 * **/
-	void positionLeafsGeo(Node node) {
+	public void positionLeafsGeo(Node node) {
 		if (node.isLeaf()) {
 			if (m_dt.m_treeDrawer.m_bRootAtTop) {
 				node.m_fPosX = settings.m_nNrOfLabels * (settings.m_fLongitude.elementAt(node.m_iLabel) - settings.m_fMinLong)
@@ -272,7 +275,7 @@ public class TreeData {
 	 * @param node
 	 * @return
 	 */
-	float positionRest(Node node) {
+	public float positionRest(Node node) {
 		if (node.isLeaf()) {
 			return node.m_fPosX;
 		} else {
@@ -292,7 +295,7 @@ public class TreeData {
 
 
 
-	void calcClades() {
+	public void calcClades() {
 		if (settings.m_bAllowSingleChild) {
 			return;
 		}
@@ -472,41 +475,9 @@ public class TreeData {
 		float fHeight = positionHeight(m_summaryTree.get(0), 0);
 		offsetHeight(m_summaryTree.get(0), m_dt.m_fHeight - fHeight);
 		
-//		m_summaryTree.add(m_cTrees[iMaxMinCladeProbTopology].copy());
-//		cleanUpSummaryTree(m_summaryTree.get(1));
-//
-//		m_summaryTree.add(m_cTrees[iMaxCCDProbTopology].copy());
-//		cleanUpSummaryTree(m_summaryTree.get(2));
-//
-//		// construct max. clade weight tree
-//		List<Node> nodes = new ArrayList<Node>();
-//		List<int[]> cladeIDs = new ArrayList<int[]>();
-//		for (int i = 0; i < settings.m_sLabels.size(); i++) {
-//			int [] cladeID = new int[1];
-//			cladeID[0] = i;
-//			cladeIDs.add(cladeID);
-//			Node node = new Node();
-//			node.m_iLabel = i;
-//			node.m_iClade = i;
-//			nodes.add(node);
-//		}
-//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, false));
-//		m_summaryTree.get(3).sort();
-//		resetCladeNr(m_summaryTree.get(3), reverseindex);
-//		m_summaryTree.add(m_summaryTree.get(3).copy());
-//		cleanUpSummaryTree(m_summaryTree.get(4));		
-//
-//		m_summaryTree.add(constructMaxCladeTree(cladeIDs, mapCladeToIndex, nodes, true));
-//		m_summaryTree.get(5).sort();
-//		resetCladeNr(m_summaryTree.get(5), reverseindex);
-//		cleanUpSummaryTree(m_summaryTree.get(5));		
-//		setHeightByClade(m_summaryTree.get(5));
-						
 		// add clades to GUI component
 		updateCladeModel();
 
-//		m_summaryTree[5] = m_cTrees[iMaxCladeProbTopology].copy();
-		
 		if (m_dt.m_sOptTree != null) {
 			TreeFileParser parser = new TreeFileParser(settings.m_sLabels, null, null, 0);
 			try {
@@ -519,7 +490,6 @@ public class TreeData {
 				resetCladeNr(tree, reverseindex);
 				m_summaryTree.add(tree);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -527,8 +497,6 @@ public class TreeData {
 		if (m_dt.m_optTree != null) {
 			m_summaryTree.add(m_dt.m_optTree.copy());
 		}
-		
-		// m_rootcanaltree = m_summaryTree.get(0);
 
 		List<Tree> trees = new ArrayList<>();
 		for (Node t : m_trees) {
@@ -542,7 +510,6 @@ public class TreeData {
 		positionLeafs(m_rootcanaltree);
 		positionRest(m_rootcanaltree);
 		cleanUpSummaryTree(m_rootcanaltree);
-		//setHeightByClade(m_rootcanaltree);
 		
 		// save memory
 		m_cladeHeightSetBottom = null;
@@ -560,9 +527,7 @@ public class TreeData {
 	public void updateCladeModel() {
 		m_cladelistmodel.clear();
 		List<String> list = cladesToString();
-		for (int i = 0; i < list.size(); i++) {
-			m_cladelistmodel.add(i, list.get(i));
-		}
+		m_cladelistmodel.addAll(list);
 	}
 	
 	private void calcCladePairs(Node node, double fWeight) {
@@ -606,7 +571,6 @@ public class TreeData {
 	
 	private void setHeightByClade(Node node) {
 		if (!node.isRoot()) {
-			//node.m_fLength = (float)Math.abs(m_cladeHeight.get(node.getParent().m_iClade) - m_cladeHeight.get(node.m_iClade));
 			node.m_fLength = (float)(m_cladeHeight.get(node.m_iClade) - m_cladeHeight.get(node.getParent().m_iClade));
 		}
 		if (!node.isLeaf()) {
@@ -617,7 +581,7 @@ public class TreeData {
 
 
 	/** number of leafs in selection, handy for sanity checks **/
-	int selectionSize() {
+	public int selectionSize() {
 		int nSelected = 0;
 		for (int i = 0; i < settings.m_nRevOrder.length; i++) {
 			if (m_bSelection[settings.m_nRevOrder[i]]) {
@@ -628,7 +592,7 @@ public class TreeData {
 	}
 
 	/** check the selection is empty, and ask user whether this is desirable **/
-	void checkSelection() {
+	public void checkSelection() {
 		if (m_bSelection.length > 0 && selectionSize() == 0) {
 			for (int i = 0; i < m_bSelection.length; i++) {
 				m_bSelection[i] = true;
@@ -636,25 +600,25 @@ public class TreeData {
 		}
 	}
 
-	void resetCladeSelection() {
+	public void resetCladeSelection() {
 		m_bAllowCladeSelection = false;
 		if (m_cladelist != null) {
-			m_cladelist.clearSelection();
+			m_cladelist.getSelectionModel().clearSelection();
 			for (int i : m_cladeSelection) {
-				m_cladelist.addSelectionInterval(i, i);
+				m_cladelist.getSelectionModel().select(i);
 				if (m_cladeSelection.size() == 1) {
-					m_cladelist.ensureIndexIsVisible(i);
+					m_cladelist.scrollTo(i);
 				}
 			}
 		}
 		
 		if (m_cladeSelection.size() > 0) {
-		Arrays.fill(m_bSelection, false);
+			Arrays.fill(m_bSelection, false);
 			for (int i : m_cladeSelection) {
 				for (int j = 0; j < m_clades.get(i).length; j++) {
 					m_bSelection[m_clades.get(i)[j]] = true;
 				}
-		}
+			}
 		}
 		m_bAllowCladeSelection = true;
 	}
@@ -668,25 +632,23 @@ public class TreeData {
 		}
 	}
 
-	List<String> cladesToString() {
+	public 	List<String> cladesToString() {
 		List<String> list = new ArrayList<String>();
 		DecimalFormat format = new  DecimalFormat("###.##");
 		
 		for (int i = 0; i < m_cladePosition.length; i++) {
 			if (m_cladeWeight.get(i) >= settings.m_smallestCladeSupport) {
 				String sStr = "";
-				//if (m_clades.get(i).length > 1) {
-					sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
-					sStr += format.format((m_dt.m_fHeight - m_cladeHeight95HPDup.get(i)) * m_dt.m_fUserScale) + " ";
-					sStr += format.format((m_dt.m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale) + " ";
-					sStr += "[";
-					int j = 0;
-					for (j = 0; j < m_clades.get(i).length - 1; j++) {
-						sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + ",");
-					}
-					sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + "]\n");
-					list.add(sStr);
-				//}
+				sStr += format.format(m_cladeWeight.get(i) * 100) + "% ";
+				sStr += format.format((m_dt.m_fHeight - m_cladeHeight95HPDup.get(i)) * m_dt.m_fUserScale) + " ";
+				sStr += format.format((m_dt.m_fHeight - m_cladeHeight95HPDdown.get(i)) * m_dt.m_fUserScale) + " ";
+				sStr += "[";
+				int j = 0;
+				for (j = 0; j < m_clades.get(i).length - 1; j++) {
+					sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + ",");
+				}
+				sStr += (settings.m_sLabels.get(m_clades.get(i)[j]) + "]\n");
+				list.add(sStr);
 			}
 		}
 		return list;
@@ -708,14 +670,10 @@ public class TreeData {
 		}
 	}
 
-	private double CCDProb(Node node) { //, Integer [] index) {
+	private double CCDProb(Node node) {
 		if (node.isLeaf()) {
 			return 1.0;
 		} else {
-//			int iClade = node.m_iClade;
-//			iClade = index[iClade];
-//			int iCladeLeft = Math.min(index[node.m_left.m_iClade], index[node.m_right.m_iClade]);
-//			iCladeLeft = index[iCladeLeft];
 			int iCladeLeft = Math.min(node.m_left.m_iClade, node.m_right.m_iClade);
 			int iCladeRight = Math.max(node.m_left.m_iClade, node.m_right.m_iClade);;
 
@@ -725,9 +683,9 @@ public class TreeData {
 				f = m_cladePairs.get(i);
 			}
 			
-			double fCladeProb = f;// / m_cladeWeight.get(node.m_iClade);
-			fCladeProb *= CCDProb(node.m_left);//, index);
-			fCladeProb *= CCDProb(node.m_right);//, index);
+			double fCladeProb = f;
+			fCladeProb *= CCDProb(node.m_left);
+			fCladeProb *= CCDProb(node.m_right);
 			return fCladeProb;
 		}
 		
@@ -771,30 +729,12 @@ public class TreeData {
 			clade[0] = node.getNr();
 			node.m_iClade = node.getNr();
 			m_cladeHeight.set(node.m_iClade, m_cladeHeight.get(node.m_iClade) + fWeight * fHeight);
-			//m_cladeHeightSet.get(node.m_iClade).add(fHeight);
 			return clade;
 		} else {
 			int[] cladeLeft = calcCladeForNode(node.m_left, mapCladeToIndex, fWeight, fHeight + node.m_left.m_fLength);
 			int[] cladeRight = calcCladeForNode(node.m_right, mapCladeToIndex, fWeight, fHeight
 					+ node.m_right.m_fLength);
 			int[] clade = mergeClades(cladeLeft, cladeRight);
-			
-						
-			// merge clades, keep in sorted order
-//			int[] clade = new int[cladeLeft.length + cladeRight.length];
-//			int iLeft = 0;
-//			int iRight = 0;
-//			for (int i = 0; i < clade.length; i++) {
-//				if (iLeft == cladeLeft.length) {
-//					clade[i] = cladeRight[iRight++];
-//				} else if (iRight == cladeRight.length) {
-//					clade[i] = cladeLeft[iLeft++];
-//				} else if (cladeRight[iRight] > cladeLeft[iLeft]) {
-//					clade[i] = cladeLeft[iLeft++];
-//				} else {
-//					clade[i] = cladeRight[iRight++];
-//				}
-//			}
 
 			// update clade weights
 			String sClade = Arrays.toString(clade);
@@ -812,7 +752,6 @@ public class TreeData {
 			int iClade = mapCladeToIndex.get(sClade);
 			m_cladeWeight.set(iClade, m_cladeWeight.get(iClade) + fWeight);
 			m_cladeHeight.set(iClade, m_cladeHeight.get(iClade) + fWeight * fHeight);
-			//m_cladeHeightSet.get(iClade).add(fHeight);
 			node.m_iClade = iClade;
 
 			// update child clades
@@ -835,9 +774,6 @@ public class TreeData {
 				m_cladeChildren.get(iClade).add(child);
 			}
 
-//			Integer [] cladePair = new Integer[2];
-//			cladePair[0] = iClade;
-//			cladePair[1] = iCladeLeft;
 			return clade;
 		}
 
@@ -871,15 +807,7 @@ public class TreeData {
 				}
 			}
 
-			// update clade weights
-			String sClade = Arrays.toString(clade);
-//			if (!mapCladeToIndex.containsKey(sClade)) {
-//				mapCladeToIndex.put(sClade, mapCladeToIndex.size());
-//				m_cladeHeight95HPDup.add(0.0);
-//				m_cladeHeight95HPDdown.add(0.0);
-//				m_cladeHeightSet.add(new ArrayList<Double>());
-//			}
-			int iClade = mapCladeToIndex.get(sClade);
+			int iClade = mapCladeToIndex.get(Arrays.toString(clade));
 			m_cladeHeightSetBottom.get(iClade).add(fHeight);
 			m_cladeHeightSetTop.get(iClade).add(fHeight - node.m_fLength);
 			node.m_iClade = iClade;
@@ -923,7 +851,6 @@ public class TreeData {
 				int iClade = mapCladeToIndex.get(sClade);
 				node.m_iClade = iClade;
 			} catch (Exception e) {
-				// ignore
 				node.m_iClade = 0;
 			}
 			return clade;
@@ -934,7 +861,7 @@ public class TreeData {
 	/**
 	 * record position information in position array (fPosX) used for undo/redo
 	 **/
-	void getPosition(Node node, float[] fPosX) {
+	public void getPosition(Node node, float[] fPosX) {
 		if (node.isLeaf()) {
 			fPosX[settings.m_nOrder[node.m_iLabel]] = node.m_fPosX;
 		} else {
@@ -949,7 +876,7 @@ public class TreeData {
 	 * set position information based on position array (fPosX) used for
 	 * undo/redo
 	 **/
-	void setPosition(Node node, float[] fPosX) {
+	public void setPosition(Node node, float[] fPosX) {
 		if (node.isLeaf()) {
 			node.m_fPosX = fPosX[settings.m_nOrder[node.m_iLabel]];
 		} else {
@@ -1049,9 +976,6 @@ public class TreeData {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				//if (settings.m_bAllowSingleChild) {
-				//	nNodes = getNrOfNodes(m_cTrees[i]);
-				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
@@ -1064,9 +988,6 @@ public class TreeData {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			//if (settings.m_bAllowSingleChild) {
-			//	break;
-			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
 			break;
@@ -1075,7 +996,6 @@ public class TreeData {
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
-			//m_colorMetaDataCategories = new ArrayList<String>();
 			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
 			for (int i = 0; i < m_trees.length; i++) {
 				if (settings.m_bAllowSingleChild) {
@@ -1090,9 +1010,6 @@ public class TreeData {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				//if (settings.m_bAllowSingleChild) {
-				//	nNodes = getNrOfNodes(m_cTrees[i]);
-				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
@@ -1105,9 +1022,6 @@ public class TreeData {
 					nCLineColor[k] /= nTopologies;
 				}
 			}
-			//if (settings.m_bAllowSingleChild) {
-			//	break;
-			//}
 			m_nRLineColor[0] = new int[nNodes * 2 + 2];
 			Arrays.fill(m_nRLineColor[0], settings.m_color[DensiTree.ROOTCANALCOLOR].getRGB());
 			break;
@@ -1116,7 +1030,6 @@ public class TreeData {
 			m_nLineColor = new int[m_trees.length][];
 			m_nCLineColor = new int[m_cTrees.length][];
 			m_nRLineColor = new int[1][];
-			//m_colorMetaDataCategories = new ArrayList<String>();
 			settings.m_colorMetaDataCategories = new HashMap<String, Integer>();
 			boolean colorByCategory = false;
 			for (int i = 0; i < settings.m_metaDataTags.size(); i++) {
@@ -1140,10 +1053,6 @@ public class TreeData {
 			// calculate coordinates of lines for drawing consensus trees
 			for (int i = 0; i < m_cTrees.length; i++) {
 				int nTopologies = 0;
-				// it is known settings.m_bAllowSingleChild = false at this point
-				//if (settings.m_bAllowSingleChild) {
-				//	nNodes = getNrOfNodes(m_cTrees[i]);
-				//}
 				m_nCLineColor[i] = new int[nNodes * 2 + 2];
 				int [] nCLineColor = m_nCLineColor[i]; 
 				for (int j = 0; j < m_trees.length; j++) {
@@ -1209,7 +1118,6 @@ public class TreeData {
 	 * return meta data value of a node as defined by the pattern (m_sPattern &
 	 * m_pattern), or 1 if parsing fails.
 	 */
-	// int [] m_nCurrentPosition;
 	float getMetaData(Node node) {
 		try {
 			Matcher matcher = settings.m_pattern.matcher(node.getMetaData());
@@ -1239,14 +1147,7 @@ public class TreeData {
 				settings.m_colorMetaDataCategories.put(match, settings.m_colorMetaDataCategories.size());
 			}
 			return settings.m_colorMetaDataCategories.get(match);
-			
-//			if (!m_colorMetaDataCategories.contains(match)) {
-//				m_colorMetaDataCategories.add(match);
-//			}
-//			//System.err.println(node.m_sMetaData + ": " + match + " = " + m_metaDataCategories.indexOf(match));
-//			return m_colorMetaDataCategories.indexOf(match);
 		} catch (Exception e) {
-			//e.printStackTrace();
 		}
 		return 0;
 	} // getMetaData
@@ -1304,12 +1205,7 @@ public class TreeData {
 				if (settings.m_colorMetaDataCategories.get(o.toString()) == null) {
 					settings.m_colorMetaDataCategories.put(o.toString(), settings.m_colorMetaDataCategories.size());
 				}
-//				if (!m_colorMetaDataCategories.contains(o)) {
-//					m_colorMetaDataCategories.add(o.toString());
-//				}
-//				color = m_color[9 + m_colorMetaDataCategories.indexOf(o.toString()) % (m_color.length - 9)].getRGB();
 				int i = settings.m_colorMetaDataCategories.get(o.toString());
-				// System.err.println(i + " " + (9 + i % (settings.m_color.length - 9)) + " " + settings.m_color.length);
 				color = settings.m_color[9 + i % (settings.m_color.length - 9)].getRGB();
 			}
 		} else {
@@ -1364,8 +1260,6 @@ public class TreeData {
 			}
 			bNeedsDrawing[0] = false;
 				if (bChildNeedsDrawing[0]) {
-//					nX[iPos] = node.m_left.m_fPosX;
-//					nY[iPos] = node.m_left.m_fPosY;
 					fWidth[iPos] = getGamma(node.m_left, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
 					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
@@ -1373,23 +1267,15 @@ public class TreeData {
 						fWidthTop[iPos] = getGamma(node.m_left, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);						
 					}
 					iPos++;
-//					nX[iPos] = nX[iPos - 1];
-//					nY[iPos] = node.m_fPosY;
 					bNeedsDrawing[0] = true;
 				} else {
 					fWidth[iPos] = settings.m_nTreeWidth;
-//					nX[iPos] = node.m_fPosX;
-//					nY[iPos] = node.m_fPosY;
 					iPos++;
-//					nX[iPos] = node.m_fPosX;
-//					nY[iPos] = node.m_fPosY;
 				}
 				fWidth[iPos] = fWidth[iPos-1];
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
 				iPos++;
 				if (bChildNeedsDrawing[1]) {
-//					nX[iPos] = node.m_right.m_fPosX;
-//					nY[iPos] = nY[iPos - 1];
 					fWidth[iPos] = getGamma(node.m_right, 1, settings.m_lineWidthMode, settings.m_lineWidthTag, settings.m_pattern);
 					if (settings.m_lineWidthModeTop == LineWidthMode.DEFAULT) {
 						fWidthTop[iPos] = fWidth[iPos];
@@ -1397,16 +1283,10 @@ public class TreeData {
 						fWidthTop[iPos] = getGamma(node.m_right, 2, settings.m_lineWidthModeTop, settings.m_lineWidthTagTop, settings.m_patternTop);
 					}
 					iPos++;
-//					nX[iPos] = nX[iPos - 1];
-//					nY[iPos] = node.m_right.m_fPosY;
 					bNeedsDrawing[0] = true;
 				} else {
-//					nX[iPos] = node.m_fPosX;
-//					nY[iPos] = node.m_fPosY;
 					fWidth[iPos] = settings.m_nTreeWidth;
 					iPos++;
-//					nX[iPos] = node.m_fPosX;
-//					nY[iPos] = node.m_fPosY;
 				}
 				fWidth[iPos] = fWidth[iPos-1];
 				fWidthTop[iPos] = fWidthTop[iPos-1]; 
@@ -1420,13 +1300,9 @@ public class TreeData {
 
 				
 			if (node.isRoot()) {
-//				nX[iPos] = node.m_fPosX;
-//				nY[iPos] = node.m_fPosY;
-				fWidth[iPos] = 0;//getGamma(node, 1);
-				fWidthTop[iPos] = 0;//getGamma(node, 1);
+				fWidth[iPos] = 0;
+				fWidthTop[iPos] = 0;
 				iPos++;
-//				nX[iPos] = node.m_fPosX;
-//				nY[iPos] = node.m_fPosY - node.m_fLength;
 				iPos++;
 			}
 		}
@@ -1478,13 +1354,11 @@ public class TreeData {
 								return (float) frac;								
 							}
 						} catch (Exception e) {
-							// ignore
 						}
 					}
 				}
 			}
 		} catch (Exception e) {
-			// ignore
 		}
 		return 1f;
 	}
@@ -1512,8 +1386,6 @@ public class TreeData {
 
 		boolean[] b = new boolean[1];
 		for (int i = 0; i < m_trees.length; i++) {
-			// m_fLinesX[i] = new float[nNodes * 2 + 2];
-			// m_fLinesY[i] = new float[nNodes * 2 + 2];
 			if (settings.m_bAllowSingleChild) {
 				nNodes = getNrOfNodes(m_trees[i]);
 				m_fLinesX[i] = new float[nNodes * 2 + 2];
@@ -1528,8 +1400,6 @@ public class TreeData {
 		}
 		// calculate coordinates of lines for drawing consensus trees
 		for (int i = 0; i < m_cTrees.length; i++) {
-			// m_fCLinesX[i] = new float[nNodes * 2 + 2];
-			// m_fCLinesY[i] = new float[nNodes * 2 + 2];
 			if (settings.m_bAllowSingleChild) {
 				nNodes = getNrOfNodes(m_cTrees[i]);
 				m_fCLinesX[i] = new float[nNodes * 2 + 2];
@@ -1551,7 +1421,6 @@ public class TreeData {
 		
 		if (settings.m_bUseLogScale) {
 			System.err.println("Use log scaling");
-			//float f = (float) Math.log(m_fHeight + 1.0);
 			float fNormaliser = (float) (m_fHeight / Math.pow(m_fHeight, m_fExponent));
 			for (int i = 0; i < m_trees.length; i++) {
 				for (int j = 0; j < m_fLinesY[i].length; j++) {
@@ -1611,11 +1480,6 @@ public class TreeData {
 		}
 
 	}
-	
-	/**
-	 * calculate coordinates for lines in real coordinates This initialises the
-	 * m_nCLines and m_nCTLines (but not m_nLines,m_nTLines), arrays
-	 **/
 
 	public void calcLineWidths(boolean forceRecalc) {
 		if (!forceRecalc) {
@@ -1661,15 +1525,10 @@ public class TreeData {
 		if (settings.m_lineWidthModeTop == LineWidthMode.BY_METADATA_PATTERN) {
 			settings.m_patternTop = Pattern.compile(settings.m_sLineWidthPatternTop);
 		}
-//		if (m_lineWidthMode == LineWidthMode.BY_METADATA_NUMBER) {
-//			m_pattern = createPattern();
-//		}
 
 		// calculate coordinates of lines for drawing trees
 		boolean[] b = new boolean[1];
 		for (int i = 0; i < m_trees.length; i++) {
-			//m_fLinesX[i] = new float[nNodes * 2 + 2];
-			//m_fLinesY[i] = new float[nNodes * 2 + 2];
 			m_fLineWidth[i] = new float[nNodes * 2 + 2];
 			m_fTopLineWidth[i] = new float[nNodes * 2 + 2];
 			drawTreeS(m_trees[i], m_fLinesX[i], m_fLinesY[i], m_fLineWidth[i], m_fTopLineWidth[i], 0, b);
@@ -1677,8 +1536,6 @@ public class TreeData {
 
 		// calculate coordinates of lines for drawing consensus trees
 		for (int i = 0; i < m_cTrees.length; i++) {
-			//m_fCLinesX[i] = new float[nNodes * 2 + 2];
-			//m_fCLinesY[i] = new float[nNodes * 2 + 2];
 			m_fCLineWidth[i] = new float[nNodes * 2 + 2];
 			m_fTopCLineWidth[i] = new float[nNodes * 2 + 2];
 			drawTreeS(m_cTrees[i], m_fCLinesX[i], m_fCLinesY[i], m_fCLineWidth[i], m_fTopCLineWidth[i], 0, b);
@@ -1703,7 +1560,6 @@ public class TreeData {
 			m_fTopCLineWidth[i] = fTopCLineWidth;
 		}
 
-		// TODO: don't know how to set line width of root canal tree, so keep it unspecified
 		m_fRLineWidth[0] = new float[nNodes * 2 + 2];
 		m_fRTopLineWidth[0] = new float[nNodes * 2 + 2];
 		drawTreeS(m_rootcanaltree, m_fRLinesX[0], m_fRLinesY[0], m_fRLineWidth[0], m_fRTopLineWidth[0], 0, b);
@@ -1715,8 +1571,8 @@ public class TreeData {
 	
 	
 
-	int collectMetaData(Node node, float[] fHeights, float fLengthToRoot, int iPos, float[] fMetas, int[] nCounts) {
-		float fHeight = node.m_fPosY;// fLengthToRoot + node.m_fLength;
+	public int collectMetaData(Node node, float[] fHeights, float fLengthToRoot, int iPos, float[] fMetas, int[] nCounts) {
+		float fHeight = node.m_fPosY;
 		float fMeta = getMetaData(node);
 		int i = Arrays.binarySearch(fHeights, fHeight);
 		while (i >= 0 && fHeights[i] > fLengthToRoot) {
@@ -1725,16 +1581,8 @@ public class TreeData {
 			i--;
 		}
 		if (!node.isLeaf()) {
-			iPos = collectMetaData(node.m_left, fHeights, fHeight/*
-																 * fLengthToRoot
-																 * +
-																 * node.m_fLength
-																 */, iPos, fMetas, nCounts);
-			iPos = collectMetaData(node.m_right, fHeights, fHeight/*
-																 * fLengthToRoot
-																 * +
-																 * node.m_fLength
-																 */, iPos, fMetas, nCounts);
+			iPos = collectMetaData(node.m_left, fHeights, fHeight, iPos, fMetas, nCounts);
+			iPos = collectMetaData(node.m_right, fHeights, fHeight, iPos, fMetas, nCounts);
 		}
 		return iPos;
 	} // collectMetaData
@@ -1744,8 +1592,7 @@ public class TreeData {
 		try {
 			m_trees = parser.parseFile(sFile);
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, "Problem loading file: " + e.getMessage(),
-					"Help Message", JOptionPane.PLAIN_MESSAGE);
+			showMessageDialog("Problem loading file: " + e.getMessage(), "Help Message");
 			e.printStackTrace();
 			return false;
 		}
@@ -1764,8 +1611,7 @@ public class TreeData {
 
 		if (m_trees.length == 0) {
 			settings.m_sLabels = null;
-			JOptionPane.showMessageDialog(null, "No trees found in file\nMaybe burn in is too large?",
-					"Help Message", JOptionPane.PLAIN_MESSAGE);
+			showMessageDialog("No trees found in file\nMaybe burn in is too large?", "Help Message");
 			return false;
 		}
 
@@ -1804,7 +1650,6 @@ public class TreeData {
 		}
 
 		// count tree topologies
-		// first step is find how many different topologies are present
 		m_nTopology = new int[m_trees.length];
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
 		for (int i = 0; i < m_trees.length; i++) {
@@ -1818,8 +1663,6 @@ public class TreeData {
 			}
 		}
 
-		// second step is find how many different tree have a particular
-		// topology
 		m_nTopologies = map.size();
 		int[] nTopologies = new int[m_nTopologies];
 		for (int i = 0; i < m_trees.length; i++) {
@@ -1827,8 +1670,6 @@ public class TreeData {
 		}
 
 		// sort the trees so that frequently occurring topologies go first
-		// in
-		// the ordering
 		for (int i = 0; i < m_trees.length; i++) {
 			for (int j = i + 1; j < m_trees.length; j++) {
 				if (nTopologies[m_nTopology[i]] < nTopologies[m_nTopology[j]]
@@ -1844,10 +1685,6 @@ public class TreeData {
 			}
 		}
 		
-		
-		
-		// reserve memory for nodes of m_cTrees
-		// reserveMemory(m_nTopologies * (m_nNrOfLabels*2-1));
 		// calculate consensus trees
 		int i = 0;
 		int iOld = 0;
@@ -1866,9 +1703,6 @@ public class TreeData {
 			}
 			divideLength(consensusTree, i - iOld);
 			m_fTreeWeight[iConsTree] = (float) (i - iOld + 0.0) / m_trees.length;
-			// position nodes of consensus trees
-			// positionLeafs(consensusTree);
-			// positionRest(consensusTree);
 			float fHeight = positionHeight(consensusTree, 0);
 			offsetHeight(consensusTree, m_dt.m_fHeight - fHeight);
 			m_cTrees[iConsTree] = consensusTree;
@@ -1888,19 +1722,31 @@ public class TreeData {
 		// calculate lines for drawing trees & consensus trees
 		m_fLinesX = new float[m_trees.length][];
 		m_fLinesY = new float[m_trees.length][];
-		// m_fTLinesX = new float[m_trees.length][];
-		// m_fTLinesY = new float[m_trees.length][];
 		m_fCLinesX = new float[m_nTopologies][];
 		m_fCLinesY = new float[m_nTopologies][];
-		// m_fCTLinesX = new float[m_nTopologies][];
-		// m_fCTLinesY = new float[m_nTopologies][];
-		// calcLines();
 		
 		m_bCladesReady = false;
 
 		return true;
 	}
 
+	/**
+	 * Displays an information alert dialog safely on the JavaFX Application Thread.
+	 */
+	private void showMessageDialog(String message, String title) {
+		Runnable alertTask = () -> {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle(title);
+			alert.setHeaderText(null);
+			alert.setContentText(message);
+			alert.showAndWait();
+		};
+		if (Platform.isFxApplicationThread()) {
+			alertTask.run();
+		} else {
+			Platform.runLater(alertTask);
+		}
+	}
 
 	/**
 	 * move divide y-position of a tree with factor f. Useful to calculate
@@ -1921,7 +1767,6 @@ public class TreeData {
 	 * consensus trees. Assumes src and target share same topology
 	 */
 	private void addLength(Node src, Node target) {
-		// assumes same topologies for src and target
 		if (!src.isLeaf()) {
 			addLength(src.m_left, target.m_left);
 			if (src.m_right != null) {
