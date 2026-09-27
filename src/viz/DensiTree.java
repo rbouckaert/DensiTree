@@ -260,6 +260,7 @@ public class DensiTree extends BorderPane {
 		m_centerSplitPane = new SplitPane();
 		m_centerSplitPane.setOrientation(Orientation.HORIZONTAL);
 		m_centerSplitPane.getItems().addAll(m_jScrollPane);
+		//m_centerSplitPane.getItems().addAll(m_panelSwingNode);
 
 		m_mainSplitPane = new SplitPane();
 		m_mainSplitPane.setOrientation(Orientation.VERTICAL);
@@ -943,9 +944,11 @@ public class DensiTree extends BorderPane {
 	}
 
 	void notifyChangeListeners() {
-		for (ChangeListener listener : m_changeListeners) {
-			listener.stateChanged(null);
-		}
+		Platform.runLater(() -> {
+			for (ChangeListener listener : m_changeListeners) {
+				listener.stateChanged(null);
+			}
+		});
 	}
 
 	private boolean orderChanged(int[] oldOrder) {
@@ -1889,6 +1892,7 @@ public class DensiTree extends BorderPane {
 		ImageView iv = getFxIconView(iconName);
 		if (iv != null) btn.setGraphic(iv);
 		if (tooltipText != null) btn.setTooltip(new Tooltip(tooltipText));
+		btn.setPrefSize(iv.getFitWidth(), iv.getFitHeight());
 		btn.setOnAction(e -> action.run());
 		return btn;
 	}
