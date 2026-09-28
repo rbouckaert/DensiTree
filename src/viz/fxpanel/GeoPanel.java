@@ -80,10 +80,9 @@ public class GeoPanel extends GridPane {
         btnLoadLocations.setMaxWidth(Double.MAX_VALUE);
         btnLoadLocations.setTooltip(createTooltip(HELP_LOAD_LOCATIONS));
         btnLoadLocations.setOnAction(e -> {
-        	m_dt.loadKMLLocations();
-//            if (m_dt.a_loadkml != null) {
-//                m_dt.a_loadkml.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-//            }
+            if (m_dt.a_loadkml != null) {
+                m_dt.a_loadkml.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+            }
         });
         GridPane.setColumnSpan(btnLoadLocations, 2);
         GridPane.setHgrow(btnLoadLocations, Priority.ALWAYS);

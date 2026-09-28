@@ -27,7 +27,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import javafx.application.Platform;
 import viz.DensiTree.LineColorMode;
 import viz.DensiTree.ViewMode;
 import viz.graphics.ArcBranchDrawer;
@@ -191,7 +190,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 									fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('.');
-								setStatus("Drawing tree " + i);
+								m_dt.m_jStatusBar.setText("Drawing tree " + i);
 							}
 						}
 					}
@@ -219,7 +218,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 									fScaleX, fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('x');
-								setStatus("Drawing consensus tree " + i);
+								m_dt.m_jStatusBar.setText("Drawing consensus tree " + i);
 							}
 						}
 					}
@@ -232,7 +231,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 							drawRootCanalTree(g, treeData);
 						}
 						double fEntropy = calcImageEntropy(m_image);
-						setStatus("Done Drawing trees ");
+						m_dt.m_jStatusBar.setText("Done Drawing trees ");
 						System.out.println("Entropy(x100): " + fEntropy + " Mean cumulative width: " + m_dt.m_w);
 					}
 					repaint();
@@ -242,27 +241,19 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 					for (int i = 0; i <= m_dt.m_iAnimateTree; i++) {
 						fSum += treeData.m_fTreeWeight[i];
 					}
-					
-					setStatus("Consensus tree " + (m_dt.m_iAnimateTree + 1) + " out of " + treeData.m_nTopologies
+
+					m_dt.m_jStatusBar.setText("Consensus tree " + (m_dt.m_iAnimateTree + 1) + " out of " + treeData.m_nTopologies
 							+ " covering " + df.format((treeData.m_fTreeWeight[m_dt.m_iAnimateTree] * 100)) + "% of trees "
 							+ df.format(fSum * 100) + "% cumultive trees");
-					//});
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println("DRAWING ERROR -- IGNORED");
 			}
 			m_drawThread[treeData.reverse() ? 1 : 0][m_nFrom] = null;
-//
-			}
+		}
 	} // DrawThread
 
-
-	void setStatus(String msg) {
-		Platform.runLater(() -> {
-			m_dt.m_jStatusBar.setText(msg);
-		});
-	}
 
 	void drawLabelsSVG(Node node, StringBuffer buf) {
 		if (node.isLeaf()) {
@@ -372,31 +363,28 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-//		SwingUtilities.invokeLater(() -> {
-			m_dt.a_undo.setEnabled(m_dt.m_doActions.size() > 0 && m_dt.m_iUndo > 1);
-			m_dt.a_redo.setEnabled(m_dt.m_iUndo < m_dt.m_doActions.size());
-			m_dt.a_loadMirror.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0);
-			m_dt.a_exportCladeComparison.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0 
-					&& m_dt.m_treeData2 != null && m_dt.m_cladeSetComparisonPanel.isVisible());
-	
-			Graphics2D g2 = (Graphics2D) g;
-			Color oldBackground = g2.getBackground();
-			g2.setBackground(m_dt.m_settings.m_color[DensiTree.BGCOLOR]);
-			Rectangle r = g.getClipBounds();
-			g.clearRect(r.x, r.y, r.width, r.height);
-			g2.setBackground(oldBackground);
-			g.setClip(r.x, r.y, r.width, r.height);
-			g.setClip(0,0, (int) m_dt.m_jScrollPane.getWidth(), (int) m_dt.m_jScrollPane.getHeight());
-			paintComponent(g, m_dt.m_treeData, m_image1);
-			if (m_dt.m_treeData2 != null) {
-				paintComponent(g, m_dt.m_treeData2, m_image2);
-			}
-	
-			((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
-			if (m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0) {
-				m_dt.drawLabels(m_dt.m_treeData.m_trees[0], g2, m_dt.m_treeData);
-			}
-//		});
+		m_dt.a_undo.setEnabled(m_dt.m_doActions.size() > 0 && m_dt.m_iUndo > 1);
+		m_dt.a_redo.setEnabled(m_dt.m_iUndo < m_dt.m_doActions.size());
+		m_dt.a_loadMirror.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0);
+		m_dt.a_exportCladeComparison.setEnabled(m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0 
+				&& m_dt.m_treeData2 != null && m_dt.m_cladeSetComparisonPanel.isVisible());
+
+		Graphics2D g2 = (Graphics2D) g;
+		Color oldBackground = g2.getBackground();
+		g2.setBackground(m_dt.m_settings.m_color[DensiTree.BGCOLOR]);
+		Rectangle r = g.getClipBounds();
+		g.clearRect(r.x, r.y, r.width, r.height);
+		g2.setBackground(oldBackground);
+		g.setClip(r.x, r.y, r.width, r.height);
+		paintComponent(g, m_dt.m_treeData, m_image1);
+		if (m_dt.m_treeData2 != null) {
+			paintComponent(g, m_dt.m_treeData2, m_image2);
+		}
+
+		((Graphics2D)g).setTransform(new AffineTransform(1,0,0,1, 0, 0));
+		if (m_dt.m_treeData.m_trees != null && m_dt.m_treeData.m_trees.length > 0) {
+			m_dt.drawLabels(m_dt.m_treeData.m_trees[0], g2, m_dt.m_treeData);
+		}
 	}
 	
 	public void paintComponent(Graphics g, TreeData treeData, BufferedImageF m_image) {
@@ -554,7 +542,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 			if (m_image == null) {
 				System.err.println("Setting up new image");
 				if (!m_dt.m_settings.m_bShowBounds) {
-					m_image = new BufferedImageF((int) (m_dt.m_jScrollPane.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (m_dt.m_jScrollPane.getHeight() * m_dt.m_fScale));
+					m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 				} else {
 					m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2),
 							(int) (getHeight() * m_dt.m_fScale));
@@ -681,7 +669,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 		g.clearRect(r.x, r.y, r.width, r.height);
 		((Graphics2D) g).setBackground(oldBackground);
 		g.setClip(r.x, r.y, r.width, r.height);
-		g.setClip(0, 0, (int)m_dt.m_jScrollPane.getWidth(), (int)m_dt.m_jScrollPane.getHeight());
+
 		if (treeData.m_trees == null || treeData.m_fCLinesY == null || m_dt.m_bInitializing) {
 			// nothing to see
 			return;
@@ -694,7 +682,7 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 																				// ViewMode.BROWSE)
 																				// {
 			if (!m_dt.m_settings.m_bShowBounds) {
-				m_image = new BufferedImageF((int) (m_dt.m_jScrollPane.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (m_dt.m_jScrollPane.getHeight() * m_dt.m_fScale));
+				m_image = new BufferedImageF((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			} else {
 				m_image = new BufferedImageBounded((int) (m_dt.getWidth() * m_dt.m_fScale)/(treeData.drawMode == TreeData.MODE_CENTRE ? 1 : 2), (int) (getHeight() * m_dt.m_fScale));
 			}
