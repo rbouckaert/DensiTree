@@ -185,9 +185,9 @@ public class TreeSetPanel extends JPanel implements MouseListener, Printable, Mo
 //							}
 
 							m_dt.m_treeDrawer.draw(i, treeData.m_fLinesX, treeData.m_fLinesY, treeData.m_fLineWidth, treeData.m_fTopLineWidth, treeData.m_nLineColor, 
-									((BasicStroke)g.getStroke()).getLineWidth(), ((AlphaComposite)g.getComposite()).getAlpha(), 
-									fScaleX,
-									fScaleY);
+								((BasicStroke)g.getStroke()).getLineWidth(), ((AlphaComposite)g.getComposite()).getAlpha(), 
+								fScaleX,
+								fScaleY);
 							if (i % 100 == 0) {
 								System.err.print('.');
 								m_dt.m_jStatusBar.setText("Drawing tree " + i);

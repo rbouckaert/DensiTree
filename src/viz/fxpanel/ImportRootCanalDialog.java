@@ -153,9 +153,11 @@ public class ImportRootCanalDialog extends GridPane {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Import root canal tree");
 
-        if (parent instanceof Window window) {
+        if (parent instanceof Window) {
+        	Window window = (Window) parent;
             dialog.initOwner(window);
-        } else if (parent instanceof Node node && node.getScene() != null) {
+        } else if (parent instanceof Node  && ((Window)parent).getScene() != null) {
+        	Node node = (Node) parent;
             dialog.initOwner(node.getScene().getWindow());
         }
 

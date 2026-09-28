@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JColorChooser;
+import javax.swing.SwingUtilities;
 
 import viz.DensiTree;
 import viz.graphics.JFontChooser;
@@ -119,16 +120,18 @@ public class LabelPanel extends GridPane {
         btnFont.setMaxWidth(Double.MAX_VALUE);
         btnFont.setTooltip(createTooltip(HELP_FONT));
         btnFont.setOnAction(e -> {
-            JFontChooser fontChooser = new JFontChooser();
-            if (m_dt.m_font != null) {
-                fontChooser.setSelectedFont(m_dt.m_font);
-            }
-            int result = fontChooser.showDialog(null);
-            if (result == JFontChooser.OK_OPTION) {
-                m_dt.m_font = fontChooser.getSelectedFont();
-                m_dt.makeDirty();
-                m_dt.repaint();
-            }
+        	SwingUtilities.invokeLater(() -> {
+	            JFontChooser fontChooser = new JFontChooser();
+	            if (m_dt.m_font != null) {
+	                fontChooser.setSelectedFont(m_dt.m_font);
+	            }
+	            int result = fontChooser.showDialog(null);
+	            if (result == JFontChooser.OK_OPTION) {
+	                m_dt.m_font = fontChooser.getSelectedFont();
+	                m_dt.makeDirty();
+	                m_dt.repaint();
+	            }
+        	});
         });
         GridPane.setHgrow(btnFont, Priority.ALWAYS);
         add(btnFont, 0, 5);
@@ -137,16 +140,18 @@ public class LabelPanel extends GridPane {
         btnColor.setMaxWidth(Double.MAX_VALUE);
         btnColor.setTooltip(createTooltip(HELP_COLOR));
         btnColor.setOnAction(e -> {
-            Color newColor = JColorChooser.showDialog(
-                    m_dt.m_Panel,
-                    "Label Color",
-                    m_dt.m_settings.m_color[DensiTree.LABELCOLOR]
-            );
-            if (newColor != null) {
-                m_dt.m_settings.m_color[DensiTree.LABELCOLOR] = newColor;
-                m_dt.makeDirty();
-            }
-            m_dt.repaint();
+        	SwingUtilities.invokeLater(() -> {
+	            Color newColor = JColorChooser.showDialog(
+	                    m_dt.m_Panel,
+	                    "Label Color",
+	                    m_dt.m_settings.m_color[DensiTree.LABELCOLOR]
+	            );
+	            if (newColor != null) {
+	                m_dt.m_settings.m_color[DensiTree.LABELCOLOR] = newColor;
+	                m_dt.makeDirty();
+	            }
+	            m_dt.repaint();
+        	});
         });
         GridPane.setHgrow(btnColor, Priority.ALWAYS);
         add(btnColor, 1, 5);

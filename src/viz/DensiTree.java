@@ -46,7 +46,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
@@ -75,10 +74,7 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -971,9 +967,11 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 	
 	void notifyChangeListeners() {
-		for (ChangeListener listener : m_changeListeners) {
-			listener.stateChanged(null);
-		}
+		Platform.runLater(()->{
+			for (ChangeListener listener : m_changeListeners) {
+				listener.stateChanged(null);
+			}
+		});
 	}
 
 	private boolean orderChanged(int[] oldOrder) {
@@ -1894,7 +1892,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 				r.height = 10;
 				r.width = m_settings.m_nLabelWidth;
 				drawImage(g, x, y, node.m_iLabel);
-				if (m_settings.m_fLabelIndent > 0 && x > m_bgImage.getWidth()) {
+				if (m_settings.m_fLabelIndent > 0 && m_bgImage != null && x > m_bgImage.getWidth()) {
 					System.err.println("label outside image: try reducing the indent");
 				}
 			}
@@ -3907,6 +3905,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 		    VBox vbox = new VBox(2);
 		    vbox.setPadding(new Insets(5));
 		    vbox.setFillWidth(true);
+		    vbox.setPrefHeight(getHeight() + 40);
 
 		    // Add all ExpandablePanels with their respective JavaFX child panels
 		    vbox.getChildren().addAll(
@@ -3926,13 +3925,18 @@ public class DensiTree extends JPanel implements ComponentListener {
 		    // Wrap in a ScrollPane so the tool panel scrolls cleanly if the window is resized
 		    ScrollPane scrollPane = new ScrollPane(vbox);
 		    scrollPane.setFitToWidth(true);
+		    scrollPane.setFitToHeight(true);
 		    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 		    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+		    VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
 		    // Set the JavaFX Scene on the JFXPanel
 		    toolPanel.setScene(new Scene(scrollPane));
 		});
-		m_jTbTools2.add(toolPanel);
+		JPanel swingContainer = new JPanel(new BorderLayout());
+		swingContainer.add(toolPanel, BorderLayout.CENTER);
+		m_jTbTools2.add(swingContainer);
 
 
 		
@@ -4090,7 +4094,8 @@ public class DensiTree extends JPanel implements ComponentListener {
 	    if (action != null) {
 	        // 1. Convert Swing Icon to JavaFX Graphic
 	        Object iconObj = action.getValue(Action.SMALL_ICON);
-	        if (iconObj instanceof Icon icon) {
+	        if (iconObj instanceof Icon) {
+	        	Icon icon = (Icon) iconObj;
 	            BufferedImage bImg = new BufferedImage(
 	                icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB
 	            );

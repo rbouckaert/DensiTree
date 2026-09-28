@@ -19,6 +19,7 @@ import javafx.scene.layout.VBox;
 
 import java.awt.Color;
 import javax.swing.JColorChooser;
+import javax.swing.SwingUtilities;
 
 import viz.DensiTree;
 import viz.GridDrawer.GridMode;
@@ -138,16 +139,18 @@ public class GridPanel extends GridPane {
         btnGridFont.setMaxWidth(Double.MAX_VALUE);
         btnGridFont.setTooltip(createTooltip(HELP_FONT));
         btnGridFont.setOnAction(e -> {
-            JFontChooser fontChooser = new JFontChooser();
-            if (m_dt.m_gridDrawer.m_gridfont != null) {
-                fontChooser.setSelectedFont(m_dt.m_gridDrawer.m_gridfont);
-            }
-            int result = fontChooser.showDialog(null);
-            if (result == JFontChooser.OK_OPTION) {
-                m_dt.m_gridDrawer.m_gridfont = fontChooser.getSelectedFont();
-                m_dt.makeDirty();
-                m_dt.repaint();
-            }
+        	SwingUtilities.invokeLater(() -> {
+	            JFontChooser fontChooser = new JFontChooser();
+	            if (m_dt.m_gridDrawer.m_gridfont != null) {
+	                fontChooser.setSelectedFont(m_dt.m_gridDrawer.m_gridfont);
+	            }
+	            int result = fontChooser.showDialog(null);
+	            if (result == JFontChooser.OK_OPTION) {
+	                m_dt.m_gridDrawer.m_gridfont = fontChooser.getSelectedFont();
+	                m_dt.makeDirty();
+	                m_dt.repaint();
+	            }
+        	});
         });
         GridPane.setHgrow(btnGridFont, Priority.ALWAYS);
         add(btnGridFont, 0, 3);
@@ -156,16 +159,18 @@ public class GridPanel extends GridPane {
         btnGridColor.setMaxWidth(Double.MAX_VALUE);
         btnGridColor.setTooltip(createTooltip(HELP_COLOR));
         btnGridColor.setOnAction(e -> {
-            Color newColor = JColorChooser.showDialog(
-                    m_dt.m_Panel,
-                    "Grid Color",
-                    m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR]
-            );
-            if (newColor != null) {
-                m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR] = newColor;
-                m_dt.makeDirty();
-            }
-            m_dt.repaint();
+        	SwingUtilities.invokeLater(() -> {
+	            Color newColor = JColorChooser.showDialog(
+	                    m_dt.m_Panel,
+	                    "Grid Color",
+	                    m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR]
+	            );
+	            if (newColor != null) {
+	                m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR] = newColor;
+	                m_dt.makeDirty();
+	            }
+	            m_dt.repaint();
+        	});
         });
         GridPane.setHgrow(btnGridColor, Priority.ALWAYS);
         add(btnGridColor, 1, 3);

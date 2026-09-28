@@ -63,7 +63,8 @@ public class ExpandablePanel extends VBox {
         panel.managedProperty().bind(panel.visibleProperty());
         setOpen(visible);
 
-        if (panel instanceof Region region) {
+        if (panel instanceof Region) {
+        	Region region = (Region) panel;
             region.setStyle("-fx-border-color: gray; -fx-border-width: 1px;");
             VBox.setVgrow(region, Priority.ALWAYS);
         }

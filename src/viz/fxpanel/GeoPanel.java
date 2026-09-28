@@ -15,6 +15,7 @@ import viz.DensiTree;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import javax.swing.JColorChooser;
+import javax.swing.SwingUtilities;
 
 public class GeoPanel extends GridPane {
 
@@ -80,9 +81,11 @@ public class GeoPanel extends GridPane {
         btnLoadLocations.setMaxWidth(Double.MAX_VALUE);
         btnLoadLocations.setTooltip(createTooltip(HELP_LOAD_LOCATIONS));
         btnLoadLocations.setOnAction(e -> {
-            if (m_dt.a_loadkml != null) {
-                m_dt.a_loadkml.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-            }
+        	SwingUtilities.invokeLater(() -> {
+        		if (m_dt.a_loadkml != null) {
+        			m_dt.a_loadkml.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+        		}
+        	});
         });
         GridPane.setColumnSpan(btnLoadLocations, 2);
         GridPane.setHgrow(btnLoadLocations, Priority.ALWAYS);
@@ -93,16 +96,18 @@ public class GeoPanel extends GridPane {
         btnLineColor.setMaxWidth(Double.MAX_VALUE);
         btnLineColor.setTooltip(createTooltip(HELP_COLOR));
         btnLineColor.setOnAction(e -> {
-            Color newColor = JColorChooser.showDialog(
-                    m_dt.m_Panel,
-                    "Geo Line Color",
-                    m_dt.m_settings.m_color[DensiTree.GEOCOLOR]
-            );
-            if (newColor != null) {
-                m_dt.m_settings.m_color[DensiTree.GEOCOLOR] = newColor;
-                m_dt.makeDirty();
-            }
-            m_dt.repaint();
+        	SwingUtilities.invokeLater(() -> {
+	            Color newColor = JColorChooser.showDialog(
+	                    m_dt.m_Panel,
+	                    "Geo Line Color",
+	                    m_dt.m_settings.m_color[DensiTree.GEOCOLOR]
+	            );
+	            if (newColor != null) {
+	                m_dt.m_settings.m_color[DensiTree.GEOCOLOR] = newColor;
+	                m_dt.makeDirty();
+	            }
+	            m_dt.repaint();
+        	});
         });
         GridPane.setColumnSpan(btnLineColor, 2);
         GridPane.setHgrow(btnLineColor, Priority.ALWAYS);
