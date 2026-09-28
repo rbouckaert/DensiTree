@@ -2,9 +2,9 @@ package viz.fxpanel;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Separator;
@@ -13,17 +13,16 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.awt.Color;
-import javax.swing.JColorChooser;
-import javax.swing.SwingUtilities;
+import java.util.Optional;
+
 
 import viz.DensiTree;
 import viz.GridDrawer.GridMode;
-import viz.graphics.JFontChooser;
 
 public class GridPanel extends GridPane {
 
@@ -60,6 +59,14 @@ public class GridPanel extends GridPane {
         setHgap(5);
         setVgap(5);
         setPadding(new Insets(5));
+        
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(50);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(50);
+
+        getColumnConstraints().addAll(col1, col2);
+
 
         // 1. Grid Mode Radio Buttons Box (Row 0)
         VBox modeBox = new VBox(4);
@@ -139,39 +146,36 @@ public class GridPanel extends GridPane {
         btnGridFont.setMaxWidth(Double.MAX_VALUE);
         btnGridFont.setTooltip(createTooltip(HELP_FONT));
         btnGridFont.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            JFontChooser fontChooser = new JFontChooser();
-	            if (m_dt.m_gridDrawer.m_gridfont != null) {
-	                fontChooser.setSelectedFont(m_dt.m_gridDrawer.m_gridfont);
-	            }
-	            int result = fontChooser.showDialog(null);
-	            if (result == JFontChooser.OK_OPTION) {
-	                m_dt.m_gridDrawer.m_gridfont = fontChooser.getSelectedFont();
-	                m_dt.makeDirty();
-	                m_dt.repaint();
-	            }
-        	});
+        	FontChooserDialog dialog = new FontChooserDialog(m_dt.m_gridDrawer.m_gridfont);
+            Optional<java.awt.Font> result = dialog.showAndWait();
+            result.ifPresent(awtFont -> {
+                System.out.println("Selected AWT Font: " + awtFont);
+                m_dt.m_gridDrawer.m_gridfont = awtFont;
+                m_dt.makeDirty();
+                m_dt.repaint();
+            });
         });
         GridPane.setHgrow(btnGridFont, Priority.ALWAYS);
         add(btnGridFont, 0, 3);
 
-        Button btnGridColor = new Button("Color");
-        btnGridColor.setMaxWidth(Double.MAX_VALUE);
-        btnGridColor.setTooltip(createTooltip(HELP_COLOR));
-        btnGridColor.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            Color newColor = JColorChooser.showDialog(
-	                    m_dt.m_Panel,
-	                    "Grid Color",
-	                    m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR]
-	            );
-	            if (newColor != null) {
-	                m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR] = newColor;
-	                m_dt.makeDirty();
-	            }
-	            m_dt.repaint();
-        	});
+
+        java.awt.Color awtColor = m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR];
+        javafx.scene.paint.Color initialFxColor = ColorPanel.awtToFxColor(awtColor);
+
+        ColorPicker btnGridColor = new ColorPicker(initialFxColor);
+        //colorPicker.setPromptText("Grid Color");
+        btnGridColor.setTooltip(new Tooltip("Grid Color"));
+        btnGridColor.setOnAction(ex -> {
+            javafx.scene.paint.Color newFxColor = btnGridColor.getValue();
+            if (newFxColor != null) {
+                m_dt.m_settings.m_color[DensiTree.HEIGHTCOLOR] = ColorPanel.fxToAwtColor(newFxColor);
+                m_dt.calcColors(true);
+                m_dt.makeDirty();
+            }
+            m_dt.repaint();
         });
+
+        
         GridPane.setHgrow(btnGridColor, Priority.ALWAYS);
         add(btnGridColor, 1, 3);
 

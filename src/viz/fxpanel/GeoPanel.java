@@ -4,6 +4,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -92,23 +93,23 @@ public class GeoPanel extends GridPane {
         add(btnLoadLocations, 0, 2);
 
         // 4. Line Color Button (Row 3)
-        Button btnLineColor = new Button("Color");
+        java.awt.Color awtColor = m_dt.m_settings.m_color[DensiTree.GEOCOLOR];
+        javafx.scene.paint.Color initialFxColor = ColorPanel.awtToFxColor(awtColor);
+
+        ColorPicker btnLineColor = new ColorPicker(initialFxColor);
+        btnLineColor.setTooltip(new Tooltip(HELP_COLOR));
         btnLineColor.setMaxWidth(Double.MAX_VALUE);
-        btnLineColor.setTooltip(createTooltip(HELP_COLOR));
-        btnLineColor.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            Color newColor = JColorChooser.showDialog(
-	                    m_dt.m_Panel,
-	                    "Geo Line Color",
-	                    m_dt.m_settings.m_color[DensiTree.GEOCOLOR]
-	            );
-	            if (newColor != null) {
-	                m_dt.m_settings.m_color[DensiTree.GEOCOLOR] = newColor;
-	                m_dt.makeDirty();
-	            }
-	            m_dt.repaint();
-        	});
+        btnLineColor.setMinHeight(24);
+        btnLineColor.setOnAction(ex -> {
+            javafx.scene.paint.Color newFxColor = btnLineColor.getValue();
+            if (newFxColor != null) {
+            	m_dt.m_settings.m_color[DensiTree.GEOCOLOR] = ColorPanel.fxToAwtColor(newFxColor);
+                m_dt.makeDirty();
+            }
+            m_dt.repaint();
         });
+        
+        
         GridPane.setColumnSpan(btnLineColor, 2);
         GridPane.setHgrow(btnLineColor, Priority.ALWAYS);
         add(btnLineColor, 0, 3);

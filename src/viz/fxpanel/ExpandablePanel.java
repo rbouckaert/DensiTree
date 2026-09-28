@@ -40,8 +40,8 @@ public class ExpandablePanel extends VBox {
         this.m_sLabel = sLabel;
         this.m_panel = panel;
 
-        setSpacing(4);
-        setPadding(new Insets(2));
+        setSpacing(2);
+        //setPadding(new Insets(2));
 
         String name = panel.getClass().getSimpleName();
         setId(name);
@@ -51,6 +51,11 @@ public class ExpandablePanel extends VBox {
         editButton.setId(name + "Button");
         editButton.setAlignment(Pos.CENTER_LEFT);
         editButton.setMaxWidth(Double.MAX_VALUE);
+        
+        editButton.setPrefHeight(8.0);
+        editButton.setMaxHeight(4.0);
+        setPrefHeight(8.0);
+        setMaxHeight(8.0);
 
         // Icon setup
         iconView.setFitWidth(12);

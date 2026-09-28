@@ -282,14 +282,15 @@ public class ColorPanel extends GridPane implements ChangeListener {
             row[0]++;
         }
 
-        private static javafx.scene.paint.Color awtToFxColor(java.awt.Color c) {
-            if (c == null) return javafx.scene.paint.Color.BLACK;
-            return javafx.scene.paint.Color.rgb(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha() / 255.0);
-        }
+    }
 
-        private static java.awt.Color fxToAwtColor(javafx.scene.paint.Color c) {
-            if (c == null) return java.awt.Color.BLACK;
-            return new java.awt.Color((float) c.getRed(), (float) c.getGreen(), (float) c.getBlue(), (float) c.getOpacity());
-        }
+    public static javafx.scene.paint.Color awtToFxColor(java.awt.Color c) {
+        if (c == null) return javafx.scene.paint.Color.BLACK;
+        return javafx.scene.paint.Color.rgb(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha() / 255.0);
+    }
+
+    public static java.awt.Color fxToAwtColor(javafx.scene.paint.Color c) {
+        if (c == null) return java.awt.Color.BLACK;
+        return new java.awt.Color((float) c.getRed(), (float) c.getGreen(), (float) c.getBlue(), (float) c.getOpacity());
     }
 }

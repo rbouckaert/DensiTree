@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
@@ -15,12 +16,13 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
+import java.util.Optional;
+
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import viz.DensiTree;
-import viz.graphics.JFontChooser;
 
 public class CladePanel extends GridPane implements ChangeListener {
 
@@ -63,7 +65,6 @@ public class CladePanel extends GridPane implements ChangeListener {
         setVgap(5);
         setPadding(new Insets(5));
         
-        // Column 0: Fixed 120px width
         ColumnConstraints col1 = new ColumnConstraints();
         col1.setPercentWidth(50);
         ColumnConstraints col2 = new ColumnConstraints();
@@ -226,32 +227,31 @@ public class CladePanel extends GridPane implements ChangeListener {
         // Row 8: Font & Color
         btnFont.setTooltip(createTooltip(HELP_FONT));
         btnFont.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-        		JFontChooser fontChooser = new JFontChooser();
-	            if (m_dt.m_cladeDrawer.m_font != null) {
-	                fontChooser.setSelectedFont(m_dt.m_cladeDrawer.m_font);
-	            }
-	            int result = fontChooser.showDialog(null);
-	            if (result == JFontChooser.OK_OPTION) {
-	                m_dt.m_cladeDrawer.m_font = fontChooser.getSelectedFont();
-	                m_dt.makeDirty();
-	                m_dt.repaint();
-	            }
-        	});
+        	FontChooserDialog dialog = new FontChooserDialog(m_dt.m_cladeDrawer.m_font);
+            Optional<java.awt.Font> result = dialog.showAndWait();
+            result.ifPresent(awtFont -> {
+            	m_dt.m_cladeDrawer.m_font = awtFont;
+                m_dt.makeDirty();
+                m_dt.repaint();
+            });
         });
         add(btnFont, 0, 8);
 
-        btnColor.setTooltip(createTooltip(HELP_COLOR));
-        btnColor.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            java.awt.Color newColor = javax.swing.JColorChooser.showDialog(m_dt.m_Panel, "Choose Clade Text Color", m_dt.m_cladeDrawer.m_color);
-	            if (newColor != null) {
-	                m_dt.m_cladeDrawer.m_color = newColor;
-	                m_dt.makeDirty();
-	            }
-	            m_dt.repaint();
-        	});
+        
+        java.awt.Color awtColor = m_dt.m_cladeDrawer.m_color;
+        javafx.scene.paint.Color initialFxColor = ColorPanel.awtToFxColor(awtColor);
+
+        ColorPicker btnColor = new ColorPicker(initialFxColor);
+        btnColor.setTooltip(new Tooltip(HELP_COLOR));
+        btnColor.setOnAction(ex -> {
+            javafx.scene.paint.Color newFxColor = btnColor.getValue();
+            if (newFxColor != null) {
+            	m_dt.m_cladeDrawer.m_color = ColorPanel.fxToAwtColor(newFxColor);
+                m_dt.makeDirty();
+            }
+            m_dt.repaint();
         });
+
         GridPane.setColumnSpan(btnColor, 2);
         add(btnColor, 1, 8);
 

@@ -156,7 +156,7 @@ public class ImportRootCanalDialog extends GridPane {
         if (parent instanceof Window) {
         	Window window = (Window) parent;
             dialog.initOwner(window);
-        } else if (parent instanceof Node  && ((Window)parent).getScene() != null) {
+        } else if (parent instanceof Node  && ((Node)parent).getScene() != null) {
         	Node node = (Node) parent;
             dialog.initOwner(node.getScene().getWindow());
         }

@@ -671,7 +671,7 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 		}
 		return "\n\nCurrent status:\n" + m_treeData.m_trees.length + " trees with " + m_treeData.m_cTrees.length + " topologies " +
-				m_settings.m_sLabels.size() + " taxa " + nSelected + " selected \n"
+				(m_settings.m_sLabels != null ? m_settings.m_sLabels.size() : 0 ) + " taxa " + nSelected + " selected \n"
 				+ "Tree intensity: " + m_settings.m_fTreeIntensity + "\n" + "Consensus Tree intensity: " + m_settings.m_fCTreeIntensity
 				+ "\n" + "Tree width: " + m_settings.m_nTreeWidth + "\n" + "Consensus Tree width: " + m_settings.m_nCTreeWidth + "\n"
 				+ "Jitter: " + m_settings.m_nJitter + "\n" + "Animation delay: " + m_nAnimationDelay + "\n" + "Height: "
@@ -2497,75 +2497,90 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".bmp";
-				}
+//			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".bmp";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "Bitmap files (*.bmp)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".jpg";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "JPEG bitmap files (*.jpg)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".png";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "PNG bitmap files (*.png)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".pdf";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "PDF files (*.pdf)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				public String getExtention() {
+//					return ".svg";
+//				}
+//
+//				public String getDescription() {
+//					return "Standard Vector Graphics files";
+//				}
+//			});
+//			fc.setDialogTitle("Export DensiTree As");			
+//			int rval = fc.showSaveDialog(m_Panel);
+			
+			File [] files = Util.getFile("Export DensiTree As (png, jpg, bmp, pdf, svg)", false, new File(m_settings.m_sDir), false,
+					 "Graphics files",
+					 "bmp",
+					 //"JPEG bitmap files (*.jpg)",
+					 "jpg",
+					 //"PNG bitmap files (*.png)",
+					 "png",
+					 //"PDF files (*.pdf)",
+					 "pdf",
+					 //"Standard Vector Graphics files",
+					 "svg");
 
-				@Override
-				public String getDescription() {
-					return "Bitmap files (*.bmp)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".jpg";
-				}
-
-				@Override
-				public String getDescription() {
-					return "JPEG bitmap files (*.jpg)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".png";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PNG bitmap files (*.png)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".pdf";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PDF files (*.pdf)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				public String getExtention() {
-					return ".svg";
-				}
-
-				public String getDescription() {
-					return "Standard Vector Graphics files";
-				}
-			});
-			fc.setDialogTitle("Export DensiTree As");			
-			int rval = fc.showSaveDialog(m_Panel);
-			if (rval == JFileChooser.APPROVE_OPTION) {
+			//if (rval == JFileChooser.APPROVE_OPTION) {
+			if (files != null && files.length > 0) {
+				String sFileName = files[0].getPath();
 				// System.out.println("Saving to file \""+
 				// f.getAbsoluteFile().toString()+"\"");
-				String sFileName = fc.getSelectedFile().toString();
+				//String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
 					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
 				if (sFileName != null && !sFileName.equals("")) {
-					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".pdf")
-							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
-						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
-					}
+//					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+//							|| sFileName.toLowerCase().endsWith(".pdf")
+//							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
+//						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
+//					}
 
                     if (sFileName.toLowerCase().endsWith(".pdf")) {
                     	exportPDF(sFileName, m_Panel);
@@ -2646,66 +2661,82 @@ public class DensiTree extends JPanel implements ComponentListener {
 			}
 			
 			
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".bmp";
-				}
+//			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".bmp";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "Bitmap files (*.bmp)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".jpg";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "JPEG bitmap files (*.jpg)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".png";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "PNG bitmap files (*.png)";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new MyFileFilter() {
+//				@Override
+//				public String getExtention() {
+//					return ".pdf";
+//				}
+//
+//				@Override
+//				public String getDescription() {
+//					return "PDF files (*.pdf)";
+//				}
+//			});
+//			fc.setDialogTitle("Export Clade Comparison As");			
+//			int rval = fc.showSaveDialog(m_Panel);
+//			if (rval == JFileChooser.APPROVE_OPTION) {
 
-				@Override
-				public String getDescription() {
-					return "Bitmap files (*.bmp)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".jpg";
-				}
+			File [] files = Util.getFile("Export Clade Comparison As (png, jpg, bmp, pdf, svg)", false, new File(m_settings.m_sDir), false,
+					 "Graphics files",
+					 "bmp",
+					 //"JPEG bitmap files (*.jpg)",
+					 "jpg",
+					 //"PNG bitmap files (*.png)",
+					 "png",
+					 //"PDF files (*.pdf)",
+					 "pdf",
+					 //"Standard Vector Graphics files",
+					 "svg");
 
-				@Override
-				public String getDescription() {
-					return "JPEG bitmap files (*.jpg)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".png";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PNG bitmap files (*.png)";
-				}
-			});
-			fc.addChoosableFileFilter(new MyFileFilter() {
-				@Override
-				public String getExtention() {
-					return ".pdf";
-				}
-
-				@Override
-				public String getDescription() {
-					return "PDF files (*.pdf)";
-				}
-			});
-			fc.setDialogTitle("Export Clade Comparison As");			
-			int rval = fc.showSaveDialog(m_Panel);
-			if (rval == JFileChooser.APPROVE_OPTION) {
+			//if (rval == JFileChooser.APPROVE_OPTION) {
+			if (files != null && files.length > 0) {
+				String sFileName = files[0].getPath();
 				// System.out.println("Saving to file \""+
 				// f.getAbsoluteFile().toString()+"\"");
-				String sFileName = fc.getSelectedFile().toString();
+				//String sFileName = fc.getSelectedFile().toString();
 				if (sFileName.lastIndexOf('/') > 0) {
 					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}
 				if (sFileName != null && !sFileName.equals("")) {
-					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
-							|| sFileName.toLowerCase().endsWith(".pdf")
-							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
-						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
-					}
+//					if (!(sFileName.toLowerCase().endsWith(".png") || sFileName.toLowerCase().endsWith(".jpg")
+//							|| sFileName.toLowerCase().endsWith(".pdf")
+//							|| sFileName.toLowerCase().endsWith(".bmp") || sFileName.toLowerCase().endsWith(".svg"))) {
+//						sFileName += ((MyFileFilter) fc.getFileFilter()).getExtention();
+//					}
 
                     if (sFileName.toLowerCase().endsWith(".pdf")) {
                     	exportPDF(sFileName, m_cladeSetComparisonPanel);
@@ -2861,51 +2892,57 @@ public class DensiTree extends JPanel implements ComponentListener {
 
 		@Override
 		public void actionPerformed(ActionEvent ae) {
-			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".kml") || name.endsWith(".kmz")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "KML file with taxon locations";
-				}
-			});
-			fc.addChoosableFileFilter(new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					if (f.isDirectory()) {
-						return true;
-					}
-					String name = f.getName().toLowerCase();
-					if (name.endsWith(".txt") || name.endsWith(".dat")) {
-						return true;
-					}
-					return false;
-				}
-
-				// The description of this filter
-				@Override
-				public String getDescription() {
-					return "text file with taxon locations, tab delimited";
-				}
-			});
-
-			fc.setDialogTitle("Load Geographic Locations");
-			int rval = fc.showOpenDialog(m_Panel);
-
-			if (rval == JFileChooser.APPROVE_OPTION) {
-				String sFileName = fc.getSelectedFile().toString();
+			File [] files = Util.getFile("Load Geographic Locations (kml, kmz)", false, new File(m_settings.m_sDir), false,
+					"KML file with taxon locations", "kml", "kmz");
+			
+//			
+//			JFileChooser fc = new JFileChooser(m_settings.m_sDir);
+//			fc.addChoosableFileFilter(new FileFilter() {
+//				@Override
+//				public boolean accept(File f) {
+//					if (f.isDirectory()) {
+//						return true;
+//					}
+//					String name = f.getName().toLowerCase();
+//					if (name.endsWith(".kml") || name.endsWith(".kmz")) {
+//						return true;
+//					}
+//					return false;
+//				}
+//
+//				// The description of this filter
+//				@Override
+//				public String getDescription() {
+//					return "KML file with taxon locations";
+//				}
+//			});
+//			fc.addChoosableFileFilter(new FileFilter() {
+//				@Override
+//				public boolean accept(File f) {
+//					if (f.isDirectory()) {
+//						return true;
+//					}
+//					String name = f.getName().toLowerCase();
+//					if (name.endsWith(".txt") || name.endsWith(".dat")) {
+//						return true;
+//					}
+//					return false;
+//				}
+//
+//				// The description of this filter
+//				@Override
+//				public String getDescription() {
+//					return "text file with taxon locations, tab delimited";
+//				}
+//			});
+//
+//			fc.setDialogTitle("Load Geographic Locations");
+//			int rval = fc.showOpenDialog(m_Panel);
+//
+//			if (rval == JFileChooser.APPROVE_OPTION) {
+//				String sFileName = fc.getSelectedFile().toString();
+			if (files != null && files.length > 0) {
+				String sFileName = files[0].getPath();
 				if (sFileName.lastIndexOf('/') > 0) {
 					m_settings.m_sDir = sFileName.substring(0, sFileName.lastIndexOf('/'));
 				}

@@ -11,16 +11,19 @@ import org.fest.swing.fixture.JFileChooserFixture;
 import org.fest.swing.image.ScreenshotTaker;
 import org.junit.Test;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
 import viz.DensiTree;
-import viz.panel.BurninPanel;
-import viz.panel.CladePanel;
-import viz.panel.ColorPanel;
-import viz.panel.ExpandablePanel;
-import viz.panel.GeoPanel;
-import viz.panel.GridPanel;
-import viz.panel.LabelPanel;
-import viz.panel.LineWidthPanel;
-import viz.panel.ShowPanel;
+import viz.fxpanel.BurninPanel;
+import viz.fxpanel.CladePanel;
+import viz.fxpanel.ColorPanel;
+import viz.fxpanel.ExpandablePanel;
+import viz.fxpanel.GeoPanel;
+import viz.fxpanel.GridPanel;
+import viz.fxpanel.LabelPanel;
+import viz.fxpanel.LineWidthPanel;
+import viz.fxpanel.ShowPanel;
 import viz.util.Util;
 
 public class DocumentationCreator extends DensiTreeBase {
@@ -64,21 +67,31 @@ public class DocumentationCreator extends DensiTreeBase {
 		dtFrame.button(string + "Button").click();
 		screenshotTaker.saveComponentAsPng(dtFrame.panel(string).target, "doc/screenshots/" + string + ".png");		
 		dtFrame.button(string + "Button").click();
-		createDocumentation(((ExpandablePanel) dtFrame.panel(string).panel().target).m_panel, out);
+		Object o = dtFrame.panel(string).panel().target;
+		createDocumentation(((ExpandablePanel)o).m_panel, out);
 		
 	}
 
 	void createDocumentation(PrintStream out) throws Exception {
 		DensiTree dt = new DensiTree();
 		
-		createDocumentation(new ShowPanel(dt), out);
-		createDocumentation(new GridPanel(dt), out);
-		createDocumentation(new LabelPanel(dt), out);
-		createDocumentation(new GeoPanel(dt), out);
-		createDocumentation(new LineWidthPanel(dt), out);
-		createDocumentation(new ColorPanel(dt), out);
-		createDocumentation(new BurninPanel(dt), out);
-		createDocumentation(new CladePanel(dt), out);
+		JFXPanel listPanel = new JFXPanel();
+		Platform.runLater(() -> {
+		try {
+		    listPanel.setScene(new Scene(new GridPanel(dt)));
+			createDocumentation(new ShowPanel(dt), out);
+			createDocumentation(new GridPanel(dt), out);
+			createDocumentation(new LabelPanel(dt), out);
+			createDocumentation(new GeoPanel(dt), out);
+			createDocumentation(new LineWidthPanel(dt), out);
+			createDocumentation(new ColorPanel(dt), out);
+			createDocumentation(new BurninPanel(dt), out);
+			createDocumentation(new CladePanel(dt), out);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		});
 	}
 	
 	void createDocumentation(Object o, PrintStream out) throws Exception {

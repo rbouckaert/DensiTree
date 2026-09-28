@@ -4,13 +4,16 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
 import java.awt.Color;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JColorChooser;
@@ -43,6 +46,13 @@ public class LabelPanel extends GridPane {
         setHgap(5);
         setVgap(5);
         setPadding(new Insets(5));
+
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(50);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(50);
+
+        getColumnConstraints().addAll(col1, col2);
 
         // Row 0: Width
         Label lblWidth = new Label("Width");
@@ -120,38 +130,30 @@ public class LabelPanel extends GridPane {
         btnFont.setMaxWidth(Double.MAX_VALUE);
         btnFont.setTooltip(createTooltip(HELP_FONT));
         btnFont.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            JFontChooser fontChooser = new JFontChooser();
-	            if (m_dt.m_font != null) {
-	                fontChooser.setSelectedFont(m_dt.m_font);
-	            }
-	            int result = fontChooser.showDialog(null);
-	            if (result == JFontChooser.OK_OPTION) {
-	                m_dt.m_font = fontChooser.getSelectedFont();
-	                m_dt.makeDirty();
-	                m_dt.repaint();
-	            }
-        	});
+        	FontChooserDialog dialog = new FontChooserDialog(m_dt.m_font);
+            Optional<java.awt.Font> result = dialog.showAndWait();
+            result.ifPresent(awtFont -> {
+                m_dt.m_font = awtFont;
+                m_dt.makeDirty();
+                m_dt.repaint();
+            });
         });
         GridPane.setHgrow(btnFont, Priority.ALWAYS);
         add(btnFont, 0, 5);
 
-        Button btnColor = new Button("Color");
-        btnColor.setMaxWidth(Double.MAX_VALUE);
-        btnColor.setTooltip(createTooltip(HELP_COLOR));
-        btnColor.setOnAction(e -> {
-        	SwingUtilities.invokeLater(() -> {
-	            Color newColor = JColorChooser.showDialog(
-	                    m_dt.m_Panel,
-	                    "Label Color",
-	                    m_dt.m_settings.m_color[DensiTree.LABELCOLOR]
-	            );
-	            if (newColor != null) {
-	                m_dt.m_settings.m_color[DensiTree.LABELCOLOR] = newColor;
-	                m_dt.makeDirty();
-	            }
-	            m_dt.repaint();
-        	});
+        
+        java.awt.Color awtColor = m_dt.m_settings.m_color[DensiTree.LABELCOLOR];
+        javafx.scene.paint.Color initialFxColor = ColorPanel.awtToFxColor(awtColor);
+
+        ColorPicker btnColor = new ColorPicker(initialFxColor);
+        btnColor.setTooltip(new Tooltip(HELP_COLOR));
+        btnColor.setOnAction(ex -> {
+            javafx.scene.paint.Color newFxColor = btnColor.getValue();
+            if (newFxColor != null) {
+            	m_dt.m_settings.m_color[DensiTree.LABELCOLOR] = ColorPanel.fxToAwtColor(newFxColor);
+                m_dt.makeDirty();
+            }
+            m_dt.repaint();
         });
         GridPane.setHgrow(btnColor, Priority.ALWAYS);
         add(btnColor, 1, 5);
@@ -189,7 +191,11 @@ public class LabelPanel extends GridPane {
         Button btnLoad = new Button("Load image map");
         btnLoad.setMaxWidth(Double.MAX_VALUE);
         btnLoad.setTooltip(createTooltip(HELP_LOAD));
-        btnLoad.setOnAction(e -> m_dt.loadImages());
+        btnLoad.setOnAction(e -> {
+        	SwingUtilities.invokeLater(() -> {
+        		m_dt.loadImages();
+        	});
+        });
         GridPane.setColumnSpan(btnLoad, 2);
         GridPane.setHgrow(btnLoad, Priority.ALWAYS);
         add(btnLoad, 0, 7);
