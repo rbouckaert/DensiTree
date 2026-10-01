@@ -30,7 +30,7 @@ package viz;
  * Restriction: binary trees only
  * 
  * @author Remco Bouckaert (rrb@xm.co.nz, r.bouckaert@auckland.ac.nz)
- * @version $Revision: 3.0.3 $
+ * @version $Revision: 3.2.0 $
  */
 
 // the magic sentence to look for when releasing:
@@ -100,16 +100,20 @@ import viz.fxpanel.ShowPanel;
 import viz.util.Util;
 
 public class DensiTree extends JPanel implements ComponentListener {
-	final static String VERSION = "3.1.0";
+	final static String VERSION = "3.2.0";
 	final static String FRAME_TITLE = "DensiTree - Tree Set Visualizer";
 //	final static String CITATION = "Remco R. Bouckaert\n"+
 //		"DensiTree: making sense of sets of phylogenetic trees\n"+
 //		"Bioinformatics (2010) 26 (10): 1372-1373.\n"+
 //		"doi: 10.1093/bioinformatics/btq110";
-	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
-			"DensiTree 2: Seeing Trees Through the Forest\n"+
-			"bioRxiv, 2014,\n" +
-			"http://dx.doi.org/10.1101/012401\n";
+//	final static String CITATION = "Remco R. Bouckaert & Joseph Heled\n"+
+//			"DensiTree 2: Seeing Trees Through the Forest\n"+
+//			"bioRxiv, 2014,\n" +
+//			"http://dx.doi.org/10.1101/012401\n";
+	final static String CITATION = "Remco R. Bouckaert\n"+
+			"DensiTree 3: Making sense of pairs of sets of trees\n"+
+			"bioRxiv, 2026,\n" +
+			"https://doi.org/10.64898/2026.09.28.755190\n";
 	static int instances = 1;
 	
 	public Settings m_settings = new Settings();
